@@ -2,6 +2,7 @@
 # output dirs
 libgambatte/java/build/
 libgambatte/java/dist/
+out/
 
 # generated files
 libgambatte/include/mrwint_gbtasgen_Gb.h
@@ -14,6 +15,7 @@ assembly/sml2_10.asm
 assembly/tetris10.asm
 assembly/tetris11.asm
 temp/*
+*.iml
 
 # binary files
 *.o
@@ -23,6 +25,7 @@ temp/*
 
 # logs
 *.log
+log.txt
 
 # hidden files
 .*

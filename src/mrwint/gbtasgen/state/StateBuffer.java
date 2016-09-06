@@ -300,6 +300,10 @@ public class StateBuffer {
 
   public void save(String filename, String suffix) {
     try {
+      File saveDir = new File("saves/");
+      if(!saveDir.exists()) {
+        saveDir.mkdirs();
+      }
       String path = "saves/" + filename + suffix;
       String compressedPath = "saves/" + filename + suffix + ".gz";
       ObjectOutputStream oos = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(compressedPath)));

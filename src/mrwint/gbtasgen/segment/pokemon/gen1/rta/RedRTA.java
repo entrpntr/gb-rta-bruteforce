@@ -27,14 +27,14 @@ public class RedRTA extends SingleGbSegment {
         seq(new OaksParcel());
         save("rta-oaksparcel");
 
-        load("rta-oaksparcel3");
+        load("rta-oaksparcel");
         seq(new ViridianShopping());
-        save("rta-viridianshopping3");
+        save("rta-viridianshopping");
 
-        load("rta-viridianshopping3");
+        load("rta-viridianshopping");
 */
         seq(new NidoFBEE());
-        save("rta-nidoFBEE3");
+        save("rta-nidoFBEE");
 
     }
 

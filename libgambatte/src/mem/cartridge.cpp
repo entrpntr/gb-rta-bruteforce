@@ -677,12 +677,12 @@ void Cartridge::loadSavedata() {
 		if (savestateBuf != NULL) {
 			memcpy(memptrs.rambankdata(), savestateBuf, memptrs.rambankdataend() - memptrs.rambankdata());
 		}
-//		std::ifstream file((sbp + ".sav").c_str(), std::ios::binary | std::ios::in);
+		std::ifstream file((sbp + ".sav").c_str(), std::ios::binary | std::ios::in);
 
-//		if (file.is_open()) {
-//			file.read(reinterpret_cast<char*>(memptrs.rambankdata()), memptrs.rambankdataend() - memptrs.rambankdata());
-//			enforce8bit(memptrs.rambankdata(), memptrs.rambankdataend() - memptrs.rambankdata());
-//		}
+		if (file.is_open()) {
+			file.read(reinterpret_cast<char*>(memptrs.rambankdata()), memptrs.rambankdataend() - memptrs.rambankdata());
+			enforce8bit(memptrs.rambankdata(), memptrs.rambankdataend() - memptrs.rambankdata());
+		}
 	}
 
 	if (hasRtc(memptrs.romdata()[0x147])) {
@@ -701,18 +701,18 @@ void Cartridge::loadSavedata() {
 }
 
 void Cartridge::saveSavedata() {
-	//const std::string &sbp = saveBasePath();
+	const std::string &sbp = saveBasePath();
 
 	if (hasBattery(memptrs.romdata()[0x147])) {
 		if (savestateBuf != NULL)
 			delete[] savestateBuf;
 		savestateBuf = new char[memptrs.rambankdataend() - memptrs.rambankdata()];
 		memcpy(savestateBuf, memptrs.rambankdata(), memptrs.rambankdataend() - memptrs.rambankdata());
-//		std::ofstream file((sbp + ".sav").c_str(), std::ios::binary | std::ios::out);
-//		file.write(reinterpret_cast<const char*>(memptrs.rambankdata()), memptrs.rambankdataend() - memptrs.rambankdata());
+		std::ofstream file((sbp + ".sav").c_str(), std::ios::binary | std::ios::out);
+		file.write(reinterpret_cast<const char*>(memptrs.rambankdata()), memptrs.rambankdataend() - memptrs.rambankdata());
 	}
 
-	/*if (hasRtc(memptrs.romdata()[0x147])) {
+	if (hasRtc(memptrs.romdata()[0x147])) {
 		std::ofstream file((sbp + ".rtc").c_str(), std::ios::binary | std::ios::out);
 		const unsigned long basetime = rtc.getBaseTime();
 
@@ -720,7 +720,7 @@ void Cartridge::saveSavedata() {
 		file.put(basetime >> 16 & 0xFF);
 		file.put(basetime >>  8 & 0xFF);
 		file.put(basetime       & 0xFF);
-	}*/
+	}
 }
 
 static int asHex(const char c) {

@@ -4,11 +4,15 @@ import mrwint.gbtasgen.rom.pokemon.gen1.RedRomInfo;
 import mrwint.gbtasgen.segment.SingleGbSegment;
 import mrwint.gbtasgen.util.SingleGbRunner;
 
+import java.io.IOException;
+
 public class RedRTA extends SingleGbSegment {
 
     @Override
     protected void execute() {
-        seq(new OakSpeech());
+        seq(new ContinueFromSave());
+//        save("rta-testsav");
+/*        seq(new OakSpeech());
         save("rta-oakspeech");
 
         load("rta-oakspeech");
@@ -23,16 +27,18 @@ public class RedRTA extends SingleGbSegment {
         seq(new OaksParcel());
         save("rta-oaksparcel");
 
-        load("rta-oaksparcel");
+        load("rta-oaksparcel3");
         seq(new ViridianShopping());
-        save("rta-viridianshopping");
+        save("rta-viridianshopping3");
 
-        load("rta-viridianshopping");
+        load("rta-viridianshopping3");
+*/
         seq(new NidoFBEE());
-        save("rta-nidoFBEE");
+        save("rta-nidoFBEE3");
+
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         SingleGbRunner.run(new RedRomInfo(), new RedRTA());
     }
 }

@@ -18,7 +18,7 @@ import mrwint.gbtasgen.state.StateBuffer;
 public class NidoFBEE extends SeqSegment {
     @Override
     public void execute() {
-        seq(Segment.press(Move.START)); // open menu
+/*        seq(Segment.press(Move.START)); // open menu
         for(int i=0;i<3;i++) {
             seqMove(new PressButton(Move.UP, Metric.PRESSED_JOY)); // move to "save"
         }
@@ -30,7 +30,7 @@ public class NidoFBEE extends SeqSegment {
         seqButtonNoDelay(Move.UP | Move.SELECT | Move.B);
         seqButtonNoDelay(Move.A);
         seqButtonNoDelay(Move.START);
-        seqButtonNoDelay(Move.A);
+        seqButtonNoDelay(Move.A); */
 /*
         seqMove(new WalkStep(Move.LEFT, false));
         seqMove(new WalkStep(Move.LEFT, false));

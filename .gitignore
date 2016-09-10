@@ -16,6 +16,8 @@ assembly/tetris10.asm
 assembly/tetris11.asm
 temp/*
 *.iml
+logs/*
+oldrngdata/*
 
 # binary files
 *.o
@@ -26,6 +28,8 @@ temp/*
 # logs
 *.log
 log.txt
+*_encounters*.txt
+*_statesimport*.txt
 
 # hidden files
 .*

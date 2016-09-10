@@ -117,7 +117,7 @@ public:
 };
 
 bool GambatteSdl::init(const char* romName) {
-	std::printf("Gambatte SDL SVN\n");
+	//std::printf("Gambatte SDL SVN\n");
 
 	keepRunning = true;
 	
@@ -140,11 +140,11 @@ bool GambatteSdl::init(const char* romName) {
 
 		{
 			PakInfo const &pak = gambatte.pakInfo();
-			std::puts(gambatte.romTitle().c_str());
-			std::printf("GamePak type: %s rambanks: %u rombanks: %u\n",
-			            pak.mbc().c_str(), pak.rambanks(), pak.rombanks());
-			std::printf("header checksum: %s\n", pak.headerChecksumOk() ? "ok" : "bad");
-			std::printf("cgb: %d\n", gambatte.isCgb());
+			//std::puts(gambatte.romTitle().c_str());
+			//std::printf("GamePak type: %s rambanks: %u rombanks: %u\n",
+			 //           pak.mbc().c_str(), pak.rambanks(), pak.rombanks());
+			//std::printf("header checksum: %s\n", pak.headerChecksumOk() ? "ok" : "bad");
+			//std::printf("cgb: %d\n", gambatte.isCgb());
 		}
 
 		unsigned const gbbuts[8] = {
@@ -230,8 +230,8 @@ void GambatteSdl::step() {
 		unsigned emusamples = SAMPLES_PER_FRAME - overflowSamples;
 		if (gambatte.runFor(vbuf.pixels, vbuf.pitch,
 				reinterpret_cast<gambatte::uint_least32_t*>(inBuf.get()), emusamples) >= 0) {
-			sdl.blitter.draw();
-			sdl.blitter.present();
+			//sdl.blitter.draw();
+			//sdl.blitter.present();
 		}
 
 		overflowSamples += emusamples;

@@ -192,7 +192,7 @@ public class NidoBot {
 		// Init gambatte with 1 screen
 		Gb.loadGambatte(1);
 
-		for (int hops = minHops; hops < maxHops; hops++) {
+		for (int hops = minHops; hops <= maxHops; hops++) {
 
 			// config
 

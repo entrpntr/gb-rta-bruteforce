@@ -146,18 +146,29 @@ public class NidoBot {
 
 	// Config
 
-	public static final int maxAPresses = 2;
+	public static final int maxAPresses = 3;
 	public static final int minAPresses = 0;
 	public static int hops = 0;
 	public static final String gameName = "red";
-	public static final boolean checkExtraStepStartingPoints = false;
+	public static final boolean checkExtraStepStartingPoints = true;
 	public static final int godDefenseDV = 15;
 	public static final int godSpecialDV = 15;
-	public static final int maxCostAtStart = 400;
-	public static final int maxCostOfPath = 550;
-	public static final int maxStepsInGrass = 15;
+	public static final int maxCostAtStart = 999999;
+	public static final int maxCostOfPath = 999999;
+	public static final int maxStepsInGrassArea = 50;
 
 	public static void main(String[] args) throws IOException {
+	    
+	    // Make folder if necessary
+	    if(!new File("logs").exists()) {
+	        new File("logs").mkdir();
+	    }
+	    
+	    if(!new File("roms").exists()) {
+            new File("roms").mkdir();
+            System.err.println("I need ROMs to simulate!");
+            System.exit(0);
+        }
 	    
 	    // Check byte buffer limits
 	    int maxBuffers = 0;
@@ -433,7 +444,7 @@ public class NidoBot {
 								int oogDir = LEFT;
 								ByteBuffer curState = peg.savedState;
 								gb.loadState(curState);
-								int maxSteps = (maxCostOfPath - pathCost) / 17;
+								int maxSteps = Math.min((maxCostOfPath - pathCost) / 17, maxStepsInGrassArea);
 								for (int step = 0; step < maxSteps; step++) {
 									int numSteps = step + 1;
 									if (step % 2 == 1) {

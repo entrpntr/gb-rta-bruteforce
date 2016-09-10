@@ -148,7 +148,8 @@ public class NidoBot {
 
 	public static final int maxAPresses = 3;
 	public static final int minAPresses = 0;
-	public static int hops = 0;
+	public static final int minHops = 0;
+	public static final int maxHops = 4;
 	public static final String gameName = "red";
 	public static final boolean checkExtraStepStartingPoints = true;
 	public static final int godDefenseDV = 15;
@@ -191,7 +192,7 @@ public class NidoBot {
 		// Init gambatte with 1 screen
 		Gb.loadGambatte(1);
 
-		for (hops = 1; hops < 3; hops++) {
+		for (int hops = minHops; hops < maxHops; hops++) {
 
 			// config
 

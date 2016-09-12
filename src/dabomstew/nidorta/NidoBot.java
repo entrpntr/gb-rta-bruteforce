@@ -110,7 +110,9 @@ public class NidoBot {
     static final int joypadOverworldAddr = 0x0F4D;
     static final int printLetterDelayAddr = 0x38D3;
     static final int newBattleAddr = 0x0683;
-    public static final int[] hopCosts = { 0, 130, 190, 299, 447 };
+    static final int delayAtEndOfShootingStarAddr = 0x418CB;
+    public static final int[] hopCosts = { 0, 131, 190, 0, 298, 447 };
+    public static final int gamefreakStallFrameCost = 254;
     public static Map<String, Integer> encountersCosts;
     public static Map<String, Integer> startPositionsCosts;
     public static Map<String, List<String>> startPositionsEncs;
@@ -147,10 +149,11 @@ public class NidoBot {
 
     // Config
 
-    public static final int maxAPresses = 4;
+    public static final int maxAPresses = 3;
     public static final int minAPresses = 0;
-    public static final int minHops = 0;
-    public static final int maxHops = 4;
+    public static int minHops = 0;
+    public static int maxHops = 4;
+    public static final boolean doGamefreakStallIntro = false;
     public static final String gameName = "red";
     public static final boolean checkExtraStepStartingPoints = true;
     public static final int godDefenseDV = 15;
@@ -193,11 +196,19 @@ public class NidoBot {
         // Init gambatte with 1 screen
         Gb.loadGambatte(numEncounterThreads);
 
+        if (doGamefreakStallIntro) {
+            minHops = 0;
+            maxHops = 0;
+        }
+
         for (int hops = minHops; hops <= maxHops; hops++) {
 
             // config
 
             runName = "nopalette_" + gameName + "_hop_" + hops;
+            if (doGamefreakStallIntro) {
+                runName = "nopalette_" + gameName + "_stall";
+            }
             initLog();
 
             int[] firstLoopAddresses = { joypadOverworldAddr };
@@ -297,7 +308,11 @@ public class NidoBot {
                         logLN("not checking extra steps for now");
                         continue;
                     }
-                    baseCost += hopCosts[hops];
+                    if (doGamefreakStallIntro) {
+                        baseCost += gamefreakStallFrameCost;
+                    } else {
+                        baseCost += hopCosts[hops];
+                    }
 
                     ps.printf("Starting position: map %d x %d y %d cost %d\n", pos.map, pos.x, pos.y, baseCost);
                     logF("testing starting position x=%d y=%d map=%d cost=%d\n", pos.x, pos.y, pos.map, baseCost);
@@ -334,22 +349,33 @@ public class NidoBot {
                         GBMemory mem = mems[0];
                         NidoGBWrapper wrap = wraps[0];
                         int introInputCtr = 0;
-                        int[] introInputs = { B | SELECT | UP, B | SELECT | UP, START, A, A };
-                        if (hops > 0) {
-                            introInputs = new int[] { A, START, A, START | A, START | A };
-                        }
-                        while (introInputCtr < 5) {
-                            wrap.advanceToAddress(joypadAddr);
-                            // inject intro inputs
-                            wrap.injectInput(introInputs[introInputCtr++]);
-                            wrap.advanceFrame();
-                            if (introInputCtr == 1) {
-                                // hops?
-                                for (int h = 0; h < hops; h++) {
-                                    // find an AnimateNidorino
-                                    wrap.advanceToAddress(animateNidorinoAddr);
-                                    // find a CheckForUserInterruption
-                                    wrap.advanceToAddress(checkInterruptAddr);
+                        if (doGamefreakStallIntro) {
+                            wrap.advanceToAddress(delayAtEndOfShootingStarAddr);
+                            int[] introInputs = { B | SELECT | UP, START, A, A };
+                            while (introInputCtr < 4) {
+                                wrap.advanceToAddress(joypadAddr);
+                                // inject intro inputs
+                                wrap.injectInput(introInputs[introInputCtr++]);
+                                wrap.advanceFrame();
+                            }
+                        } else {
+                            int[] introInputs = { B | SELECT | UP, B | SELECT | UP, START, A, A };
+                            if (hops > 0) {
+                                introInputs = new int[] { A, START, A, START | A, START | A };
+                            }
+                            while (introInputCtr < 5) {
+                                wrap.advanceToAddress(joypadAddr);
+                                // inject intro inputs
+                                wrap.injectInput(introInputs[introInputCtr++]);
+                                wrap.advanceFrame();
+                                if (introInputCtr == 1) {
+                                    // hops?
+                                    for (int h = 0; h < hops; h++) {
+                                        // find an AnimateNidorino
+                                        wrap.advanceToAddress(animateNidorinoAddr);
+                                        // find a CheckForUserInterruption
+                                        wrap.advanceToAddress(checkInterruptAddr);
+                                    }
                                 }
                             }
                         }

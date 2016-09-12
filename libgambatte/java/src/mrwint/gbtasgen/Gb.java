@@ -130,6 +130,14 @@ public class Gb {
     getMemory(gb, memory);
     return memory;
   }
+  
+  private static final int INTERESTING_MEMORY = 27;
+  private static native void getInterestingMemory(long gb, int[] store);
+  public int[] getInterestingMemory() {
+    int[] memory = new int[INTERESTING_MEMORY];
+    getInterestingMemory(gb, memory);
+    return memory;
+  }
 
   private static native int readMemory(long gb, int address);
   public int readMemory(int address) {

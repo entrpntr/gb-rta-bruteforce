@@ -622,6 +622,29 @@ JNIEXPORT void JNICALL Java_mrwint_gbtasgen_Gb_getMemory
   env->ReleaseIntArrayElements(arr, mem_store, 0);
 }
 
+JNIEXPORT void JNICALL Java_mrwint_gbtasgen_Gb_getInterestingMemory
+    (JNIEnv *env, jclass clazz, jlong gb, jintArray arr){
+  UNUSED(env);UNUSED(clazz);UNUSED(arr);
+
+  jint *mem_store = env->GetIntArrayElements(arr, 0);
+  
+  for(int i=0;i<0x10;i++)
+	  mem_store[i] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xc208 + i*0x10);
+  
+  mem_store[0x10] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xCC4B);
+  mem_store[0x11] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xD362);
+  mem_store[0x12] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xD361);
+  mem_store[0x13] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xD35E);
+  mem_store[0x14] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xFFD3);
+  mem_store[0x15] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xFFD4);
+  mem_store[0x16] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xD057);
+  mem_store[0x17] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xCFE5);
+  mem_store[0x18] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xCFF3);
+  mem_store[0x19] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xCFF1);
+  mem_store[0x1A] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xCFF2);
+  env->ReleaseIntArrayElements(arr, mem_store, 0);
+}
+
 // readMemory
 JNIEXPORT jint JNICALL Java_mrwint_gbtasgen_Gb_readMemory
     (JNIEnv *env, jclass clazz, jlong gb, jint address){

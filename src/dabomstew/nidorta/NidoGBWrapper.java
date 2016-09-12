@@ -1,11 +1,15 @@
 package dabomstew.nidorta;
 
+import mrwint.gbtasgen.Gb;
+
 public class NidoGBWrapper {
 	
 	private GBMemory mem;
+	private Gb gb;
 	
-	public NidoGBWrapper(GBMemory mem) {
+	public NidoGBWrapper(Gb gb, GBMemory mem) {
 		this.mem = mem;
+		this.gb = gb;
 	}
 	
 	public int advanceToAddress(int... addresses) {
@@ -13,10 +17,10 @@ public class NidoGBWrapper {
 		int runs = 0;
 		while(result == 0) {
 			if(addresses.length == 0) {
-				result = NidoBot.gb.step(0);
+				result = gb.step(0);
 			}
 			else {
-				result = NidoBot.gb.step(0, addresses);
+				result = gb.step(0, addresses);
 			}
 			runs++;
 //			try {
@@ -34,12 +38,12 @@ public class NidoGBWrapper {
 	}
 
 	public void writeMemory(int address, int value) {
-		NidoBot.gb.writeMemory(address, value);
+		gb.writeMemory(address, value);
 		mem.setStale();
 	}
 
 	public void advanceFrame() {
-		NidoBot.gb.step(0);
+		gb.step(0);
 		mem.setStale();
 	}
 

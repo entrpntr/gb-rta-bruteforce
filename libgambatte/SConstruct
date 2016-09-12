@@ -1,6 +1,8 @@
 import sys
 
 global_cflags = ARGUMENTS.get('CFLAGS', '-Wall -Wextra -O2 -fomit-frame-pointer')
+if sys.platform == 'cygwin':
+    global_cflags += ' -fpermissive'
 global_cxxflags = ARGUMENTS.get('CXXFLAGS', global_cflags + ' -fno-exceptions -fno-rtti')
 global_defines = ' -DHAVE_STDINT_H'
 if sys.platform == 'darwin':

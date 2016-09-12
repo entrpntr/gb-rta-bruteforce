@@ -151,7 +151,13 @@ public class Gb {
 
 
   public static void loadGambatte(int numScreens){
-    System.loadLibrary("gambatte");
+      if(System.getProperty("os.name").toLowerCase().contains("win")) {
+          System.loadLibrary("cyggambatte");
+      }
+      else {
+          System.loadLibrary("gambatte");
+      }
+    
     initSdl(numScreens);
   }
 

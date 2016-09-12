@@ -24,6 +24,8 @@ oldrngdata/*
 *.os
 *.so
 *.dylib
+*.dll
+*.dll.a
 
 # logs
 *.log

@@ -20,9 +20,9 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.ConcurrentHashMap;
 
 import mrwint.gbtasgen.Gb;
-import sun.misc.Lock;
 
 public class NidoBot {
 
@@ -104,14 +104,16 @@ public class NidoBot {
 
     public static boolean[] godStats;
     private static String runName;
-    private static final int joypadAddr = 0x019A;
-    private static final int animateNidorinoAddr = 0x41793;
-    private static final int checkInterruptAddr = 0x12F8;
-    private static final int joypadOverworldAddr = 0x0F4D;
-    private static final int printLetterDelayAddr = 0x38D3;
-    private static final int newBattleAddr = 0x0683;
+    static final int joypadAddr = 0x019A;
+    static final int animateNidorinoAddr = 0x41793;
+    static final int checkInterruptAddr = 0x12F8;
+    static final int joypadOverworldAddr = 0x0F4D;
+    static final int printLetterDelayAddr = 0x38D3;
+    static final int newBattleAddr = 0x0683;
     public static final int[] hopCosts = { 0, 130, 190, 299, 447 };
-    
+    public static Map<String, Integer> encountersCosts;
+    public static Map<String, Integer> startPositionsCosts;
+    public static Map<String, List<String>> startPositionsEncs;
 
     public static int aCount(String path, int plen) {
         int ctr = 0;
@@ -145,7 +147,7 @@ public class NidoBot {
 
     // Config
 
-    public static final int maxAPresses = 3;
+    public static final int maxAPresses = 4;
     public static final int minAPresses = 0;
     public static final int minHops = 0;
     public static final int maxHops = 4;
@@ -155,8 +157,8 @@ public class NidoBot {
     public static final int godSpecialDV = 15;
     public static final int maxCostAtStart = 999999;
     public static final int maxCostOfPath = 999999;
-    public static final int maxStepsInGrassArea = 50;
-    public static final int numEncounterThreads = 2;
+    public static final int maxStepsInGrassArea = 35;
+    public static final int numEncounterThreads = 3;
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -227,9 +229,9 @@ public class NidoBot {
             spm.excludeNpc(70, 187); // mart guy
             spm.excludeRect(64, 176, 75, 177); // too many extra steps
             spm.excludeRect(72, 178, 75, 181); // likewise
-            Map<String, Integer> encountersCosts = new HashMap<>();
-            Map<String, Integer> startPositionsCosts = new HashMap<>();
-            Map<String, List<String>> startPositionsEncs = new HashMap<>();
+            encountersCosts = new ConcurrentHashMap<>();
+            startPositionsCosts = new ConcurrentHashMap<>();
+            startPositionsEncs = new ConcurrentHashMap<>();
 
             // god nidos
             godStats = new boolean[65536];
@@ -287,8 +289,6 @@ public class NidoBot {
                 new File(logFilename).delete();
             }
             PrintStream ps = new PrintStream(logFilename, "UTF-8");
-            
-            
 
             for (Position pos : spm) {
                 try {
@@ -446,13 +446,11 @@ public class NidoBot {
 
                     long lastOffset = System.currentTimeMillis();
                     {
-                        Lock lck = new Lock();
                         Iterator<PositionEnteringGrass> grassEncs = endPositions.iterator();
                         boolean[] threadsRunning = new boolean[numEncounterThreads];
                         while (grassEncs.hasNext()) {
 
-                            lck.lock();
-                            try {
+                            synchronized (threadsRunning) {
                                 int useNum = -1;
                                 for (int i = 0; i < numEncounterThreads; i++) {
                                     if (!threadsRunning[i]) {
@@ -462,166 +460,26 @@ public class NidoBot {
                                 }
 
                                 if (useNum != -1) {
-                                    final int useIdx = useNum;
-                                    final int bCost = baseCost;
-                                    threadsRunning[useIdx] = true;
+                                    threadsRunning[useNum] = true;
                                     // Start a new Thread
-                                    Runnable run = new Runnable() {
-
-                                        private PositionEnteringGrass peg = grassEncs.next();
-                                        private Gb gb = gbs[useIdx];
-                                        private GBMemory mem = mems[useIdx];
-                                        private NidoGBWrapper wrap = wraps[useIdx];
-
-                                        public void run() {
-                                            try {
-                                                int pathACost = aCount(peg.path, peg.path.length()) * 2;
-                                                int pathCost = bCost + pathACost;
-                                                if (pathCost >= maxCostOfPath) {
-                                                    return;
-                                                }
-                                                if (!startPositionsCosts.containsKey(peg.rngState)) {
-                                                    startPositionsCosts.put(peg.rngState, pathCost);
-                                                    startPositionsEncs.put(peg.rngState, new ArrayList<String>());
-                                                    int oogDir = LEFT;
-                                                    ByteBuffer curState = peg.savedState;
-                                                    gb.loadState(curState);
-                                                    int maxSteps = Math.min((maxCostOfPath - pathCost) / 17,
-                                                            maxStepsInGrassArea);
-                                                    for (int step = 0; step < maxSteps; step++) {
-                                                        int numSteps = step + 1;
-                                                        if (step % 2 == 1) {
-                                                            numSteps++;
-                                                        }
-                                                        int stepsFrameCost = numSteps * 17;
-
-                                                        if (pathCost + stepsFrameCost >= maxCostOfPath) {
-                                                            // too long, not
-                                                            // interested
-                                                            break;
-                                                        }
-                                                        // first try stepping
-                                                        // into
-                                                        // the grass
-                                                        wrap.injectInput(UP);
-                                                        wrap.advanceToAddress(newBattleAddr);
-
-                                                        // encounter found?
-                                                        if (mem.getHRA() >= 0 && mem.getHRA() <= 5) { // 24
-                                                            // ok got possible
-                                                            // FFEF
-                                                            // encounter, note
-                                                            // what it is
-                                                            String rngAtEnc = getRNGState(gb, mem);
-                                                            wrap.advanceFrame();
-                                                            wrap.advanceFrame();
-                                                            Encounter enc = new Encounter(mem.getEncounterSpecies(),
-                                                                    mem.getEncounterLevel(), mem.getEncounterDVs(),
-                                                                    getRNGStateHRAOnly(gb, mem));
-
-                                                            int totalEncCost = pathCost + stepsFrameCost;
-                                                            String encRep = enc.toString();
-                                                            startPositionsEncs.get(peg.rngState).add(
-                                                                    encRep + "/" + stepsFrameCost + "/" + rngAtEnc
-                                                                            + "/" + step);
-
-                                                            if (!encountersCosts.containsKey(encRep)
-                                                                    || encountersCosts.get(encRep) > totalEncCost) {
-                                                                ps.printf(
-                                                                        "inputs %s step %d cost %d encounter: species %d lv%d DVs %04X rng %s encrng %s\n",
-                                                                        peg.path, step + 1, totalEncCost, enc.species,
-                                                                        enc.level, enc.dvs, enc.battleRNG, rngAtEnc);
-                                                                encountersCosts.put(encRep, totalEncCost);
-                                                            }
-
-                                                            if (enc.species == 3 && enc.level == 4 && godStats[enc.dvs]) {
-                                                                logLN("POTENTIAL GOD NIDO FOUND!");
-                                                                logF("inputs %s step %d cost %d encounter: species %d lv%d DVs %04X rng %s encrng %s\n",
-                                                                        peg.path, step + 1, totalEncCost, enc.species,
-                                                                        enc.level, enc.dvs, enc.battleRNG, rngAtEnc);
-                                                            }
-                                                        }
-
-                                                        // progress
-                                                        gb.loadState(curState);
-                                                        wrap.injectInput(oogDir);
-                                                        // skip past OJP we just
-                                                        // hit, and then reach
-                                                        // next one
-                                                        wrap.advanceFrame();
-                                                        wrap.advanceToAddress(joypadOverworldAddr);
-                                                        // state save for next
-                                                        // loop
-                                                        curState = gb.saveState();
-                                                        // change out-of-grass
-                                                        // walking direction?
-                                                        if (mem.getX() == 30 && oogDir == LEFT) {
-                                                            oogDir = RIGHT;
-                                                        } else if (mem.getX() == 33 && oogDir == RIGHT) {
-                                                            oogDir = LEFT;
-                                                        }
-                                                    }
-                                                } else if (pathCost < startPositionsCosts.get(peg.rngState)) {
-                                                    // Don't retest, but do
-                                                    // reconsider encounters
-                                                    startPositionsCosts.put(peg.rngState, pathCost);
-                                                    for (String stateEnc : startPositionsEncs.get(peg.rngState)) {
-                                                        String[] encBits = stateEnc.split("\\/");
-                                                        int cost = Integer.parseInt(encBits[4]);
-                                                        int step = Integer.parseInt(encBits[6]);
-                                                        String encRep = encBits[0] + "/" + encBits[1] + "/"
-                                                                + encBits[2] + "/" + encBits[3];
-                                                        int totalEncCost = pathCost + cost;
-                                                        if (encountersCosts.get(encRep) > totalEncCost) {
-                                                            ps.printf(
-                                                                    "inputs %s step %d cost %d encounter: species %s lv%s DVs %s rng %s encrng %s\n",
-                                                                    peg.path, step + 1, totalEncCost, encBits[0],
-                                                                    encBits[1], encBits[2], encBits[3], encBits[5]);
-                                                            encountersCosts.put(encRep, totalEncCost);
-                                                        }
-                                                    }
-
-                                                }
-                                            } finally {
-                                                try {
-                                                    lck.lock();
-                                                    try {
-                                                        threadsRunning[useIdx] = false;
-                                                    }
-                                                    finally {
-                                                        lck.unlock();
-                                                    }
-                                                } catch (InterruptedException e) {
-                                                }
-                                                
-                                            }
-
-                                        }
-
-                                    };
-                                    new Thread(run).start();
+                                    new EncounterCheckThread(grassEncs.next(), gbs[useNum], mems[useNum],
+                                            wraps[useNum], baseCost, ps, threadsRunning, useNum).start();
                                 }
-                            } finally {
-                                lck.unlock();
                             }
-                            Thread.sleep(50);
+                            Thread.sleep(1);
                         }
-                        
+
                         boolean allDone = false;
-                        while(!allDone) {
-                            lck.lock();
-                            try {
+                        while (!allDone) {
+                            synchronized (threadsRunning) {
                                 allDone = true;
-                                for(int i=0;i<numEncounterThreads;i++) {
-                                    if(threadsRunning[i]) {
+                                for (int i = 0; i < numEncounterThreads; i++) {
+                                    if (threadsRunning[i]) {
                                         allDone = false;
                                     }
                                 }
                             }
-                            finally {
-                                lck.unlock();
-                            }
-                            Thread.sleep(50);
+                            Thread.sleep(5);
                         }
                     }
 

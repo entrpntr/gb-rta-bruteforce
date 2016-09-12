@@ -111,7 +111,7 @@ public class NidoBot {
     static final int printLetterDelayAddr = 0x38D3;
     static final int newBattleAddr = 0x0683;
     static final int delayAtEndOfShootingStarAddr = 0x418CB;
-    public static final int[] hopCosts = { 0, 131, 190, 0, 298, 447 };
+    public static final int[] hopCosts = { 0, 131, 190, 298, 447 };
     public static final int gamefreakStallFrameCost = 254;
     public static Map<String, Integer> encountersCosts;
     public static Map<String, Integer> startPositionsCosts;

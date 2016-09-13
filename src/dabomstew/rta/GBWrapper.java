@@ -1,13 +1,13 @@
-package dabomstew.nidorta;
+package dabomstew.rta;
 
 import mrwint.gbtasgen.Gb;
 
-public class NidoGBWrapper {
+public class GBWrapper {
 	
 	private GBMemory mem;
 	private Gb gb;
 	
-	public NidoGBWrapper(Gb gb, GBMemory mem) {
+	public GBWrapper(Gb gb, GBMemory mem) {
 		this.mem = mem;
 		this.gb = gb;
 	}

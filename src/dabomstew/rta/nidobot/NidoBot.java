@@ -1,4 +1,4 @@
-package dabomstew.nidorta;
+package dabomstew.rta.nidobot;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,6 +23,11 @@ import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 
 import mrwint.gbtasgen.Gb;
+import dabomstew.rta.Addresses;
+import dabomstew.rta.FileFunctions;
+import dabomstew.rta.GBMemory;
+import dabomstew.rta.GBWrapper;
+import dabomstew.rta.Position;
 
 public class NidoBot {
 
@@ -104,13 +109,7 @@ public class NidoBot {
 
     public static boolean[] godStats;
     private static String runName;
-    static final int joypadAddr = 0x019A;
-    static final int animateNidorinoAddr = 0x41793;
-    static final int checkInterruptAddr = 0x12F8;
-    static final int joypadOverworldAddr = 0x0F4D;
-    static final int printLetterDelayAddr = 0x38D3;
-    static final int newBattleAddr = 0x0683;
-    static final int delayAtEndOfShootingStarAddr = 0x418CB;
+    
     public static final int[] hopCosts = { 0, 131, 190, 298, 447 };
     public static final int gamefreakStallFrameCost = 254;
     public static Map<String, Integer> encountersCosts;
@@ -154,7 +153,7 @@ public class NidoBot {
     public static int minHops = 0;
     public static int maxHops = 4;
     public static final boolean doGamefreakStallIntro = false;
-    public static final String gameName = "red";
+    public static final String gameName = "blue";
     public static final boolean checkExtraStepStartingPoints = true;
     public static final int godDefenseDV = 15;
     public static final int godSpecialDV = 15;
@@ -211,8 +210,8 @@ public class NidoBot {
             }
             initLog();
 
-            int[] firstLoopAddresses = { joypadOverworldAddr };
-            int[] subsLoopAddresses = { joypadOverworldAddr, printLetterDelayAddr };
+            int[] firstLoopAddresses = { Addresses.joypadOverworldAddr };
+            int[] subsLoopAddresses = { Addresses.joypadOverworldAddr, Addresses.printLetterDelayAddr };
 
             // setup starting positions
             // Compile starting positions
@@ -248,7 +247,7 @@ public class NidoBot {
             godStats = new boolean[65536];
             for (int defDV = godDefenseDV; defDV <= 15; defDV++) {
                 for (int spcDV = godSpecialDV; spcDV <= 15; spcDV++) {
-                    for (int variance = -8; variance < 9; variance++) {
+                    for (int variance = -8; variance < 3; variance++) {
                         int atkDef = (0xF0 + defDV + variance) & 0xFF;
                         int speSpc = (0xE0 + spcDV + variance) & 0xFF;
                         godStats[(atkDef << 8) | speSpc] = true;
@@ -332,14 +331,14 @@ public class NidoBot {
 
                     Gb[] gbs = new Gb[numEncounterThreads];
                     GBMemory[] mems = new GBMemory[numEncounterThreads];
-                    NidoGBWrapper[] wraps = new NidoGBWrapper[numEncounterThreads];
+                    GBWrapper[] wraps = new GBWrapper[numEncounterThreads];
 
                     for (int i = 0; i < numEncounterThreads; i++) {
                         gbs[i] = new Gb(i, false);
                         gbs[i].startEmulator("roms/" + gameName + ".gb");
                         gbs[i].step(0); // let gambatte initialize itself
                         mems[i] = new GBMemory(gbs[i]);
-                        wraps[i] = new NidoGBWrapper(gbs[i], mems[i]);
+                        wraps[i] = new GBWrapper(gbs[i], mems[i]);
                     }
 
                     Set<PositionEnteringGrass> endPositions = new HashSet<PositionEnteringGrass>();
@@ -347,13 +346,13 @@ public class NidoBot {
                     {
                         Gb gb = gbs[0];
                         GBMemory mem = mems[0];
-                        NidoGBWrapper wrap = wraps[0];
+                        GBWrapper wrap = wraps[0];
                         int introInputCtr = 0;
                         if (doGamefreakStallIntro) {
-                            wrap.advanceToAddress(delayAtEndOfShootingStarAddr);
+                            wrap.advanceToAddress(Addresses.delayAtEndOfShootingStarAddr);
                             int[] introInputs = { B | SELECT | UP, START, A, A };
                             while (introInputCtr < 4) {
-                                wrap.advanceToAddress(joypadAddr);
+                                wrap.advanceToAddress(Addresses.joypadAddr);
                                 // inject intro inputs
                                 wrap.injectInput(introInputs[introInputCtr++]);
                                 wrap.advanceFrame();
@@ -364,7 +363,7 @@ public class NidoBot {
                                 introInputs = new int[] { A, START, A, START | A, START | A };
                             }
                             while (introInputCtr < 5) {
-                                wrap.advanceToAddress(joypadAddr);
+                                wrap.advanceToAddress(Addresses.joypadAddr);
                                 // inject intro inputs
                                 wrap.injectInput(introInputs[introInputCtr++]);
                                 wrap.advanceFrame();
@@ -372,9 +371,9 @@ public class NidoBot {
                                     // hops?
                                     for (int h = 0; h < hops; h++) {
                                         // find an AnimateNidorino
-                                        wrap.advanceToAddress(animateNidorinoAddr);
+                                        wrap.advanceToAddress(Addresses.animateNidorinoAddr);
                                         // find a CheckForUserInterruption
-                                        wrap.advanceToAddress(checkInterruptAddr);
+                                        wrap.advanceToAddress(Addresses.checkInterruptAddr);
                                     }
                                 }
                             }
@@ -396,7 +395,7 @@ public class NidoBot {
                             int result = wrap.advanceToAddress(addresses);
                             String curState = getUniqid(gb, mem);
 
-                            boolean garbage = mem.getTurnFrameStatus() != 0 || result != joypadOverworldAddr;
+                            boolean garbage = mem.getTurnFrameStatus() != 0 || result != Addresses.joypadOverworldAddr;
                             if (!garbage && lastInput != 0 && lastInput != A) {
                                 if (mem.getX() == startX && mem.getY() == startY) {
                                     garbage = true;

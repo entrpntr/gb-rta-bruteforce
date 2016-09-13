@@ -1,10 +1,14 @@
-package dabomstew.nidorta;
+package dabomstew.rta.nidobot;
 
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 import mrwint.gbtasgen.Gb;
+import dabomstew.rta.Addresses;
+import dabomstew.rta.Encounter;
+import dabomstew.rta.GBMemory;
+import dabomstew.rta.GBWrapper;
 
 public class EncounterCheckThread extends Thread {
 
@@ -21,13 +25,13 @@ public class EncounterCheckThread extends Thread {
     private PositionEnteringGrass peg;
     private Gb gb;
     private GBMemory mem;
-    private NidoGBWrapper wrap;
+    private GBWrapper wrap;
     private int bCost;
     private PrintStream ps;
     private boolean[] threadsRunning;
     private int useIdx;
 
-    public EncounterCheckThread(PositionEnteringGrass peg, Gb gb, GBMemory mem, NidoGBWrapper wrap, int bCost,
+    public EncounterCheckThread(PositionEnteringGrass peg, Gb gb, GBMemory mem, GBWrapper wrap, int bCost,
             PrintStream ps, boolean[] threadsRunning, int useIdx) {
         this.peg = peg;
         this.gb = gb;
@@ -70,10 +74,10 @@ public class EncounterCheckThread extends Thread {
                     // into
                     // the grass
                     wrap.injectInput(UP);
-                    wrap.advanceToAddress(NidoBot.newBattleAddr);
+                    wrap.advanceToAddress(Addresses.newBattleAddr);
 
                     // encounter found?
-                    if (mem.getHRA() >= 0 && mem.getHRA() <= 5) { // 24
+                    if (mem.getHRA() >= 0 && mem.getHRA() <= 24) { // 24
                         // ok got possible
                         // FFEF encounter,
                         // note what it is
@@ -114,7 +118,7 @@ public class EncounterCheckThread extends Thread {
                     // hit, and then reach
                     // next one
                     wrap.advanceFrame();
-                    wrap.advanceToAddress(NidoBot.joypadOverworldAddr);
+                    wrap.advanceToAddress(Addresses.joypadOverworldAddr);
                     // state save for next
                     // loop
                     curState = gb.saveState();

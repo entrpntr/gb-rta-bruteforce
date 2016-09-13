@@ -1,4 +1,4 @@
-package dabomstew.nidorta;
+package dabomstew.rta;
 
 import mrwint.gbtasgen.Gb;
 

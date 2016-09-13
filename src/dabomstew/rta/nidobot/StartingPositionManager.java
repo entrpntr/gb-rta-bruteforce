@@ -1,8 +1,10 @@
-package dabomstew.nidorta;
+package dabomstew.rta.nidobot;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import dabomstew.rta.Position;
 
 public class StartingPositionManager implements Iterable<Position> {
 

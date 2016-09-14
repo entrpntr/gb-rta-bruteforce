@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import mrwint.gbtasgen.Gb;
 import dabomstew.rta.Addresses;
 import dabomstew.rta.FileFunctions;
+import dabomstew.rta.Func;
 import dabomstew.rta.GBMemory;
 import dabomstew.rta.GBWrapper;
 import dabomstew.rta.Position;
@@ -45,106 +46,14 @@ public class NidoBot {
 
     public static DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
-    public static String getUniqid(Gb gb, GBMemory mem) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(gb.getDivState());
-        sb.append("-");
-        sb.append(mem.getHRA());
-        sb.append("-");
-        sb.append(mem.getHRS());
-        sb.append("-");
-        sb.append(mem.getTurnFrameStatus());
-        sb.append("-");
-        sb.append(mem.getX());
-        sb.append("-");
-        sb.append(mem.getY());
-        for (int i = 1; i <= 15; i++) {
-            // NPC counters
-            sb.append("-");
-            sb.append(mem.getNPCTimer(i));
-        }
-        return sb.toString();
-    }
-
-    public static String getRNGState(Gb gb, GBMemory mem) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(gb.getDivState());
-        sb.append("-");
-        sb.append(mem.getHRA());
-        sb.append("-");
-        sb.append(mem.getHRS());
-        return sb.toString();
-    }
-
-    public static String getRNGStateHRAOnly(Gb gb, GBMemory mem) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(gb.getDivState());
-        sb.append("-");
-        sb.append(mem.getHRA());
-        return sb.toString();
-    }
-
-    public static String inputName(int input) {
-        switch (input) {
-        case A:
-            return "A";
-        case B:
-            return "B";
-        case SELECT:
-            return "s";
-        case START:
-            return "S";
-        case UP:
-            return "U";
-        case DOWN:
-            return "D";
-        case LEFT:
-            return "L";
-        case RIGHT:
-            return "R";
-        default:
-            return "";
-        }
-    }
-
     public static boolean[] godStats;
     private static String runName;
-    
+
     public static final int[] hopCosts = { 0, 131, 190, 298, 447 };
     public static final int gamefreakStallFrameCost = 254;
     public static Map<String, Integer> encountersCosts;
     public static Map<String, Integer> startPositionsCosts;
     public static Map<String, List<String>> startPositionsEncs;
-
-    public static int aCount(String path, int plen) {
-        int ctr = 0;
-        for (int i = 0; i < plen; i++) {
-            if (path.charAt(i) == 'A') {
-                ctr++;
-            }
-        }
-        return ctr;
-    }
-
-    public static int inputsUntilNextA(String path) {
-        if (maxAPresses == 0) {
-            return 99999;
-        }
-        int plen = path.length();
-        if (plen == 1) {
-            return 0;
-        } else if (plen == 0) {
-            return 1;
-        } else {
-            if (plen >= 2 + (maxAPresses - 1) * 3) {
-                if (aCount(path, plen) >= maxAPresses) {
-                    return 99999;
-                }
-            }
-            int idx = path.lastIndexOf('A');
-            return idx == -1 ? 0 : (idx == plen - 1 ? 2 : (idx == plen - 2 ? 1 : 0));
-        }
-    }
 
     // Config
 
@@ -393,7 +302,7 @@ public class NidoBot {
                         int lastInput = 0;
                         while (checkingPaths) {
                             int result = wrap.advanceToAddress(addresses);
-                            String curState = getUniqid(gb, mem);
+                            String curState = mem.getUniqid();
 
                             boolean garbage = mem.getTurnFrameStatus() != 0 || result != Addresses.joypadOverworldAddr;
                             if (!garbage && lastInput != 0 && lastInput != A) {
@@ -404,7 +313,7 @@ public class NidoBot {
                             if (!garbage) {
                                 int[] actionList = PermissibleActionsHandler.actionsGoingToGrass(mem.getMap(),
                                         mem.getX(), mem.getY());
-                                int inputsNextA = inputsUntilNextA(lastPath);
+                                int inputsNextA = Func.inputsUntilNextA(lastPath, maxAPresses);
                                 if (!seenStates.contains(curState)) {
                                     seenStates.add(curState);
                                     statePaths.put(curState, lastPath);
@@ -420,9 +329,9 @@ public class NidoBot {
                                             actionQueue.add(action);
                                         }
                                     } else {
-                                        if (minAPresses == 0 || aCount(lastPath, lastPath.length()) >= minAPresses) {
-                                            endPositions.add(new PositionEnteringGrass(curSave, lastPath, getRNGState(
-                                                    gb, mem)));
+                                        if (minAPresses == 0 || Func.aCount(lastPath, lastPath.length()) >= minAPresses) {
+                                            endPositions.add(new PositionEnteringGrass(curSave, lastPath, mem
+                                                    .getRNGState()));
                                             numEndPositions++;
                                             if (numEndPositions >= bbLimit) {
                                                 long end = System.currentTimeMillis();
@@ -433,7 +342,7 @@ public class NidoBot {
                                             }
                                         }
                                     }
-                                } else if (inputsNextA < inputsUntilNextA(statePaths.get(curState))) {
+                                } else if (inputsNextA < Func.inputsUntilNextA(statePaths.get(curState), maxAPresses)) {
                                     statePaths.put(curState, lastPath);
                                     if (inputsNextA == 0 && actionList.length > 0) {
                                         ByteBuffer curSave = gb.saveState();
@@ -448,7 +357,7 @@ public class NidoBot {
                                 numStatesChecked++;
                                 addresses = subsLoopAddresses;
                                 OverworldStateAction actionToTake = actionQueue.pop();
-                                String inputRep = inputName(actionToTake.nextInput);
+                                String inputRep = Func.inputName(actionToTake.nextInput);
                                 gb.loadState(actionToTake.savedState);
                                 wrap.injectInput(actionToTake.nextInput);
                                 lastInput = actionToTake.nextInput;

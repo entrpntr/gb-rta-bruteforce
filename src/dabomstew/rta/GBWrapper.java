@@ -13,6 +13,7 @@ public class GBWrapper {
 	}
 	
 	public int advanceToAddress(int... addresses) {
+	    //System.out.println("advancing to "+printAddressList(addresses));
 		int result = 0;
 		//int runs = 0;
 		while(result == 0) {
@@ -24,13 +25,40 @@ public class GBWrapper {
 			}
 			//runs++;
 //			try {
-//				Thread.sleep(16);
+//				Thread.sleep(5);
 //			} catch (InterruptedException e) {
 //			}
 		}
 		mem.setStale();
 		//System.out.printf("returned after %d runs with result %04X\n", runs, result);
 		return result;
+	}
+	
+	public int advanceWithJoypadToAddress(int joypad, int... addresses) {
+        int result = 0;
+        while(result == 0) {
+            if(addresses.length == 0) {
+                result = gb.step(joypad);
+            }
+            else {
+                result = gb.step(joypad, addresses);
+            }
+//            try {
+//                Thread.sleep(5);
+//            } catch (InterruptedException e) {
+//            }
+        }
+        mem.setStale();
+        return result;
+    }
+	
+	public String printAddressList(int[] addresses) {
+	    StringBuilder sb = new StringBuilder("[");
+	    for(int i=0;i<addresses.length;i++) {
+	        sb.append(String.format("%X, ", addresses[i]));
+	    }
+	    sb.append("]");
+	    return sb.toString();
 	}
 
 	public void injectInput(int input) {
@@ -46,5 +74,10 @@ public class GBWrapper {
 		gb.step(0);
 		mem.setStale();
 	}
+	
+	public void advanceFrame(int inputs) {
+        gb.step(inputs);
+        mem.setStale();
+    }
 
 }

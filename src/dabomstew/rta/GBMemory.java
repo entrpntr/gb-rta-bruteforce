@@ -69,5 +69,44 @@ public class GBMemory {
 	public void setStale() {
 		stale = true;
 	}
+	
+	public String getUniqid() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(gb.getDivState());
+        sb.append("-");
+        sb.append(getHRA());
+        sb.append("-");
+        sb.append(getHRS());
+        sb.append("-");
+        sb.append(getTurnFrameStatus());
+        sb.append("-");
+        sb.append(getX());
+        sb.append("-");
+        sb.append(getY());
+        for (int i = 1; i <= 15; i++) {
+            // NPC counters
+            sb.append("-");
+            sb.append(getNPCTimer(i));
+        }
+        return sb.toString();
+    }
+	
+	public String getRNGState() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(gb.getDivState());
+        sb.append("-");
+        sb.append(getHRA());
+        sb.append("-");
+        sb.append(getHRS());
+        return sb.toString();
+    }
+
+    public String getRNGStateHRAOnly() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(gb.getDivState());
+        sb.append("-");
+        sb.append(getHRA());
+        return sb.toString();
+    }
 
 }

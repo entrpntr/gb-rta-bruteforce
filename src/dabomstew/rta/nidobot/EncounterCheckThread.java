@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import mrwint.gbtasgen.Gb;
 import dabomstew.rta.Addresses;
 import dabomstew.rta.Encounter;
+import dabomstew.rta.Func;
 import dabomstew.rta.GBMemory;
 import dabomstew.rta.GBWrapper;
 
@@ -46,7 +47,7 @@ public class EncounterCheckThread extends Thread {
     @Override
     public void run() {
         try {
-            int pathACost = NidoBot.aCount(peg.path, peg.path.length()) * 2;
+            int pathACost = Func.aCount(peg.path, peg.path.length()) * 2;
             int pathCost = bCost + pathACost;
             if (pathCost >= NidoBot.maxCostOfPath) {
                 return;
@@ -81,11 +82,11 @@ public class EncounterCheckThread extends Thread {
                         // ok got possible
                         // FFEF encounter,
                         // note what it is
-                        String rngAtEnc = NidoBot.getRNGState(gb, mem);
+                        String rngAtEnc = mem.getRNGState();
                         wrap.advanceFrame();
                         wrap.advanceFrame();
                         Encounter enc = new Encounter(mem.getEncounterSpecies(), mem.getEncounterLevel(),
-                                mem.getEncounterDVs(), NidoBot.getRNGStateHRAOnly(gb, mem));
+                                mem.getEncounterDVs(), mem.getRNGStateHRAOnly());
 
                         int totalEncCost = pathCost + stepsFrameCost;
                         String encRep = enc.toString();

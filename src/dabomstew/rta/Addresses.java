@@ -14,4 +14,5 @@ public class Addresses {
     public static final int enterMapAddr = 0x03A6;
     public static final int encounterTestAddr = 0x1389E;
     public static final int igtInjectAddr = 0x7366A;
+    public static final int npcTimerExpireAddr = 0x51FD;
 }

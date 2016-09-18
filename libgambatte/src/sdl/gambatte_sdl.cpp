@@ -642,6 +642,8 @@ JNIEXPORT void JNICALL Java_mrwint_gbtasgen_Gb_getInterestingMemory
   mem_store[0x18] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xCFF3);
   mem_store[0x19] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xCFF1);
   mem_store[0x1A] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xCFF2);
+  mem_store[0x1B] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xFFDA);
+  mem_store[0x1C] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xD730);
   env->ReleaseIntArrayElements(arr, mem_store, 0);
 }
 

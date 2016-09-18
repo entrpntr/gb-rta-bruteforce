@@ -1,5 +1,7 @@
 package dabomstew.rta;
 
+import java.nio.ByteBuffer;
+
 import mrwint.gbtasgen.Gb;
 
 public class GBWrapper {
@@ -79,5 +81,10 @@ public class GBWrapper {
         gb.step(inputs);
         mem.setStale();
     }
+	
+	public void loadState(ByteBuffer state) {
+	    gb.loadState(state);
+	    mem.setStale();
+	}
 
 }

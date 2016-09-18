@@ -131,7 +131,7 @@ public class Gb {
     return memory;
   }
   
-  private static final int INTERESTING_MEMORY = 27;
+  private static final int INTERESTING_MEMORY = 29;
   private static native void getInterestingMemory(long gb, int[] store);
   public int[] getInterestingMemory() {
     int[] memory = new int[INTERESTING_MEMORY];

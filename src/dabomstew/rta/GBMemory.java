@@ -54,6 +54,14 @@ public class GBMemory {
 		return (read(0x19) << 8) | read(0x1A);
 	}
 	
+	public int getCurrentSprite() {
+	    return read(0x1B) >> 4;
+	}
+	
+	public boolean isDroppingInputs() {
+	    return (read(0x1C) & 0x20) > 0;
+	}
+	
 	public int getNPCTimer(int npc) {
 	    return read(npc);
 	}

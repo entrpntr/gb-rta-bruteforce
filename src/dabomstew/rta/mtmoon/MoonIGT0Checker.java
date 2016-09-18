@@ -34,27 +34,26 @@ public class MoonIGT0Checker {
 
         ps = new PrintStream("logs/parascheck_" + System.currentTimeMillis() + ".log", "UTF-8");
 
-        //String path = "R D RRRRR U UUUUU R UUU L UUUUUUUUUUUUUUU LL UUUUU LL U LL D LLLL D LLLLL D L D LL DDDD"; // 1F
-        //path += "L DD LLLLLLL"; // B1F
-        //path += "R U RR UU L U R DDD LL D L"; // B2F
-        //path += "U RRRRRR U RR"; // B1F
+        String path = "R D RRRRR U UUUUU R UUU L UUUUUUUUUUUUUUU LL UUUUU LL U LL D LLLL D LLLLL D L D LL DDDD"; // 1F
+        path += "L DD LLLLLLL"; // B1F
+        path += "R U RR UU L U R DDD LL D L"; // B2F
+        path += "U RRRRRR U RR"; // B1F
         // path +=
         // "D L DDDDD LLLLL UU L UU L UUUU L UUU L UU L U L U LL D R D R D"; //
         // 1F
-        //path += "D L DDDDD LLLLL UU LL UU  UUUU L UUU L UU L U L U LL DDD RR"; // 1F
+        path += "D L DDDDD LLLLL UU LL UU  UUUU L UUU L UU L U L U LL DDD RR"; // 1F
         // path += "DDD R DDDDDD R DD RRRRRRRRRR D RRRR"; // B1F
-        //path += "DDDDDDDDDDDD R  R  RRRRRRRRRR  RRRR"; // B1F
+        path += "DDDDDDDDDDDD R  R  RRRRRRRRRR  RRRR"; // B1F
         // path +=
         // "R UU R U RRRR DD RRRRR UU RRRR DDDDDDDD LLL DD L DDDDDDD LLLLLLLLLLLLLLLLLLLLL";
         // // B2F
-        //path += "R UU R U RRRR DD RRRRR UU RRRR DDDDDDDD LLLL DD DDDDDDD LLLLLLLLLLLLLLLLLLLLL"; // B2F
-        //path += "L UUU U UUUU U UUUUU";
-        String path = "RRRRRDRUUUUURUUUUUUUUUUUUUUUUUUUUUUUUULLLLLLLLLLLDLLLLLLLLDDDDDDDDDLLLLLLLLURRRUULURDDDDLLLUURRRRRRRRDDDDDDLLLLLLLUUUUULLLLUUUUUUUUULULLDDDRRDDDDDDDDDDDDRRRRRRRRRRRRRRRRRUURURRRDDRRRRRRUURRRRDDDDDDDDLLLLDDDDDDDDDLLLLLLLLLLLLLLLLLLLLLUUUUUUUUUULUUUU";
+        path += "R UU R U RRRR DD RRRRR UU RRRR DDDDDDDD LLLL DD DDDDDDD LLLLLLLLLLLLLLLLLLLLL"; // B2F
+        path += "L UUU U UUUU U UUUUU";
         path = path.replace(" ", "");
 
         final String finalPath = path;
 
-        byte[] baseSave = FileFunctions.readFileFullyIntoBuffer("baseSaves/blue_moon_2932_r3lass.sav");
+        byte[] baseSave = FileFunctions.readFileFullyIntoBuffer("baseSaves/red_moon_2932_r3lass.sav");
         baseSave[0x2CEF] = (byte) 20;
         baseSave[0x2CF0] = (byte) 0;
         baseSave[0x2CF1] = (byte) 0;
@@ -63,7 +62,7 @@ public class MoonIGT0Checker {
             csum += baseSave[i] & 0xFF;
         }
         baseSave[0x3523] = (byte) ((csum & 0xFF) ^ 0xFF); // cpl
-        FileFunctions.writeBytesToFile("roms/blue.sav", baseSave);
+        FileFunctions.writeBytesToFile("roms/red.sav", baseSave);
 
         Gb[] gbs = new Gb[numThreads];
         GBMemory[] mems = new GBMemory[numThreads];
@@ -71,7 +70,7 @@ public class MoonIGT0Checker {
 
         for (int i = 0; i < numThreads; i++) {
             gbs[i] = new Gb(i, false);
-            gbs[i].startEmulator("roms/blue.gb");
+            gbs[i].startEmulator("roms/red.gb");
             gbs[i].step(0); // let gambatte initialize itself
             mems[i] = new GBMemory(gbs[i]);
             wraps[i] = new GBWrapper(gbs[i], mems[i]);

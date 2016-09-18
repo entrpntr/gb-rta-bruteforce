@@ -250,9 +250,8 @@ public class MoonIGT0Checker {
                                     }
 
                                     if (!garbage) {
-                                        log += String.format("[S] No encounter at map %d x %d y %d", mem.getMap(),
+                                        log += String.format("[F] No encounter at map %d x %d y %d", mem.getMap(),
                                                 mem.getX(), mem.getY());
-                                        success = true;
                                     }
 
                                     log += String.format(" (time=%dms)", System.currentTimeMillis() - startFrame);

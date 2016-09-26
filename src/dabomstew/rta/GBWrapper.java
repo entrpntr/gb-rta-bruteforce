@@ -54,6 +54,14 @@ public class GBWrapper {
         return result;
     }
 	
+	public void testSpeed() {
+	    long start = System.currentTimeMillis();
+	    for(int i=0;i<1000000;i++) {
+	        gb.step(0);
+	    }
+	    System.out.println("executed 1000000 frames in "+(System.currentTimeMillis()-start)+"ms");
+	}
+	
 	public String printAddressList(int[] addresses) {
 	    StringBuilder sb = new StringBuilder("[");
 	    for(int i=0;i<addresses.length;i++) {

@@ -30,7 +30,7 @@ import dabomstew.rta.GBMemory;
 import dabomstew.rta.GBWrapper;
 import dabomstew.rta.Position;
 
-public class NidoBot {
+public class ShrewBot {
 
     public static final int A = 0x01;
     public static final int B = 0x02;
@@ -57,15 +57,14 @@ public class NidoBot {
 
     // Config
 
-    public static final int maxAPresses = 5;
+    public static final int maxAPresses = 1;
     public static final int minAPresses = 0;
-    public static int minHops = 0;
-    public static int maxHops = 0;
+    public static int minHops = 2;
+    public static int maxHops = 4;
     public static final boolean doGamefreakStallIntro = false;
-    public static final String gameName = "red";
-    public static final boolean checkExtraStepStartingPoints = false;
-    public static final int godDefenseDV = 15;
-    public static final int godSpecialDV = 15;
+    public static final String gameName = "blue";
+    public static final int godDefenseDV = 7;
+    public static final int godSpecialDV = 7;
     public static final int maxCostAtStart = 999999;
     public static final int maxCostOfPath = 999999;
     public static final int maxStepsInGrassArea = 20;
@@ -125,29 +124,10 @@ public class NidoBot {
             // setup starting positions
             // Compile starting positions
             StartingPositionManager spm = new StartingPositionManager();
-            spm.includeRect(35, 182, 37, 182);
-            spm.includeRect(35, 177, 37, 182);
-            spm.includeRect(36, 176, 46, 179);
-            spm.includeRect(46, 176, 46, 179);
-            spm.includeRect(44, 178, 47, 180);
-
-            // viridian area now
-            spm.includeRect(48, 176, 75, 183);
-            spm.excludeRect(48, 176, 55, 178); // walls
-            spm.excludeRect(56, 176, 56, 177); // walls
-            spm.exclude(57, 179); // sign
-            spm.excludeRect(60, 176, 63, 177); // house
-            spm.excludeRect(60, 179, 63, 179); // wall in front of house
-            spm.excludeRect(68, 178, 71, 181); // mart
-            spm.excludeRect(62, 184, 65, 187); // pokecenter
-            spm.exclude(48, 184); // cut bush
-            spm.excludeRect(48, 185, 49, 185); // bushes
-            spm.excludeRect(48, 186, 53, 189); // surf pond
-            spm.excludeNpc(53, 182); // walker on way to r22
-            spm.excludeNpc(46, 185); // fat guy
-            spm.excludeNpc(70, 187); // mart guy
-            spm.excludeRect(64, 176, 75, 177); // too many extra steps
-            spm.excludeRect(72, 178, 75, 181); // likewise
+            spm.includeRect(238, 192, 241, 193); // between dux house and mart
+            spm.includeRect(238, 194, 268, 195); // way to route 11
+            spm.exclude(249, 195); // sign
+            spm.excludeNpc(273, 193); // trainer
             encountersCosts = new ConcurrentHashMap<>();
             startPositionsCosts = new ConcurrentHashMap<>();
             startPositionsEncs = new ConcurrentHashMap<>();
@@ -156,7 +136,7 @@ public class NidoBot {
             godStats = new boolean[65536];
             for (int defDV = godDefenseDV; defDV <= 15; defDV++) {
                 for (int spcDV = godSpecialDV; spcDV <= 15; spcDV++) {
-                    for (int variance = -8; variance < 3; variance++) {
+                    for (int variance = -4; variance < 5; variance++) {
                         int atkDef = (0xF0 + defDV + variance) & 0xFF;
                         int speSpc = (0xE0 + spcDV + variance) & 0xFF;
                         godStats[(atkDef << 8) | speSpc] = true;
@@ -165,8 +145,8 @@ public class NidoBot {
             }
 
             int importedPos = 0;
-            if (new File(gameName + "_statesimport.txt").exists()) {
-                Scanner sc = new Scanner(new File(gameName + "_statesimport.txt"), "UTF-8");
+            if (new File(gameName + "_statesimport_shrew.txt").exists()) {
+                Scanner sc = new Scanner(new File(gameName + "_statesimport_shrew.txt"), "UTF-8");
                 while (sc.hasNextLine()) {
                     String ln = sc.nextLine().trim();
                     if (!ln.isEmpty()) {
@@ -187,8 +167,8 @@ public class NidoBot {
             }
             logF("Imported %d old start positions already checked\n", importedPos);
             int importedEncs = 0;
-            if (new File(gameName + "_encounters.txt").exists()) {
-                Scanner sc = new Scanner(new File(gameName + "_encounters.txt"), "UTF-8");
+            if (new File(gameName + "_encounters_shrew.txt").exists()) {
+                Scanner sc = new Scanner(new File(gameName + "_encounters_shrew.txt"), "UTF-8");
                 while (sc.hasNextLine()) {
                     String ln = sc.nextLine().trim();
                     if (!ln.isEmpty()) {
@@ -203,7 +183,7 @@ public class NidoBot {
             }
             logF("Imported %d old encounters already checked\n", importedEncs);
             long starttime = System.currentTimeMillis() / 1000L;
-            String logFilename = "logs/nidolog_" + runName + "_" + starttime + ".log";
+            String logFilename = "logs/shrewlog_" + runName + "_" + starttime + ".log";
             if (new File(logFilename).exists()) {
                 new File(logFilename).delete();
             }
@@ -211,11 +191,7 @@ public class NidoBot {
 
             for (Position pos : spm) {
                 try {
-                    int baseCost = StartingExtraSteps.getSteps(pos.map, pos.x, pos.y) * 17;
-                    if (baseCost > 0 && !checkExtraStepStartingPoints) {
-                        logLN("not checking extra steps for now");
-                        continue;
-                    }
+                    int baseCost = 0;
                     if (doGamefreakStallIntro) {
                         baseCost += gamefreakStallFrameCost;
                     } else {
@@ -231,11 +207,11 @@ public class NidoBot {
                         continue;
                     }
 
-                    if (pos.map == 1) {
-                        // Viridian
-                        makeSave("viridian", pos.x, pos.y);
+                    if (pos.map == 5) {
+                        // Vermillion
+                        makeSave("vermillion", 5, pos.x, pos.y);
                     } else {
-                        makeSave("route22_" + gameName, pos.x, pos.y);
+                        makeSave("route11_" + gameName, 22, pos.x, pos.y);
                     }
 
                     Gb[] gbs = new Gb[numEncounterThreads];
@@ -301,13 +277,25 @@ public class NidoBot {
                         int startX = -1, startY = -1;
                         int lastInput = 0;
                         while (checkingPaths) {
-                            int result = wrap.advanceToAddress(addresses);
+                            int result = wrap.advanceWithJoypadToAddress(lastInput,addresses);
                             String curState = mem.getUniqid();
 
                             boolean garbage = mem.getTurnFrameStatus() != 0 || result != Addresses.joypadOverworldAddr;
+                            if(garbage) {
+                                if(mem.getTurnFrameStatus() != 0) {
+                                    System.out.println("discarded for TFS != 0");
+                                    if(mem.isDroppingInputs()) {
+                                        System.out.println("Uhhhhh");
+                                    }
+                                }
+                                else {
+                                    System.out.println("discarded for not joypadoverworld");
+                                }
+                            }
                             if (!garbage && lastInput != 0 && lastInput != A) {
                                 if (mem.getX() == startX && mem.getY() == startY) {
                                     garbage = true;
+                                    System.out.println("discarded for not moving");
                                 }
                             }
                             if (!garbage) {
@@ -318,6 +306,7 @@ public class NidoBot {
                                     seenStates.add(curState);
                                     statePaths.put(curState, lastPath);
                                     ByteBuffer curSave = gb.saveState();
+                                    //System.out.println("map="+mem.getMap()+" x ="+mem.getX()+" y="+mem.getY()+" inputs="+actions);
                                     if (actions != 0) {
                                         for (int inp = 0x10; inp < 0x100; inp *= 2) {
                                             if ((actions & inp) != 0) {
@@ -351,6 +340,8 @@ public class NidoBot {
                                         OverworldStateAction action = new OverworldStateAction(curState, curSave, A);
                                         actionQueue.push(action);
                                     }
+                                } else {
+                                    //System.out.println("discarded for dupe: "+lastPath+"/"+curState);
                                 }
                             }
 
@@ -367,7 +358,7 @@ public class NidoBot {
                                 startY = mem.getY();
                                 lastPath = statePaths.get(actionToTake.statePos) + inputRep;
                                 // skip the joypadoverworld we just hit
-                                wrap.advanceFrame();
+                                wrap.advanceToAddress(Addresses.joypadOverworldAddr+1);
                             } else if (checkingPaths) {
                                 long end = System.currentTimeMillis();
                                 logLN(".done part 1; checked " + numStatesChecked + " states and found "
@@ -398,7 +389,7 @@ public class NidoBot {
                                 if (useNum != -1) {
                                     threadsRunning[useNum] = true;
                                     // Start a new Thread
-                                    new EncounterCheckThread(grassEncs.next(), gbs[useNum], mems[useNum],
+                                    new EncounterCheckThreadShrew(grassEncs.next(), gbs[useNum], mems[useNum],
                                             wraps[useNum], baseCost, ps, threadsRunning, useNum).start();
                                 }
                             }
@@ -430,7 +421,7 @@ public class NidoBot {
 
             long currtime = System.currentTimeMillis() / 1000L;
 
-            PrintStream statesLog = new PrintStream("logs/statestested_" + runName + "_" + currtime + ".log", "UTF-8");
+            PrintStream statesLog = new PrintStream("logs/shrew_statestested_" + runName + "_" + currtime + ".log", "UTF-8");
             for (String state : startPositionsCosts.keySet()) {
                 statesLog.println(state);
                 statesLog.println(startPositionsCosts.get(state));
@@ -441,28 +432,28 @@ public class NidoBot {
             }
             statesLog.flush();
             statesLog.close();
-            logLN("dumped rng states to statestested_" + runName + "_" + currtime + ".log");
-            Files.copy(new File("logs/statestested_" + runName + "_" + currtime + ".log").toPath(), new File(gameName
-                    + "_statesimport.txt").toPath(), StandardCopyOption.REPLACE_EXISTING);
+            logLN("dumped rng states to shrew_statestested_" + runName + "_" + currtime + ".log");
+            Files.copy(new File("logs/shrew_statestested_" + runName + "_" + currtime + ".log").toPath(), new File(gameName
+                    + "_statesimport_shrew.txt").toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-            PrintStream encsLog = new PrintStream("logs/encsfound_" + runName + "_" + currtime + ".log", "UTF-8");
+            PrintStream encsLog = new PrintStream("logs/shrew_encsfound_" + runName + "_" + currtime + ".log", "UTF-8");
             for (String enc : encountersCosts.keySet()) {
                 encsLog.println(enc);
                 encsLog.println(encountersCosts.get(enc));
             }
             encsLog.flush();
             encsLog.close();
-            logLN("dumped encounters to encsfound_" + runName + "_" + currtime + ".log");
-            Files.copy(new File("logs/encsfound_" + runName + "_" + currtime + ".log").toPath(), new File(gameName
-                    + "_encounters.txt").toPath(), StandardCopyOption.REPLACE_EXISTING);
+            logLN("dumped encounters to shrew_encsfound_" + runName + "_" + currtime + ".log");
+            Files.copy(new File("logs/shrew_encsfound_" + runName + "_" + currtime + ".log").toPath(), new File(gameName
+                    + "_encounters_shrew.txt").toPath(), StandardCopyOption.REPLACE_EXISTING);
 
             closeLog();
         }
     }
 
-    public static void makeSave(String baseName, int x, int y) throws IOException {
+    public static void makeSave(String baseName, int map, int x, int y) throws IOException {
         byte[] baseSave = FileFunctions.readFileFullyIntoBuffer("baseSaves/" + baseName + ".sav");
-        int mapWidth = 20; // temp, but applies to both viridian and route 22
+        int mapWidth = map==5 ? 20 : 30;
         int baseX = x;
         int baseY = y;
         int tlPointer = 0xC6E8 + (baseY / 2 + 1) * (mapWidth + 6) + (baseX / 2 + 1);
@@ -472,6 +463,9 @@ public class NidoBot {
         baseSave[0x260E] = (byte) baseX;
         baseSave[0x260F] = (byte) (baseY % 2);
         baseSave[0x2610] = (byte) (baseX % 2);
+        baseSave[0x2CEF] = (byte) 40;
+        baseSave[0x2CF0] = 0;
+        baseSave[0x2CF1] = 0;
         int csum = 0;
         for (int i = 0x2598; i < 0x3523; i++) {
             csum += baseSave[i] & 0xFF;
@@ -484,7 +478,7 @@ public class NidoBot {
 
     public static void initLog() throws FileNotFoundException, UnsupportedEncodingException {
         long currtime = System.currentTimeMillis() / 1000L;
-        mainLogCopy = new PrintStream("logs/consolelog_" + runName + "_" + currtime + ".log", "UTF-8");
+        mainLogCopy = new PrintStream("logs/shrew_consolelog_" + runName + "_" + currtime + ".log", "UTF-8");
     }
 
     public static void closeLog() {

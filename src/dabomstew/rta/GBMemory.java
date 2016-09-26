@@ -91,6 +91,8 @@ public class GBMemory {
         sb.append(getX());
         sb.append("-");
         sb.append(getY());
+        sb.append("-");
+        sb.append(getMap());
         for (int i = 1; i <= 15; i++) {
             // NPC counters
             sb.append("-");

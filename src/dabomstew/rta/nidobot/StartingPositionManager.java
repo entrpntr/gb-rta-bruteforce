@@ -49,9 +49,17 @@ public class StartingPositionManager implements Iterable<Position> {
 						// r22
 						tmpList.add(new Position(33, x, y-170));
 					}
-					else {
+					else if(x<80) {
 						// viridian
 						tmpList.add(new Position(1, x-40, y-162));
+					}
+					else if(x < 260) {
+					    // vermillion
+					    tmpList.add(new Position(5, x-220, y-180));
+					}
+					else {
+					    // r11
+					    tmpList.add(new Position(22, x-260, y-188));
 					}
 				}
 			}

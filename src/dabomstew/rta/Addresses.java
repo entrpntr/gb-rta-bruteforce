@@ -15,4 +15,9 @@ public class Addresses {
     public static final int encounterTestAddr = 0x1389E;
     public static final int igtInjectAddr = 0x7366A;
     public static final int npcTimerExpireAddr = 0x51FD;
+    public static final int catchSuccessAddress = 0xd868;
+    public static final int catchFailureAddress = 0xd922;
+    public static final int manualTextScrollAddr = 0x3898;
+    public static final int playCryAddr = 0x13D0;
+    public static final int displayListMenuIdAddr = 0x2BE6;
 }

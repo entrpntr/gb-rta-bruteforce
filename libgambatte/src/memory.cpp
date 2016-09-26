@@ -240,7 +240,9 @@ unsigned long Memory::event(unsigned long cycleCounter) {
 							if (oamDmaPos == 0)
 								startOamDma(lOamDmaUpdate - 1);
 
+							#ifdef GAMBATTELOG
 							log_write(0xfe00 | (src & 0xFF), data, cycleCounter);
+							#endif
 							ioamhram[src & 0xFF] = data;
 						} else if (oamDmaPos == 0xA0) {
 							endOamDma(lOamDmaUpdate - 1);
@@ -405,8 +407,9 @@ void Memory::updateOamDma(const unsigned long cycleCounter) {
 		if (oamDmaPos < 0xA0) {
 			if (oamDmaPos == 0)
 				startOamDma(lastOamDmaUpdate - 1);
-
+			#ifdef GAMBATTELOG
 			log_write(0xfe00 | oamDmaPos, oamDmaSrc ? oamDmaSrc[oamDmaPos] : cart.rtcRead(), lastOamDmaUpdate);
+			#endif
 			ioamhram[oamDmaPos] = oamDmaSrc ? oamDmaSrc[oamDmaPos] : cart.rtcRead();
 		} else if (oamDmaPos == 0xA0) {
 			endOamDma(lastOamDmaUpdate - 1);
@@ -589,7 +592,9 @@ void Memory::nontrivial_ff_write(const unsigned P, unsigned data, const unsigned
 	if (lastOamDmaUpdate != DISABLED_TIME)
 		updateOamDma(cycleCounter);
 
+	#ifdef GAMBATTELOG
 	log_write(P, data, cycleCounter);
+	#endif
 
 	switch (P & 0xFF) {
 	case 0x00:
@@ -980,7 +985,9 @@ void Memory::nontrivial_write(const unsigned P, const unsigned data, const unsig
 			if (P < 0x8000) {
 				cart.mbcWrite(P, data);
 			} else if (display.vramAccessible(cycleCounter)) {
+				#ifdef GAMBATTELOG
 				log_write(P, data, cycleCounter);
+				#endif
 
 				display.vramChange(cycleCounter);
 				cart.vrambankptr()[P] = data;
@@ -995,7 +1002,9 @@ void Memory::nontrivial_write(const unsigned P, const unsigned data, const unsig
 	} else if (P - 0xFF80u >= 0x7Fu) {
 		if (P < 0xFF00) {
 			if (display.oamWritable(cycleCounter) && oamDmaPos >= 0xA0 && (P < 0xFEA0 || isCgb())) {
+				#ifdef GAMBATTELOG
 				log_write(P, data, cycleCounter);
+				#endif
 
 				display.oamChange(cycleCounter);
 				ioamhram[P - 0xFE00] = data;
@@ -1017,6 +1026,7 @@ LoadRes Memory::loadROM(std::string const &romfile, bool const forceDmg, bool co
 	return LOADRES_OK;
 }
 
+#ifdef GAMBATTELOG
 unsigned lastVram[2][0x2000];
 unsigned lastHram[0x200];
 unsigned curVramBank;
@@ -1036,8 +1046,6 @@ void Memory::log_init() {
 }
 
 void Memory::log_write(const unsigned P, const unsigned data, const unsigned long cycleCounter) {
-	if (!LOG)
-		return;
 	if (!logout.is_open())
 		log_init();
 
@@ -1127,6 +1135,7 @@ void Memory::log_write(const unsigned P, const unsigned data, const unsigned lon
 		}
 	}
 }
+#endif
 
 unsigned Memory::fillSoundBuffer(const unsigned long cycleCounter) {
 	sound.generate_samples(cycleCounter, isDoubleSpeed());

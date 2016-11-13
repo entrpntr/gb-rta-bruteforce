@@ -3,7 +3,9 @@ gb-rta-bruteforce
 
 #### Credits
 
-This code wouldn't be possible without the work of [MrWint's gb-tas-gen](https://github.com/mrwint/gb-tas-gen) which the JNI libgambatte bridge is taken from. All other code is written (somewhat crudely) by me, Dabomstew
+This code wouldn't be possible without the work of [MrWint's gb-tas-gen](https://github.com/mrwint/gb-tas-gen) which the JNI libgambatte bridge is taken from.
+
+Most of the code has been written by [Dabomstew](https://github.com/Dabomstew/gb-rta-bruteforce).
 
 #### Disclaimer
 
@@ -35,6 +37,6 @@ You should skip the step relating to editing SConstruct and you don't need to re
 
 The framework is written in Java, so it's easiest to use with Java (or compatible languages).
 
-Main programs are in NidoBot/ShrewBot/LassIGT0Checker/MoonIGT0Checker/CrystalTIDManip/RedBlueTIDManip .java files. Each file can be modified for custom manip needs.
+Main programs are in NidoBot/ShrewBot/LassIGT0Checker/MoonIGT0Checker/CrystalTIDManip/RedBlueTIDManip .java files. Each of these programs can be modified for custom manip needs.
 
 Currently, the programs are set up expecting a roms folder to be created in the root directory. The expected names for the ROMs are: pokered.gbc, pokeblue.gbc, pokecrystal.gbc, and gbc_bios.bin (for the GBC bootrom).

@@ -128,6 +128,8 @@ bool GambatteSdl::init(const char* romName) {
 		const bool gbaCgbOption = false;
 		const bool forceDmgOption = false;
 		const bool multicartCompatOption = false;
+
+		gambatte.loadGBCBios("roms/gbc_bios.bin");
 		
 		if (LoadRes const error =
 				gambatte.load(romName,

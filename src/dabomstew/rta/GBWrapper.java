@@ -26,10 +26,10 @@ public class GBWrapper {
 				result = gb.step(0, addresses);
 			}
 			//runs++;
-//			try {
-//				Thread.sleep(5);
-//			} catch (InterruptedException e) {
-//			}
+			//try {
+			//	Thread.sleep(5);
+			//} catch (InterruptedException e) {
+			//}
 		}
 		mem.setStale();
 		//System.out.printf("returned after %d runs with result %04X\n", runs, result);
@@ -71,8 +71,12 @@ public class GBWrapper {
 	    return sb.toString();
 	}
 
-	public void injectInput(int input) {
+	public void injectRBInput(int input) {
 		writeMemory(0xFFF8, input);
+	}
+
+	public void injectCrysInput(int input) {
+		writeMemory(0xFFA4, input);
 	}
 
 	public void writeMemory(int address, int value) {

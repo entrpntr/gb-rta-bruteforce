@@ -102,6 +102,9 @@ public:
 	
 	void setGameGenie(const std::string &codes) { memory.setGameGenie(codes); }
 	void setGameShark(const std::string &codes) { memory.setGameShark(codes); }
+	unsigned char* cgbBiosBuffer() { return memory.cgbBiosBuffer(); }
+    unsigned char* dmgBiosBuffer() { return memory.dmgBiosBuffer(); }
+    bool gbIsCgb() { return memory.gbIsCgb(); }
 
 	void setRTCCallback(std::time_t (*callback)()) {
 		memory.setRTCCallback(callback);

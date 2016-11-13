@@ -90,6 +90,10 @@ void LCD::reset(const unsigned char *const oamram, const unsigned char *vram, co
 	refreshPalettes();
 }
 
+void LCD::setCgb(bool cgb) {
+	ppu.setCgb(cgb);
+}
+
 static unsigned long mode2IrqSchedule(const unsigned statReg, const LyCounter &lyCounter, const unsigned long cycleCounter) {
 	if (!(statReg & 0x20))
 		return DISABLED_TIME;
@@ -181,6 +185,15 @@ void LCD::refreshPalettes() {
 		setDmgPalette(ppu.bgPalette()    , dmgColorsRgb32    ,  bgpData[0]);
 		setDmgPalette(ppu.spPalette()    , dmgColorsRgb32 + 4, objpData[0]);
 		setDmgPalette(ppu.spPalette() + 4, dmgColorsRgb32 + 8, objpData[1]);
+	}
+}
+
+void LCD::copyCgbPalettesToDmg() {
+	for(unsigned i = 0; i < 4; i++) {
+		dmgColorsRgb32[i] = gbcToRgb32(bgpData[i * 2] | bgpData[i * 2 + 1] << 8);
+	}
+	for(unsigned i = 0; i < 8; i++) {
+		dmgColorsRgb32[i + 4] = gbcToRgb32(objpData[i * 2] | objpData[i * 2 + 1] << 8);
 	}
 }
 

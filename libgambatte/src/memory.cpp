@@ -64,6 +64,10 @@ unsigned long Memory::saveState(SaveState &state, unsigned long cycleCounter) {
 	state.mem.dmaSource = dmaSource;
 	state.mem.dmaDestination = dmaDestination;
 	state.mem.oamDmaPos = oamDmaPos;
+	state.mem.biosMode = biosMode_;
+    state.mem.cgbSwitching = cgbSwitching_;
+    state.mem.agbMode = agbMode_;
+    state.mem.gbIsCgb = gbIsCgb_;
 
 	intreq.saveState(state);
 	cart.saveState(state);
@@ -79,6 +83,10 @@ static inline int serialCntFrom(const unsigned long cyclesUntilDone, const bool 
 }
 
 void Memory::loadState(const SaveState &state) {
+    biosMode_ = state.mem.biosMode;
+	cgbSwitching_ = state.mem.cgbSwitching;
+	agbMode_ = state.mem.agbMode;
+	gbIsCgb_ = state.mem.gbIsCgb;
 	sound.loadState(state);
 	display.loadState(state, state.mem.oamDmaPos < 0xA0 ? cart.rdisabledRam() : ioamhram);
 	tima.loadState(state, TimaInterruptRequester(intreq));
@@ -279,7 +287,7 @@ unsigned long Memory::event(unsigned long cycleCounter) {
 		break;
 	case INTERRUPTS:
 		if (halted()) {
-			//if (isCgb())
+			if (gbIsCgb_)
 				cycleCounter += 4;
 			
 			intreq.unhalt();
@@ -857,7 +865,11 @@ void Memory::nontrivial_ff_write(const unsigned P, unsigned data, const unsigned
 	case 0x4B:
 		display.wxChange(data, cycleCounter);
 		break;
-
+	case 0x4C:
+		if(biosMode_) {
+			//flagClockReq(intreq_);
+		}
+		break;
 	case 0x4D:
 		ioamhram[0x14D] |= data & 0x01;
 		return;
@@ -867,6 +879,13 @@ void Memory::nontrivial_ff_write(const unsigned P, unsigned data, const unsigned
 			ioamhram[0x14F] = 0xFE | data;
 		}
 
+		return;
+	case 0x50:
+		biosMode_ = false;
+		if(cgbSwitching_) {
+    		display.copyCgbPalettesToDmg();
+			display.setCgb(false);
+		}
 		return;
 	case 0x51:
 		dmaSource = data << 8 | (dmaSource & 0xFF);
@@ -937,8 +956,8 @@ void Memory::nontrivial_ff_write(const unsigned P, unsigned data, const unsigned
 
 		return;
 	case 0x6C:
-		if (isCgb())
-			ioamhram[0x16C] = data | 0xFE;
+		ioamhram[0x16C] = data | 0xFE;
+		cgbSwitching_ = true;
 
 		return;
 	case 0x70:

@@ -23,7 +23,7 @@ import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 
 import mrwint.gbtasgen.Gb;
-import dabomstew.rta.Addresses;
+import dabomstew.rta.RedBlueAddr;
 import dabomstew.rta.FileFunctions;
 import dabomstew.rta.Func;
 import dabomstew.rta.GBMemory;
@@ -118,8 +118,8 @@ public class ShrewBot {
             }
             initLog();
 
-            int[] firstLoopAddresses = { Addresses.joypadOverworldAddr };
-            int[] subsLoopAddresses = { Addresses.joypadOverworldAddr, Addresses.printLetterDelayAddr };
+            int[] firstLoopAddresses = { RedBlueAddr.joypadOverworldAddr };
+            int[] subsLoopAddresses = { RedBlueAddr.joypadOverworldAddr, RedBlueAddr.printLetterDelayAddr };
 
             // setup starting positions
             // Compile starting positions
@@ -220,7 +220,7 @@ public class ShrewBot {
 
                     for (int i = 0; i < numEncounterThreads; i++) {
                         gbs[i] = new Gb(i, false);
-                        gbs[i].startEmulator("roms/" + gameName + ".gb");
+                        gbs[i].startEmulator("roms/poke" + gameName + ".gbc");
                         gbs[i].step(0); // let gambatte initialize itself
                         mems[i] = new GBMemory(gbs[i]);
                         wraps[i] = new GBWrapper(gbs[i], mems[i]);
@@ -234,12 +234,12 @@ public class ShrewBot {
                         GBWrapper wrap = wraps[0];
                         int introInputCtr = 0;
                         if (doGamefreakStallIntro) {
-                            wrap.advanceToAddress(Addresses.delayAtEndOfShootingStarAddr);
+                            wrap.advanceToAddress(RedBlueAddr.delayAtEndOfShootingStarAddr);
                             int[] introInputs = { B | SELECT | UP, START, A, A };
                             while (introInputCtr < 4) {
-                                wrap.advanceToAddress(Addresses.joypadAddr);
+                                wrap.advanceToAddress(RedBlueAddr.joypadAddr);
                                 // inject intro inputs
-                                wrap.injectInput(introInputs[introInputCtr++]);
+                                wrap.injectRBInput(introInputs[introInputCtr++]);
                                 wrap.advanceFrame();
                             }
                         } else {
@@ -248,17 +248,17 @@ public class ShrewBot {
                                 introInputs = new int[] { A, START, A, START | A, START | A };
                             }
                             while (introInputCtr < 5) {
-                                wrap.advanceToAddress(Addresses.joypadAddr);
+                                wrap.advanceToAddress(RedBlueAddr.joypadAddr);
                                 // inject intro inputs
-                                wrap.injectInput(introInputs[introInputCtr++]);
+                                wrap.injectRBInput(introInputs[introInputCtr++]);
                                 wrap.advanceFrame();
                                 if (introInputCtr == 1) {
                                     // hops?
                                     for (int h = 0; h < hops; h++) {
                                         // find an AnimateNidorino
-                                        wrap.advanceToAddress(Addresses.animateNidorinoAddr);
+                                        wrap.advanceToAddress(RedBlueAddr.animateNidorinoAddr);
                                         // find a CheckForUserInterruption
-                                        wrap.advanceToAddress(Addresses.checkInterruptAddr);
+                                        wrap.advanceToAddress(RedBlueAddr.checkInterruptAddr);
                                     }
                                 }
                             }
@@ -280,7 +280,7 @@ public class ShrewBot {
                             int result = wrap.advanceWithJoypadToAddress(lastInput,addresses);
                             String curState = mem.getUniqid();
 
-                            boolean garbage = mem.getTurnFrameStatus() != 0 || result != Addresses.joypadOverworldAddr;
+                            boolean garbage = mem.getTurnFrameStatus() != 0 || result != RedBlueAddr.joypadOverworldAddr;
                             if(garbage) {
                                 if(mem.getTurnFrameStatus() != 0) {
                                     System.out.println("discarded for TFS != 0");
@@ -352,13 +352,13 @@ public class ShrewBot {
                                 OverworldStateAction actionToTake = actionQueue.pop();
                                 String inputRep = Func.inputName(actionToTake.nextInput);
                                 gb.loadState(actionToTake.savedState);
-                                wrap.injectInput(actionToTake.nextInput);
+                                wrap.injectRBInput(actionToTake.nextInput);
                                 lastInput = actionToTake.nextInput;
                                 startX = mem.getX();
                                 startY = mem.getY();
                                 lastPath = statePaths.get(actionToTake.statePos) + inputRep;
                                 // skip the joypadoverworld we just hit
-                                wrap.advanceToAddress(Addresses.joypadOverworldAddr+1);
+                                wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr+1);
                             } else if (checkingPaths) {
                                 long end = System.currentTimeMillis();
                                 logLN(".done part 1; checked " + numStatesChecked + " states and found "

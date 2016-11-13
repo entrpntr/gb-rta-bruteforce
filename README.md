@@ -11,9 +11,11 @@ Spaghetti code all over the place, this code isn't really meant for public consu
 
 #### Overview
 
-This is a bruteforce bot to find God Nidorans for Pokemon Red RTA. It could be adapted to find other encounters in other places too.
+This is a bruteforce bot originally created to find God Nidorans for Pokemon Red/Blue RTA speedruns. It can be adapted to find desired encounters in other places too.
 
-It runs a modified [libgambatte](https://github.com/sinamas/gambatte) as a core, and spits out giant log files to be combed over manually.
+There are also implementations for checking IGT0 frames for Mt. Moon manipulations, as well as TID manipulations for Red/Blue and Crystal.
+
+The bot runs a modified [libgambatte](https://github.com/sinamas/gambatte) as a core, and spits out giant log files to be combed over manually.
 
 #### Installation (Linux/Mac)
 
@@ -33,6 +35,6 @@ You should skip the step relating to editing SConstruct and you don't need to re
 
 The framework is written in Java, so it's easiest to use with Java (or compatible languages).
 
-Adjust NidoBot.java to your needs, run it and have fun.
+Main programs are in NidoBot/ShrewBot/LassIGT0Checker/MoonIGT0Checker/CrystalTIDManip/RedBlueTIDManip .java files. Each file can be modified for custom manip needs.
 
-
+Currently, the programs are set up expecting a roms folder to be created in the root directory. The expected names for the ROMs are: pokered.gbc, pokeblue.gbc, pokecrystal.gbc, and gbc_bios.bin (for the GBC bootrom).

@@ -48,6 +48,9 @@ public:
 	  * @return 0 on success, negative value on failure.
 	  */
 	LoadRes load(const std::string &romfile, std::time_t now, unsigned flags = 0);
+
+	unsigned int loadGBCBios(std::string const &biosfile);
+    unsigned int loadDMGBios(std::string const &biosfile);
 	
 	/** Emulates until at least 'samples' stereo sound samples are produced in the supplied buffer,
 	  * or until a video frame has been drawn.

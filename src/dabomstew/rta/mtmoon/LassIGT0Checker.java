@@ -5,7 +5,7 @@ import java.io.PrintStream;
 import java.nio.ByteBuffer;
 
 import mrwint.gbtasgen.Gb;
-import dabomstew.rta.Addresses;
+import dabomstew.rta.RedBlueAddr;
 import dabomstew.rta.FileFunctions;
 import dabomstew.rta.Func;
 import dabomstew.rta.GBMemory;
@@ -75,7 +75,7 @@ public class LassIGT0Checker {
 
         for (int i = 0; i < numThreads; i++) {
             gbs[i] = new Gb(i, false);
-            gbs[i].startEmulator("roms/blue.gb");
+            gbs[i].startEmulator("roms/pokeblue.gbc");
             gbs[i].step(0); // let gambatte initialize itself
             mems[i] = new GBMemory(gbs[i]);
             wraps[i] = new GBWrapper(gbs[i], mems[i]);
@@ -87,14 +87,14 @@ public class LassIGT0Checker {
         int[] introInputs = { B | SELECT | UP, B | SELECT | UP, START };
         int introInputCtr = 0;
         while (introInputCtr < 3) {
-            wraps[0].advanceToAddress(Addresses.joypadAddr);
+            wraps[0].advanceToAddress(RedBlueAddr.joypadAddr);
             // inject intro inputs
-            wraps[0].injectInput(introInputs[introInputCtr++]);
+            wraps[0].injectRBInput(introInputs[introInputCtr++]);
             wraps[0].advanceFrame();
         }
 
         // Advance to IGT inject point
-        wraps[0].advanceToAddress(Addresses.igtInjectAddr);
+        wraps[0].advanceToAddress(RedBlueAddr.igtInjectAddr);
         ByteBuffer state = gbs[0].saveState();
 
         // Setup for threading
@@ -136,13 +136,13 @@ public class LassIGT0Checker {
                                     gb.writeMemory(0xda45, frm);
 
                                     // skip the rest of the intro
-                                    wrap.advanceToAddress(Addresses.joypadAddr);
-                                    wrap.injectInput(A);
+                                    wrap.advanceToAddress(RedBlueAddr.joypadAddr);
+                                    wrap.injectRBInput(A);
                                     wrap.advanceFrame();
-                                    wrap.advanceToAddress(Addresses.joypadAddr);
-                                    wrap.injectInput(A);
+                                    wrap.advanceToAddress(RedBlueAddr.joypadAddr);
+                                    wrap.injectRBInput(A);
                                     wrap.advanceFrame();
-                                    wrap.advanceToAddress(Addresses.joypadOverworldAddr);
+                                    wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
                                     int pathIdx = 0;
 
                                     // Process shit
@@ -154,27 +154,27 @@ public class LassIGT0Checker {
                                         int input = inputFromChar(finalPath.charAt(pathIdx++));
                                         // Execute the action
                                         Position dest = getDestination(mem, input);
-                                        wrap.injectInput(input);
-                                        wrap.advanceToAddress(Addresses.joypadOverworldAddr + 1);
+                                        wrap.injectRBInput(input);
+                                        wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr + 1);
 
                                         if (travellingToWarp(dest.map, dest.x, dest.y)) {
-                                            wrap.advanceToAddress(Addresses.enterMapAddr);
-                                            wrap.advanceToAddress(Addresses.joypadOverworldAddr);
+                                            wrap.advanceToAddress(RedBlueAddr.enterMapAddr);
+                                            wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
                                         } else {
-                                            int result = wrap.advanceToAddress(Addresses.joypadOverworldAddr,
-                                                    Addresses.newBattleAddr);
+                                            int result = wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr,
+                                                    RedBlueAddr.newBattleAddr);
 
                                             // Did we turnframe or hit an
                                             // ignored input frame after
                                             // a
                                             // warp?
                                             while (mem.getX() != dest.x || mem.getY() != dest.y) {
-                                                if (result == Addresses.newBattleAddr) {
+                                                if (result == RedBlueAddr.newBattleAddr) {
                                                     // Check for garbage
-                                                    int result2 = wrap.advanceToAddress(Addresses.encounterTestAddr,
-                                                            Addresses.joypadOverworldAddr);
+                                                    int result2 = wrap.advanceToAddress(RedBlueAddr.encounterTestAddr,
+                                                            RedBlueAddr.joypadOverworldAddr);
 
-                                                    if (result2 == Addresses.encounterTestAddr) {
+                                                    if (result2 == RedBlueAddr.encounterTestAddr) {
                                                         // Yes we can. What's up
                                                         // on this tile?
                                                         int hra = mem.getHRA();
@@ -194,18 +194,18 @@ public class LassIGT0Checker {
                                                     }
                                                 }
                                                 // Do that input again
-                                                wrap.advanceToAddress(Addresses.joypadOverworldAddr);
-                                                wrap.injectInput(input);
-                                                wrap.advanceToAddress(Addresses.joypadOverworldAddr + 1);
-                                                result = wrap.advanceToAddress(Addresses.newBattleAddr,
-                                                        Addresses.joypadOverworldAddr);
+                                                wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
+                                                wrap.injectRBInput(input);
+                                                wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr + 1);
+                                                result = wrap.advanceToAddress(RedBlueAddr.newBattleAddr,
+                                                        RedBlueAddr.joypadOverworldAddr);
                                             }
                                             // Can we get an encounter now?
                                             if (!garbage) {
-                                                int result2 = wrap.advanceToAddress(Addresses.encounterTestAddr,
-                                                        Addresses.joypadOverworldAddr);
+                                                int result2 = wrap.advanceToAddress(RedBlueAddr.encounterTestAddr,
+                                                        RedBlueAddr.joypadOverworldAddr);
 
-                                                if (result2 == Addresses.encounterTestAddr) {
+                                                if (result2 == RedBlueAddr.encounterTestAddr) {
 
                                                     // Yes we can. What's up on
                                                     // this tile?
@@ -220,15 +220,15 @@ public class LassIGT0Checker {
                                                         if(mem.getMap() == 61 && mem.getX() <= 10 && mem.getY() <= 23) {
                                                             if(mem.getEncounterSpecies() == 109) {
                                                                 success = true;
-                                                                wrap.advanceToAddress(Addresses.manualTextScrollAddr);
-                                                                wrap.injectInput(A);
+                                                                wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
+                                                                wrap.injectRBInput(A);
                                                                 wrap.advanceFrame();
-                                                                wrap.advanceToAddress(Addresses.playCryAddr);
-                                                                wrap.injectInput(DOWN | A);
-                                                                wrap.advanceWithJoypadToAddress(DOWN | A, Addresses.displayListMenuIdAddr);
-                                                                wrap.injectInput(A | RIGHT);
-                                                                int result3 = wrap.advanceWithJoypadToAddress(A | RIGHT, Addresses.catchSuccessAddress, Addresses.catchFailureAddress);
-                                                                if(result3 == Addresses.catchFailureAddress) {
+                                                                wrap.advanceToAddress(RedBlueAddr.playCryAddr);
+                                                                wrap.injectRBInput(DOWN | A);
+                                                                wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
+                                                                wrap.injectRBInput(A | RIGHT);
+                                                                int result3 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
+                                                                if(result3 == RedBlueAddr.catchFailureAddr) {
                                                                     ybfFailed = true;
                                                                 }
                                                             }
@@ -245,16 +245,16 @@ public class LassIGT0Checker {
                                                     }
                                                 }
                                                 if (!garbage) {
-                                                    wrap.advanceToAddress(Addresses.joypadOverworldAddr);
+                                                    wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
 
                                                     // Pick up item?
                                                     if (timeToPickUpItem(mem.getMap(), mem.getX(), mem.getY(),
                                                             itemsPickedUp)) {
                                                         // Pick it up
-                                                        wrap.injectInput(A);
+                                                        wrap.injectRBInput(A);
                                                         wrap.advanceWithJoypadToAddress(A,
-                                                                Addresses.textJingleCommandAddr);
-                                                        wrap.advanceToAddress(Addresses.joypadOverworldAddr);
+                                                                RedBlueAddr.textJingleCommandAddr);
+                                                        wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
                                                         itemsPickedUp[itemIdx++] = true;
                                                     }
                                                 }

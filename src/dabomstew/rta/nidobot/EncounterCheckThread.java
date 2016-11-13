@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 import mrwint.gbtasgen.Gb;
-import dabomstew.rta.Addresses;
+import dabomstew.rta.RedBlueAddr;
 import dabomstew.rta.Encounter;
 import dabomstew.rta.Func;
 import dabomstew.rta.GBMemory;
@@ -74,8 +74,8 @@ public class EncounterCheckThread extends Thread {
                     // first try stepping
                     // into
                     // the grass
-                    wrap.injectInput(UP);
-                    wrap.advanceToAddress(Addresses.newBattleAddr);
+                    wrap.injectRBInput(UP);
+                    wrap.advanceToAddress(RedBlueAddr.newBattleAddr);
 
                     // encounter found?
                     if (mem.getHRA() >= 0 && mem.getHRA() <= 24) { // 24
@@ -114,12 +114,12 @@ public class EncounterCheckThread extends Thread {
 
                     // progress
                     gb.loadState(curState);
-                    wrap.injectInput(oogDir);
+                    wrap.injectRBInput(oogDir);
                     // skip past OJP we just
                     // hit, and then reach
                     // next one
                     wrap.advanceFrame();
-                    wrap.advanceToAddress(Addresses.joypadOverworldAddr);
+                    wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
                     // state save for next
                     // loop
                     curState = gb.saveState();

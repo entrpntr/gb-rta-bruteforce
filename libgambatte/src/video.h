@@ -169,6 +169,8 @@ public:
 	void loadState(const SaveState &state, const unsigned char *oamram);
 	void setDmgPaletteColor(unsigned palNum, unsigned colorNum, unsigned long rgb32);
 	void setVideoBuffer(uint_least32_t *videoBuf, int pitch);
+	void setCgb(bool cgb);
+    void copyCgbPalettesToDmg();
 
 	void loadOrSave(loadsave& state);
 

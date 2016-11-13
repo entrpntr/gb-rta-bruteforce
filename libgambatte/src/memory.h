@@ -19,6 +19,8 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
+static unsigned char const agbOverride[0xD] = { 0xFF, 0x00, 0xCD, 0x03, 0x35, 0xAA, 0x31, 0x90, 0x94, 0x00, 0x00, 0x00, 0x00 };
+
 #include "mem/cartridge.h"
 #include "interrupter.h"
 #include "pakinfo.h"
@@ -36,7 +38,8 @@ class Memory {
 public:
 	Cartridge cart;
 	unsigned char ioamhram[0x200];
-	
+	unsigned char cgbBios[0x900];
+    unsigned char dmgBios[0x100];
 	InputGetter *getInput;
 	unsigned long divLastUpdate;
 	unsigned long lastOamDmaUpdate;
@@ -52,6 +55,10 @@ public:
 	unsigned char oamDmaPos;
 	unsigned char serialCnt;
 	bool blanklcd;
+	bool biosMode_;
+    bool cgbSwitching_;
+    bool agbMode_;
+    bool gbIsCgb_;
 
 	bool LINKCABLE;
 	bool linkClockTrigger;
@@ -62,6 +69,11 @@ public:
 #endif
 
 	void updateInput();
+
+	unsigned char* cgbBiosBuffer() { return (unsigned char*) cgbBios; }
+    unsigned char* dmgBiosBuffer() { return (unsigned char*) dmgBios; }
+    bool gbIsCgb() { return gbIsCgb_; }
+
 	void decEventCycles(MemEventId eventId, unsigned long dec);
 
 	void oamDmaInitSetup();
@@ -117,12 +129,24 @@ public:
 
 	void di() { intreq.di(); }
 
+	unsigned readBios(unsigned p) {
+        if(gbIsCgb_) {
+			if(agbMode_ && p >= 0xF3 && p < 0x100) {
+				return (agbOverride[p-0xF3] + cgbBios[p]) & 0xFF;
+			}
+			return cgbBios[p];
+		}
+		return dmgBios[p];
+	}
 	unsigned ff_read(const unsigned P, const unsigned long cycleCounter) {
 		return P < 0xFF80 ? nontrivial_ff_read(P, cycleCounter) : ioamhram[P - 0xFE00];
 	}
 
-	unsigned read(const unsigned P, const unsigned long cycleCounter) {
-		return cart.rmem(P >> 12) ? cart.rmem(P >> 12)[P] : nontrivial_read(P, cycleCounter);
+	unsigned read(const unsigned p, const unsigned long cycleCounter) {
+		if(biosMode_ && ((!gbIsCgb_ && p < 0x100) || (gbIsCgb_ && p < 0x900 && (p < 0x100 || p >= 0x200)))) {
+    		return readBios(p);
+        }
+		return cart.rmem(p >> 12) ? cart.rmem(p >> 12)[p] : nontrivial_read(p, cycleCounter);
 	}
 
 	void write(const unsigned P, const unsigned data, const unsigned long cycleCounter) {

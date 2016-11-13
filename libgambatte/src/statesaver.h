@@ -37,7 +37,7 @@ public:
 	
 	static bool saveState(const SaveState &state,
 			const uint_least32_t *videoBuf, int pitch, const std::string &filename);
-	static bool loadState(SaveState &state, const std::string &filename);
+	static bool loadState(SaveState &state, std::string const &filename, bool checkMode, int mode);
 };
 
 }

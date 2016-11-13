@@ -24,6 +24,8 @@
 #include <algorithm>
 #include <fstream>
 
+#define SAVE_VERSION 0x01
+
 namespace {
 
 using namespace gambatte;
@@ -260,6 +262,10 @@ SaverList::SaverList() {
 	{ static const char label[] = { s,r,a,m,o,n,   NUL }; ADD(mem.enableRam); }
 	{ static const char label[] = { r,a,m,b,m,o,d, NUL }; ADD(mem.rambankMode); }
 	{ static const char label[] = { h,d,m,a,       NUL }; ADD(mem.hdmaTransfer); }
+	{ static char const label[] = { b,i,o,s,       NUL }; ADD(mem.biosMode); }
+    { static char const label[] = { a,g,b,m,o,d,e, NUL }; ADD(mem.agbMode); }
+    { static char const label[] = { c,g,b,s,w,     NUL }; ADD(mem.cgbSwitching); }
+    { static char const label[] = { b,i,o,s,c,g,b, NUL }; ADD(mem.gbIsCgb); }
 	{ static const char label[] = { b,g,p,         NUL }; ADDPTR(ppu.bgpData); }
 	{ static const char label[] = { o,b,j,p,       NUL }; ADDPTR(ppu.objpData); }
 	{ static const char label[] = { s,p,o,s,b,u,f, NUL }; ADDPTR(ppu.oamReaderBuf); }
@@ -290,6 +296,7 @@ SaverList::SaverList() {
 	{ static const char label[] = { w,s,c,x,       NUL }; ADD(ppu.wscx); }
 	{ static const char label[] = { w,e,m,a,s,t,r, NUL }; ADD(ppu.weMaster); }
 	{ static const char label[] = { l,c,d,s,i,r,q, NUL }; ADD(ppu.pendingLcdstatIrq); }
+	{ static char const label[] = { i,s,c,g,b,     NUL }; ADD(ppu.isCgb); }
 	{ static const char label[] = { s,p,u,c,n,t,r, NUL }; ADD(spu.cycleCounter); }
 	{ static const char label[] = { s,w,p,c,n,t,r, NUL }; ADD(spu.ch1.sweep.counter); }
 	{ static const char label[] = { s,w,p,s,h,d,w, NUL }; ADD(spu.ch1.sweep.shadow); }
@@ -417,7 +424,9 @@ bool StateSaver::saveState(const SaveState &state,
 	if (file.fail())
 		return false;
 	
-	{ static const char ver[] = { 0, 1 }; file.write(ver, sizeof(ver)); }
+	file.put(0xFF); // make sure original gambatte doesn't load our savestates
+    file.put(SAVE_VERSION);
+    file.put(state.mem.gbIsCgb ? 1 : 0);
 	
 	writeSnapShot(file, videoBuf, pitch);
 	
@@ -429,13 +438,22 @@ bool StateSaver::saveState(const SaveState &state,
 	return !file.fail();
 }
 
-bool StateSaver::loadState(SaveState &state, const std::string &filename) {
+bool StateSaver::loadState(SaveState &state, std::string const &filename, bool checkMode, int mode) {
 	std::ifstream file(filename.c_str(), std::ios_base::binary);
 	
-	if (file.fail() || file.get() != 0)
+	if (!file || file.get() != 0xFF)
+    	return false;
+
+    if(file.get() != SAVE_VERSION)
 		return false;
 	
-	file.ignore();
+    if(checkMode) {
+		if(mode != file.get())
+			return false;
+	}
+	else {
+		file.get();
+	}
 	file.ignore(get24(file));
 	
 	const Array<char> labelbuf(list.maxLabelsize());

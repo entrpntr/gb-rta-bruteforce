@@ -187,8 +187,8 @@ public class RedBlueTIDManip {
         ArrayList<Strat> title = new ArrayList<>();
         ArrayList<Strat> titleResets = new ArrayList<>();
         ArrayList<Strat> titleusb = new ArrayList<>();
-        int maxTitle = (MAX_COST - (492 + 172 + CRY_BASE_COST + TITLE_BASE_COST + 20 + 20))/270;
-        for(int i=0; i<=maxTitle; i++) {
+        int maxTitle = (MAX_COST - (492 + 172 + CRY_BASE_COST + TITLE_BASE_COST + 20 + 20));
+        for(int i=0; maxTitle>=0 && i<=maxTitle/270; i++) {
             Integer[] addr = new Integer[i+1], input = new Integer[i+1], advFrames = new Integer[i+1];
             Integer[] rsAddr = new Integer[i+1], rsInput = new Integer[i+1], rsAdvFrames = new Integer[i+1];
             Integer[] usbAddr = new Integer[i+1], usbInput = new Integer[i+1], usbAdvFrames = new Integer[i+1];
@@ -237,14 +237,14 @@ public class RedBlueTIDManip {
             ArrayList<IntroSequence> s4seqs = new ArrayList<>();
             for(IntroSequence s3 : s3seqs) {
                 int ngcost = s3.cost() + CRY_BASE_COST + 20 + 20;
-                int ngmax = (MAX_COST - ngcost - 492) / 270;
-                for(int i=0; i<=ngmax; i++) {
+                int ngmax = (MAX_COST - ngcost - 492);
+                for(int i=0; ngmax>=0 && i<=ngmax/270; i++) {
                     s4seqs.add(append(s3, title.get(i)));
                 }
 
                 int rscost = ngcost + 363 + 172 + TITLE_BASE_COST;
-                int rsmax = (MAX_COST - rscost - 492) / 270;
-                for(int j=0; j<=rsmax; j++) {
+                int rsmax = (MAX_COST - rscost - 492);
+                for(int j=0; rsmax>=0 && j<=rsmax/270; j++) {
                     resetSequences.add(append(s3, titleResets.get(j)));
                     if(270*j <= MAX_COST - 492 - CRY_BASE_COST) {
                         resetSequences.add(append(s3, titleusb.get(j)));

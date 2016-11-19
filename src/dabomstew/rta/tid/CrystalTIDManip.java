@@ -103,7 +103,7 @@ public class CrystalTIDManip {
 
     private static void addWaitPermutations(ArrayList<IntroSequence> introSequences, IntroSequence introSequence) {
         int ngmax = (MAX_COST - (introSequence.cost() + BASE_COST + 8));
-        for(int i=0; i<=ngmax/98; i++) {
+        for(int i=0; ngmax>=0 && i<=ngmax/98; i++) {
             introSequences.add(append(introSequence, newGame));
             introSequence = append(introSequence, backout, titleSkip);
         }
@@ -137,7 +137,7 @@ public class CrystalTIDManip {
         for(Strat s : intro) {
             IntroSequence introSequence = new IntroSequence(s, titleSkip);
             int ngmax = (MAX_COST - (introSequence.cost() + BASE_COST + 8));
-            for(int i=0; i<=ngmax/98; i++) {
+            for(int i=0; ngmax>=0 && i<=ngmax/98; i++) {
                 introSequences.add(append(introSequence, newGame));
                 for(Strat s2 : waitStrats) {
                     IntroSequence base = append(introSequence, s2);

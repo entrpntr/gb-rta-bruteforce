@@ -42,6 +42,8 @@ public:
 
 class Cartridge {
 public:
+    Cartridge();
+
 	struct AddrData {
 		unsigned long addr;
 		unsigned char data;

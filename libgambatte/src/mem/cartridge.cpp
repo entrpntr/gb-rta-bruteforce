@@ -670,6 +670,10 @@ static bool hasBattery(const unsigned char headerByte0x147) {
 	}
 }
 
+Cartridge::Cartridge() : savestateBuf(NULL)
+{
+}
+
 void Cartridge::loadSavedata() {
 	const std::string &sbp = saveBasePath();
 

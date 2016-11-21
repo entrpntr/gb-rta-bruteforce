@@ -60,7 +60,7 @@ public:
 	std::string saveDir;
 	std::vector<AddrData> ggUndoList;
 
-	char *savestateBuf = NULL;
+	char *savestateBuf;
 	
 	void applyGameGenie(const std::string &code);
 	

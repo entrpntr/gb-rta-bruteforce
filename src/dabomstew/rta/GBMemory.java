@@ -44,13 +44,16 @@ public class GBMemory {
 	
 	public int getEncounterSpecies() {
 		return read(0x17);
+		//return gb.readMemory(0xCFE5);
 	}
 	
 	public int getEncounterLevel() {
 		return read(0x18);
+		//return gb.readMemory(0xCFF3);
 	}
 	
 	public int getEncounterDVs() {
+		//return ((gb.readMemory(0xCFF1) << 8) | gb.readMemory(0xCFF2));
 		return (read(0x19) << 8) | read(0x1A);
 	}
 	
@@ -100,7 +103,26 @@ public class GBMemory {
         }
         return sb.toString();
     }
-	
+
+    public String getNPCTimers() {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 1; i <= 15; i++) {
+			// NPC counters
+			sb.append("-");
+			sb.append(getNPCTimer(i));
+		}
+		return sb.toString();
+	}
+
+/*
+    private int readHRA() {
+		return gb.readMemory(0xFFD3);
+	}
+	private int readHRS() {
+		return gb.readMemory(0xFFD4);
+	}
+*/
+
 	public String getRNGState() {
         StringBuilder sb = new StringBuilder();
         sb.append(gb.getDivState());
@@ -111,6 +133,18 @@ public class GBMemory {
         return sb.toString();
     }
 
+	public String getRNGStateWithDsum() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(gb.getDivState());
+		sb.append("-");
+		sb.append(getHRA());
+		sb.append("-");
+		sb.append(getHRS());
+		sb.append("-");
+		sb.append(Integer.toString((getHRS()+getHRA()) % 256));
+		return sb.toString();
+	}
+
     public String getRNGStateHRAOnly() {
         StringBuilder sb = new StringBuilder();
         sb.append(gb.getDivState());
@@ -118,5 +152,9 @@ public class GBMemory {
         sb.append(getHRA());
         return sb.toString();
     }
+
+    public int getIGT() {
+		return 3600*read(0x1D)+60*read(0x1E)+read(0x1F);
+	}
 
 }

@@ -13,7 +13,7 @@ public class RedBlueAddr {
     public static final int delayAtEndOfShootingStarAddr = 0x418CB;
     public static final int textJingleCommandAddr = 0x1C31;
     public static final int enterMapAddr = 0x03A6;
-    public static final int encounterTestAddr = 0x1389E;
+    public static final int encounterTestAddr = 0x138C4;
     public static final int igtInjectAddr = 0x7366A;
     public static final int npcTimerExpireAddr = 0x51FD;
     public static final int catchSuccessAddr = 0xD868;
@@ -24,4 +24,5 @@ public class RedBlueAddr {
     public static final int softResetAddr = 0x1F49;
     public static final int displayTitleScreenAddr = 0x42DD;
     public static final int titleScreenPickNewMonAddr = 0x4496;
+    public static final int initAddr = 0x1F54;
 }

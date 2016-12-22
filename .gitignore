@@ -32,9 +32,9 @@ oldrngdata/*
 log.txt
 *_encounters*.txt
 *_statesimport*.txt
-blue.txt
-red.txt
-crystal.txt
+*ffef*.txt
+*tids*.txt
+
 
 # hidden files
 .*

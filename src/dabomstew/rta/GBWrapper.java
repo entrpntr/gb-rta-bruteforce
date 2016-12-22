@@ -26,10 +26,12 @@ public class GBWrapper {
 				result = gb.step(0, addresses);
 			}
 			//runs++;
-			//try {
-			//	Thread.sleep(5);
-			//} catch (InterruptedException e) {
-			//}
+/*
+			try {
+				Thread.sleep(5);
+			} catch (InterruptedException e) {
+			}
+*/
 		}
 		mem.setStale();
 		//System.out.printf("returned after %d runs with result %04X\n", runs, result);
@@ -45,10 +47,12 @@ public class GBWrapper {
             else {
                 result = gb.step(joypad, addresses);
             }
-//            try {
-//                Thread.sleep(5);
-//            } catch (InterruptedException e) {
-//            }
+/*
+ 			try {
+                Thread.sleep(5);
+            } catch (InterruptedException e) {
+			}
+*/
         }
         mem.setStale();
         return result;
@@ -77,6 +81,10 @@ public class GBWrapper {
 
 	public void injectCrysInput(int input) {
 		writeMemory(0xFFA4, input);
+	}
+
+	public void injectGoldInput(int input) {
+		writeMemory(0xFFA6, input);
 	}
 
 	public void writeMemory(int address, int value) {

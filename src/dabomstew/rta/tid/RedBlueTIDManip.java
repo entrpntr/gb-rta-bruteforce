@@ -26,7 +26,7 @@ public class RedBlueTIDManip {
     /* Change this to "blue" or "red" before running */
     private static final String gameName = "red";
     /* Change this to increase/decrease number of intro sequence combinations processed */
-    private static final int MAX_COST = 2900;
+    private static final int MAX_COST = 2750;
 
     //static int BASE_COST = 492, HOP_BASE_COST = 172, HOP1_COST = 131, HOP2_COST = 190, HOP3_COST = 298, HOP4_COST = 447, HOP5_COST = 536, SCROLL_ROUGHCOST = 270, SOFT_RESET_COST = 363, NG_WINDOW_COST = 20, START_NG_COST = 20, BACKOUT_COST = 142, OAK_SPEECH_COST = 114;
     private static final int TITLE_BASE_COST = (gameName.equals("blue") ? 0 : 1);
@@ -34,6 +34,8 @@ public class RedBlueTIDManip {
 
     private static PalStrat pal = new PalStrat("_pal", 0, new Integer[] {RedBlueAddr.biosReadKeypadAddr}, new Integer[] {UP}, new Integer[] {1});
     private static PalStrat nopal = new PalStrat("_nopal", 0, new Integer[] {RedBlueAddr.biosReadKeypadAddr}, new Integer[] {NO_INPUT}, new Integer[] {1});
+    private static PalStrat abss = new PalStrat("_nopal(ab)", 0, new Integer[] {RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.initAddr}, new Integer[] {A, A}, new Integer[] {0, 0});
+    private static PalStrat holdpal = new PalStrat("_pal(hold)", 0, new Integer[] {RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.initAddr}, new Integer[] {UP, UP}, new Integer[] {0, 0});
 
     private static Strat gfSkip = new Strat("_gfskip", 0, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {UP | SELECT | B}, new Integer[] {1});
     private static Strat gfWait = new Strat("_gfwait", 253, new Integer[] {RedBlueAddr.delayAtEndOfShootingStarAddr}, new Integer[] {NO_INPUT}, new Integer[] {0});
@@ -181,7 +183,7 @@ public class RedBlueTIDManip {
             System.exit(0);
         }
 
-        File file = new File(gameName + ".txt");
+        File file = new File(gameName + "_tids.txt");
         PrintWriter writer = new PrintWriter(file);
 
         ArrayList<Strat> title = new ArrayList<>();
@@ -296,29 +298,14 @@ public class RedBlueTIDManip {
         for(IntroSequence seq : introSequencesTmp) {
             introSequences.add(append(nopal, seq));
             introSequences.add(append(pal, seq));
+            introSequences.add(append(abss, seq));
+            introSequences.add(append(holdpal, seq));
         }
         introSequencesTmp.clear();
         introSequencesTmp = null;
 
         System.out.println("Number of intro sequences: " + introSequences.size());
         Collections.sort(introSequences);
-
-        // Check byte buffer limits
-        int maxBuffers = 0;
-        int bbLimit = 0;
-        List<ByteBuffer> allMyBuffers = new ArrayList<ByteBuffer>();
-        try {
-            while (true) {
-                allMyBuffers.add(Gb.createDirectByteBuffer(190000));
-                maxBuffers++;
-            }
-        } catch (OutOfMemoryError ex) {
-            bbLimit = maxBuffers * 95 / 100;
-            System.out.println("ran out of memory at " + maxBuffers + " byte buffers, set limit to " + bbLimit);
-        }
-        allMyBuffers.clear();
-        allMyBuffers = null;
-        System.gc();
 
         // Init gambatte with 1 screen
         Gb.loadGambatte(1);

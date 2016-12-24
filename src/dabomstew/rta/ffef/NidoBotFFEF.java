@@ -24,13 +24,37 @@ public class NidoBotFFEF {
 
     private static final int HARD_RESET = 0x800;
 
-    // Graph is only built right now to waste 10 steps, so more would need to be added to make use of >= 204 frames
-    // Also more intros would need to be spelled out
-    private static final int MAX_COST = 179;
-
+    private static final String gameName;
     private static PrintWriter writer;
 
-    private static final String gameName = "red";
+    // Graph is only built right now to waste 10 steps, so more would need to be added to make use of >= 204 frames.
+    // Also more intros would need to be spelled out.
+    private static final int MAX_COST;
+    static {
+        int BLUE_COST = 138;
+        gameName = "red";
+        MAX_COST = (gameName.equals("blue")) ? BLUE_COST : BLUE_COST + 28;
+    }
+
+    // TODO: LOOK AT TUNING THESE MORE
+    private static final double DSUM_HIGH_COEF = 0.686;
+    private static final double DSUM_LOW_COEF = 0.623;
+    private static final double DSUM_MARGIN_OF_ERROR = 5.0;
+
+    // Sort tiles by starting cost (lower starting cost takes priority),
+    // then by starting distance from grass (longer distance takes priority).
+    //
+    // The idea being that if you get to a state that's already been reached, it has been from a state that has wasted
+    // fewer frames to get to that point.
+    static class SaveTileComparator implements Comparator<SaveTile> {
+        @Override public int compare(SaveTile o1, SaveTile o2) {
+            if(o1.getStartCost() != o2.getStartCost()) {
+                return o1.getTrueStartCost() - o2.getTrueStartCost();
+            } else {
+                return o2.getOwPos().getMinStepsToGrass() - o1.getOwPos().getMinStepsToGrass();
+            }
+        }
+    }
 
     public static void main(String[] args) throws IOException, InterruptedException {
         // Make folder if necessary
@@ -44,9 +68,15 @@ public class NidoBotFFEF {
             System.exit(0);
         }
 
+        if (!new File("roms/poke" + gameName + ".gbc").exists()) {
+            System.err.println("Could not find poke" + gameName + ".gbc in roms directory!");
+            System.exit(0);
+        }
+
         File file = new File(gameName + "_ffef_encounters.txt");
         writer = new PrintWriter(file);
 
+        // TODO: Programmatically add intros for manips with higher cost caps
         List<IntroSequence> introSequences = new ArrayList<>();
         introSequences.add(new IntroSequence(nopal, gfSkip, nido0, title0, cont, cont));
         introSequences.add(new IntroSequence(pal, gfSkip, nido0, title0, cont, cont));
@@ -64,13 +94,15 @@ public class NidoBotFFEF {
 
         initTiles();
 
-        for(SaveTile test : saveTiles) {
-            // Comment if you want to search the whole space
-            if(test.getOwPos().getMinStepsToGrass() > 25) {
+        Collections.sort(saveTiles, new SaveTileComparator());
+        for(SaveTile saveTile : saveTiles) {
+            // Comment these lines ouif you want to search the whole space
+            if(saveTile.getOwPos().getMinStepsToGrass() > 22) {
                 continue;
             }
-            OverworldTile testPos = test.getOwPos();
-            makeSave(testPos.getMap(), testPos.getX(), testPos.getY());
+
+            OverworldTile savePos = saveTile.getOwPos();
+            makeSave(savePos.getMap(), savePos.getX(), savePos.getY());
 
             // Init gambatte with 1 screen
             Gb.loadGambatte(1);
@@ -80,12 +112,14 @@ public class NidoBotFFEF {
             wrap = new GBWrapper(gb, mem);
 
             for (IntroSequence intro : introSequences) {
-                if (test.getStartCost() + intro.cost() <= MAX_COST) {
+                int baseCost = saveTile.getStartCost() + intro.cost();
+                if (baseCost <= MAX_COST) {
+                    //System.out.println("--- [" + savePos.getMap() + "#" + savePos.getX() + "," + savePos.getY() + "] " + intro.toString() + " ---");
                     intro.execute(wrap);
                     wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
-                    OverworldState owState = new OverworldState(testPos.toString() + " - " + intro.toString() + ":",
-                            test.getOwPos(), 1, true, gb.getDivState(), mem.getHRA(), mem.getHRS(), test.isViridianNpc(),
-                            mem.getTurnFrameStatus(), mem.getNPCTimers(), intro.cost(), 0);
+                    OverworldState owState = new OverworldState(savePos.toString() + " - " + intro.toString() + ":",
+                            saveTile.getOwPos(), 1, true, gb.getDivState(), mem.getHRA(), mem.getHRS(),
+                            saveTile.isViridianNpc(), mem.getTurnFrameStatus(), mem.getNPCTimers(), baseCost, 0);
                     overworldSearch(owState);
                     gb.step(HARD_RESET);
                 }
@@ -114,35 +148,39 @@ public class NidoBotFFEF {
 
         for(OverworldEdge edge : ow.getPos().getEdgeList()) {
             OverworldAction edgeAction = edge.getAction();
-            if(ow.getMap() == 1 && ow.getX() == 47-30 && edgeAction == OverworldAction.RIGHT && ow.isViridianNpc()) {
+            if (ow.getMap() == 1 && ow.getX() == 47 - 30 && edgeAction == OverworldAction.RIGHT && ow.isViridianNpc()) {
                 continue;
             }
-            if(ow.aPressCounter() > 0 && (edgeAction == OverworldAction.A || edgeAction == OverworldAction.START_B
+            if (ow.aPressCounter() > 0 && (edgeAction == OverworldAction.A || edgeAction == OverworldAction.START_B
                     || edgeAction == OverworldAction.S_A_B_S || edgeAction == OverworldAction.S_A_B_A_B_S)) {
                 continue;
             }
-            if(!ow.canPressStart() && (edgeAction == OverworldAction.START_B || edgeAction == OverworldAction.S_A_B_S
+            if (!ow.canPressStart() && (edgeAction == OverworldAction.START_B || edgeAction == OverworldAction.S_A_B_S
                     || edgeAction == OverworldAction.S_A_B_A_B_S)) {
                 continue;
             }
             int edgeCost = edge.getCost();
-            if(ow.getWastedFrames() + edgeCost > MAX_COST) {
+            if (ow.getWastedFrames() + edgeCost > MAX_COST) {
                 continue;
             }
 
             int lowFrames = edge.getFrames() +
-                    ((OverworldAction.isDpad(edgeAction) && edge.getNextPos().isEncounterTile()) ? 0 : edge.getNextPos().getMinStepsToGrass()*17);
-            int highFrames = lowFrames + (MAX_COST - ow.getWastedFrames() - edgeCost + 17* effectiveWastableSteps(edge.getNextPos()));
-            double lowDsumChange = ((double)lowFrames)*0.613;
-            double highDsumChange = ((double)highFrames)*0.686;
-            //if(inferDsumDebug(ow, edge,ow.getDsum()+2048-highDsumChange-5.0, ow.getDsum()+2048-lowDsumChange+5.0)) {
-            if(inferDsum(ow.getDsum()+2048-highDsumChange-5.0, ow.getDsum()+2048-lowDsumChange+5.0)) {
+                    ((OverworldAction.isDpad(edgeAction) && edge.getNextPos().isEncounterTile()) ? 0 : edge.getNextPos().getMinStepsToGrass() * 17);
+            int highFrames = edge.getFrames() + 17 * edge.getNextPos().getMinStepsToGrass() + 17 * effectiveWastableSteps(edge.getNextPos()) +
+                    MAX_COST - ow.getWastedFrames() - edgeCost;
+            double lowDsumChange = ((double)lowFrames)*DSUM_LOW_COEF;
+            double highDsumChange = ((double)highFrames)*DSUM_HIGH_COEF;
+            double predictLow = ((double)ow.getDsum())+2048.0-lowDsumChange+DSUM_MARGIN_OF_ERROR;
+            double predictHigh = ((double)ow.getDsum())+2048.0-highDsumChange-DSUM_MARGIN_OF_ERROR;
+
+            //if(inferDsumDebug(predictHigh, predictLow)) {
+            if(inferDsum(predictHigh, predictLow)) {
                 continue;
             }
 
             int initIGT = readIGT();
-            int wastedFrames = 0;
-            int res = 0;
+            int wastedFrames;
+            int res;
             OverworldState newState;
             switch (edgeAction) {
                 case LEFT:
@@ -161,15 +199,29 @@ public class NidoBotFFEF {
                             Encounter enc = new Encounter(mem.getEncounterSpecies(), mem.getEncounterLevel(),
                                     mem.getEncounterDVs(), mem.getRNGStateHRAOnly());
                             int owFrames = ow.getOverworldFrames() + edge.getFrames();
-                 //           double predictedDsum = (((double)startDsum+2048.0)-((double)(owFrames))*0.669921875) % 256.0;
                           //  String pruneDsum = dsumPrune ? " [*]" : "";
+                            String defaultYbf = "";
+                            if(enc.species == 3 && (enc.dvs == 0xFFEF || enc.dvs == 0xFFEE)) {
+                                wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
+                                wrap.injectRBInput(A);
+                                wrap.advanceFrame();
+                                wrap.advanceToAddress(RedBlueAddr.playCryAddr);
+                                wrap.injectRBInput(DOWN | A);
+                                wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
+                                wrap.injectRBInput(A | RIGHT);
+                                int res2 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
+                                if(res2 == RedBlueAddr.catchSuccessAddr) {
+                                    defaultYbf = ", default ybf: [*]";
+                                } else {
+                                    defaultYbf = ", default ybf: [ ]";
+                                }
+                            }
                             writer.println(
                                     ow.toString() + " " + edgeAction.logStr() + ", " +
                                             String.format(
                                                     "species %d lv%d DVs %04X rng %s encrng %s",
                                                     enc.species, enc.level, enc.dvs, enc.battleRNG, rngAtEnc
-                                            ) + ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames)
-              //                              + ", predicted dsum: " + String.format("%.2f", predictedDsum)
+                                            ) + ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames) + defaultYbf
               //                              + pruneDsum
                             );
                         }
@@ -290,13 +342,12 @@ public class NidoBotFFEF {
     //  Need this, otherwise dsum inference gets confused about how much longer the manip can take
     private static int effectiveWastableSteps(OverworldTile pos) {
         int effWastableSteps = 0;
-        if(pos.getMap()==33 && pos.getX() < 34) {
-            effWastableSteps = Math.abs(pos.getX() - 33) + Math.abs(pos.getY() - 11) - pos.getMinStepsToGrass();
+        if(pos.getMap()==33 && pos.getX() >= 30 && pos.getX() <= 33 && pos.getY() >= 8 && pos.getY() <= 12) {
+            effWastableSteps = Math.abs(pos.getX() - 33) + Math.abs(pos.getY() - 11) - 1;
         }
         return effWastableSteps;
     }
 
-/*
     private static boolean inferDsumDebug(OverworldState ow, OverworldEdge edge, double predictHigh, double predictLow) {
         if(Math.abs(predictHigh-predictLow)>=256.0) {
             return false;
@@ -307,13 +358,13 @@ public class NidoBotFFEF {
             }
             if(gameName.equals("red")) {
                 if (predictLow <= 141.0 || (predictHigh >= 170.0 && (predictLow <= 256.0 || predictLow % 256.0 <= 141.0))) {
-                    writer.println("PRUNED: " + ow.getStr() + "[" + edge.getAction().logStr() + "]"
+                    writer.println("PRUNED: " + ow.toString() + " [" + edge.getAction().logStr() + " -> " + edge.getNextPos().getX() + "," + edge.getNextPos().getY() + "]"
                     + " -- High: " + String.format("%.3f", predictHigh) + ", Low: " + String.format("%.3f", (predictLow % 256.0)));
                     return true;
                 }
             } else if(gameName.equals("blue")) {
                 if (predictLow <= 253.0 && predictHigh >= 4.0) {
-                    writer.println("PRUNED: " + ow.getStr() + "[" + edge.getAction().logStr() + "]"
+                    writer.println("PRUNED: " + ow.toString() + " [" + edge.getAction().logStr() + " -> " + edge.getNextPos().getX() + "," + edge.getNextPos().getY() + "]"
                     + " -- High: " + String.format("%.3f", predictHigh) + ", Low: " + String.format("%.3f", (predictLow % 256.0)));
                     return true;
                 }
@@ -321,7 +372,6 @@ public class NidoBotFFEF {
             return false;
         }
     }
-*/
 
     // returns true if should prune
     private static boolean inferDsum(double predictHigh, double predictLow) {
@@ -348,10 +398,12 @@ public class NidoBotFFEF {
     // returns true if should prune
     private static boolean inferDsum(OverworldState ow) {
         int minSteps = ow.getPos().getMinStepsToGrass();
-        int dsum = 2048+ow.getHra()+ow.getHrs();
+        double dsum = (double)(2048+ow.getHra()+ow.getHrs());
         int effWastableSteps = effectiveWastableSteps(ow.getPos());
-        double predictLow = ((double)dsum)-((double)((minSteps)*17))*0.613+5.0;
-        double predictHigh = ((double)dsum)-((double)(((minSteps + effWastableSteps)*17+(MAX_COST-ow.getWastedFrames()))))*0.686-5.0;
+        double lowFrames = ((double)(minSteps))*17.0;
+        double highFrames = 17.0*((double)(minSteps+effWastableSteps))+MAX_COST-ow.getWastedFrames();
+        double predictLow = dsum-lowFrames*DSUM_LOW_COEF+DSUM_MARGIN_OF_ERROR;
+        double predictHigh = dsum-highFrames*DSUM_HIGH_COEF-DSUM_MARGIN_OF_ERROR;
         return inferDsum(predictHigh, predictLow);
     }
 
@@ -961,7 +1013,6 @@ public class NidoBotFFEF {
         saveTiles.add(new SaveTile(pw33_181, 0, false)); // has to be coded 0, but effectively 34
         saveTiles.add(new SaveTile(pw32_181, 34, false));
         saveTiles.add(new SaveTile(pw33_180, 34, false));
-
         saveTiles.add(new SaveTile(pw71_182, 68, false));
         saveTiles.add(new SaveTile(pw67_177, 68, false));
         saveTiles.add(new SaveTile(pw66_177, 68, false));
@@ -1048,7 +1099,7 @@ public class NidoBotFFEF {
         saveTiles.add(new SaveTile(pw30_180, 136, false));
         saveTiles.add(new SaveTile(pw31_179, 136, false));
         saveTiles.add(new SaveTile(pw32_178, 136, false));
-
+/*
         saveTiles.add(new SaveTile(pw74_182, 170, false));
         saveTiles.add(new SaveTile(pw73_181, 170, false));
         saveTiles.add(new SaveTile(pw72_180, 170, false));
@@ -1067,7 +1118,7 @@ public class NidoBotFFEF {
         saveTiles.add(new SaveTile(pw30_184, 170, false));
         saveTiles.add(new SaveTile(pw30_179, 170, false));
         saveTiles.add(new SaveTile(pw31_178, 170, false));
-
+*/
         for(int x=0; x<=44; x++) {
             for(int y=0; y<=13; y++) {
                 pw[x][y] = null;

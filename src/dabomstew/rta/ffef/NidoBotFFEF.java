@@ -216,6 +216,7 @@ public class NidoBotFFEF {
                                     defaultYbf = ", default ybf: [ ]";
                                 }
                             }
+							writer.checkError();
                             writer.println(
                                     ow.toString() + " " + edgeAction.logStr() + ", " +
                                             String.format(

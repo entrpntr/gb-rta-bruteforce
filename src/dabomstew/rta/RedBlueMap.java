@@ -84,8 +84,8 @@ public class RedBlueMap {
 			}
 			int xMin = map.getPokeworldOffsetX();
 			int yMin = map.getPokeworldOffsetY();
-			int xMax = xMin + map.getActualWidth();
-			int yMax = yMin + map.getActualHeight();
+			int xMax = xMin + map.getWidthInTiles();
+			int yMax = yMin + map.getHeightInTiles();
 			if(x >= xMin && x <= xMax && y >= yMin && y <= yMax) {
 				return map;
 			}
@@ -205,10 +205,10 @@ public class RedBlueMap {
 								continue;
 							}
 							if(xTile < 0) {
-								xTile = map.getActualWidth() + xTile;
+								xTile = map.getWidthInTiles() + xTile;
 							}
 							if(yTile < 0) {
-								yTile = map.getActualHeight() + yTile;
+								yTile = map.getHeightInTiles() + yTile;
 							}
 							if(xTile >= widthInTiles) {
 								xTile = widthInTiles - xTile;
@@ -280,14 +280,14 @@ public class RedBlueMap {
 	/**
 	 * @return the map width in tiles
 	 */
-	public int getActualWidth() {
+	public int getWidthInTiles() {
 		return widthInTiles;
 	}
 
 	/**
 	 * @return the map height in tiles
 	 */
-	public int getActualHeight() {
+	public int getHeightInTiles() {
 		return heightInTiles;
 	}
 

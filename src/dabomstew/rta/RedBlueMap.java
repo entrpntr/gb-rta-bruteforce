@@ -135,7 +135,7 @@ public class RedBlueMap {
 	}
 
 	/**
-	 * Determainds if a tile is solid. Still returns false if tile is occupied
+	 * Determineds if a tile is solid. Still returns false if tile is occupied
 	 * by npc
 	 * 
 	 * @param x
@@ -152,7 +152,7 @@ public class RedBlueMap {
 	}
 
 	/**
-	 * Determainds if a npc is occupying a given tile.
+	 * Determineds if a npc is occupying a given tile.
 	 * 
 	 * @param x
 	 *            - x coordinate of the tile
@@ -166,9 +166,9 @@ public class RedBlueMap {
 		}
 		return (tiles[x][y] & 2) != 0;
 	}
-	
+
 	/**
-	 * Determainds if a tile is a grass tile
+	 * Determineds if a tile is a grass tile
 	 * 
 	 * @param x
 	 *            - x coordinate of the tile
@@ -184,9 +184,10 @@ public class RedBlueMap {
 	}
 
 	/**
-	 * Gets the excluded tiles from manip searching (in map space, not pokeworld space)
-	 * @return
-	 * 	- The excluded tiles
+	 * Gets the excluded tiles from manip searching (in map space, not pokeworld
+	 * space)
+	 * 
+	 * @return - The excluded tiles
 	 */
 	public Position[] getExcludedTiles() {
 		ArrayList<Position> result = new ArrayList<Position>();
@@ -222,8 +223,7 @@ public class RedBlueMap {
 						}
 					}
 					break;
-				}
-				;
+				};
 			}
 		}
 		Position[] res = new Position[result.size()];
@@ -232,9 +232,10 @@ public class RedBlueMap {
 	}
 
 	/**
-	 * Gets the included tiles for manip searching (in map space, not pokeworld space)
-	 * @return
-	 * 	- The included tiles
+	 * Gets the included tiles for manip searching (in map space, not pokeworld
+	 * space)
+	 * 
+	 * @return - The included tiles
 	 */
 	public Position[] getIncludedTiles() {
 		ArrayList<Position> result = new ArrayList<Position>();
@@ -278,7 +279,7 @@ public class RedBlueMap {
 	public int getWidthInBlocks() {
 		return widthInBlocks;
 	}
-	
+
 	/**
 	 * @return the map height in blocks
 	 */

@@ -94,9 +94,10 @@ public class RedBlueMap {
 	}
 
 	private int id;
-	private int widthInBlocks;
 	private int pokeworldOffsetX;
 	private int pokeworldOffsetY;
+	private int widthInBlocks;
+	private int heightInBlocks;
 	private int widthInTiles;
 	private int heightInTiles;
 	private byte[][] tiles;
@@ -121,6 +122,7 @@ public class RedBlueMap {
 			byte[] tileData = new byte[inputStream.available()];
 			inputStream.read(tileData);
 			inputStream.close();
+			heightInBlocks = tileData.length / widthInBlocks;
 			heightInTiles = tileData.length / widthInTiles;
 			tiles = new byte[widthInTiles][heightInTiles];
 			for(int i = 0; i < tileData.length; i++) {
@@ -146,7 +148,7 @@ public class RedBlueMap {
 		if(x < 0 || x >= widthInTiles || y < 0 || y >= heightInTiles) {
 			return false;
 		}
-		return tiles[x][y] == 1;
+		return (tiles[x][y] & 1) != 0;
 	}
 
 	/**
@@ -162,7 +164,7 @@ public class RedBlueMap {
 		if(x < 0 || x >= widthInTiles || y < 0 || y >= heightInTiles) {
 			return false;
 		}
-		return tiles[x][y] == 2 || tiles[x][y] == 6;
+		return (tiles[x][y] & 2) != 0;
 	}
 	
 	/**
@@ -178,7 +180,7 @@ public class RedBlueMap {
 		if(x < 0 || x >= widthInTiles || y < 0 || y >= heightInTiles) {
 			return false;
 		}
-		return tiles[x][y] == 4 || tiles[x][y] == 6;
+		return (tiles[x][y] & 4) != 0;
 	}
 
 	/**
@@ -275,6 +277,13 @@ public class RedBlueMap {
 	 */
 	public int getWidthInBlocks() {
 		return widthInBlocks;
+	}
+	
+	/**
+	 * @return the map height in blocks
+	 */
+	public int getHeightInBlocks() {
+		return heightInBlocks;
 	}
 
 	/**

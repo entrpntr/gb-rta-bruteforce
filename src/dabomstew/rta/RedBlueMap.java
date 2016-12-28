@@ -3,7 +3,6 @@ package dabomstew.rta;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class RedBlueMap {
 
@@ -100,7 +99,7 @@ public class RedBlueMap {
 	private int heightInBlocks;
 	private int widthInTiles;
 	private int heightInTiles;
-	private byte[][] tiles;
+	private RedBlueMapTile[][] tiles;
 
 	/**
 	 * @param id
@@ -124,9 +123,9 @@ public class RedBlueMap {
 			inputStream.close();
 			heightInBlocks = tileData.length / widthInBlocks;
 			heightInTiles = tileData.length / widthInTiles;
-			tiles = new byte[widthInTiles][heightInTiles];
+			tiles = new RedBlueMapTile[widthInTiles][heightInTiles];
 			for(int i = 0; i < tileData.length; i++) {
-				tiles[i % widthInTiles][i / widthInTiles] = tileData[i];
+				tiles[i % widthInTiles][i / widthInTiles] = new RedBlueMapTile(this, i % widthInTiles, i / widthInTiles, tileData[i]);
 			}
 			maps[id] = this;
 		} catch(Exception e) {
@@ -135,52 +134,18 @@ public class RedBlueMap {
 	}
 
 	/**
-	 * Determineds if a tile is solid. Still returns false if tile is occupied
-	 * by npc
-	 * 
+	 * Returns a tile on the given coordinates
 	 * @param x
 	 *            - x coordinate of the tile
 	 * @param y
 	 *            - y coordinate of the tile
-	 * @return - wheather the tile is solid or not
+	 * @return - The tile at that position
 	 */
-	public boolean isTileSolid(int x, int y) {
+	public RedBlueMapTile getTile(int x, int y) {
 		if(x < 0 || x >= widthInTiles || y < 0 || y >= heightInTiles) {
-			return false;
+			return null;
 		}
-		return (tiles[x][y] & 1) != 0;
-	}
-
-	/**
-	 * Determineds if a npc is occupying a given tile.
-	 * 
-	 * @param x
-	 *            - x coordinate of the tile
-	 * @param y
-	 *            - y coordinate of the tile
-	 * @return - wheather an npc is on the tile
-	 */
-	public boolean isNPC(int x, int y) {
-		if(x < 0 || x >= widthInTiles || y < 0 || y >= heightInTiles) {
-			return false;
-		}
-		return (tiles[x][y] & 2) != 0;
-	}
-
-	/**
-	 * Determineds if a tile is a grass tile
-	 * 
-	 * @param x
-	 *            - x coordinate of the tile
-	 * @param y
-	 *            - y coordinate of the tile
-	 * @return - wheather it is a grass tile
-	 */
-	public boolean isGrassTile(int x, int y) {
-		if(x < 0 || x >= widthInTiles || y < 0 || y >= heightInTiles) {
-			return false;
-		}
-		return (tiles[x][y] & 4) != 0;
+		return tiles[x][y];
 	}
 
 	/**
@@ -189,15 +154,14 @@ public class RedBlueMap {
 	 * 
 	 * @return - The excluded tiles
 	 */
-	public Position[] getExcludedTiles() {
-		ArrayList<Position> result = new ArrayList<Position>();
+	public ArrayList<RedBlueMapTile> getExcludedTiles() {
+		ArrayList<RedBlueMapTile> result = new ArrayList<RedBlueMapTile>();
 		for(int y = 0; y < heightInTiles; y++) {
 			for(int x = 0; x < widthInTiles; x++) {
-				switch(tiles[x][y]) {
-				case 1:
-					result.add(new Position(id, x, y));
-					break;
-				case 2:
+				if(tiles[x][y].isSolid()) {
+					result.add(tiles[x][y]);
+				}
+				if(tiles[x][y].isOccupiedByNPC()) {
 					for(int xa = -5; xa < 4; xa++) {
 						for(int ya = -4; ya < 4; ya++) {
 							int xTile = xa + x;
@@ -219,16 +183,13 @@ public class RedBlueMap {
 							if(yTile >= widthInTiles) {
 								yTile = widthInTiles - yTile;
 							}
-							result.add(new Position(map.getId(), xTile, yTile));
+							result.add(map.getTile(xTile, yTile));
 						}
 					}
-					break;
-				};
+				}
 			}
 		}
-		Position[] res = new Position[result.size()];
-		result.toArray(res);
-		return res;
+		return result;
 	}
 
 	/**
@@ -237,20 +198,18 @@ public class RedBlueMap {
 	 * 
 	 * @return - The included tiles
 	 */
-	public Position[] getIncludedTiles() {
-		ArrayList<Position> result = new ArrayList<Position>();
-		ArrayList<Position> excludedTiles = new ArrayList<Position>(Arrays.asList(getExcludedTiles()));
+	public ArrayList<RedBlueMapTile> getIncludedTiles() {
+		ArrayList<RedBlueMapTile> result = new ArrayList<RedBlueMapTile>();
+		ArrayList<RedBlueMapTile> excludedTiles = new ArrayList<RedBlueMapTile>(getExcludedTiles());
 		for(int y = 0; y < heightInTiles; y++) {
 			for(int x = 0; x < widthInTiles; x++) {
-				Position pos = new Position(id, x, y);
-				if(!excludedTiles.contains(pos)) {
-					result.add(pos);
+				RedBlueMapTile tile = getTile(x, y);
+				if(!excludedTiles.contains(tile)) {
+					result.add(tile);
 				}
 			}
 		}
-		Position[] res = new Position[result.size()];
-		result.toArray(res);
-		return res;
+		return result;
 	}
 
 	/**

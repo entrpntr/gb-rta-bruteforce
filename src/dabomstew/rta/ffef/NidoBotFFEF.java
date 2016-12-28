@@ -216,6 +216,7 @@ public class NidoBotFFEF {
                                     defaultYbf = ", default ybf: [ ]";
                                 }
                             }
+							writer.checkError();
                             writer.println(
                                     ow.toString() + " " + edgeAction.logStr() + ", " +
                                             String.format(
@@ -224,7 +225,6 @@ public class NidoBotFFEF {
                                             ) + ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames) + defaultYbf
               //                              + pruneDsum
                             );
-							writer.flush();
                         }
                     } else if (res == RedBlueAddr.joypadOverworldAddr) {
                         while (mem.getMap() == ow.getMap() && mem.getX() == ow.getX() && mem.getY() == ow.getY()) {

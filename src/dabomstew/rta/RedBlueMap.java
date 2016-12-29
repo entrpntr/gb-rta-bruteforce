@@ -156,9 +156,12 @@ public class RedBlueMap {
 	 * Gets the excluded tiles from manip searching (in map space, not pokeworld
 	 * space)
 	 * 
+	 * @param excludeGrass
+	 *            - should the returned list include grass tiles?
+	 * 
 	 * @return - The excluded tiles
 	 */
-	public ArrayList<RedBlueMapTile> getExcludedTiles() {
+	public ArrayList<RedBlueMapTile> getExcludedTiles(boolean excludeGrass) {
 		ArrayList<RedBlueMapTile> result = new ArrayList<RedBlueMapTile>();
 		for(int y = 0; y < heightInTiles; y++) {
 			for(int x = 0; x < widthInTiles; x++) {
@@ -200,11 +203,14 @@ public class RedBlueMap {
 	 * Gets the included tiles for manip searching (in map space, not pokeworld
 	 * space)
 	 * 
+	 * @param includeGrass
+	 *            - should the returned list include grass tiles?
+	 * 
 	 * @return - The included tiles
 	 */
-	public ArrayList<RedBlueMapTile> getIncludedTiles() {
+	public ArrayList<RedBlueMapTile> getIncludedTiles(boolean includeGrass) {
 		ArrayList<RedBlueMapTile> result = new ArrayList<RedBlueMapTile>();
-		ArrayList<RedBlueMapTile> excludedTiles = new ArrayList<RedBlueMapTile>(getExcludedTiles());
+		ArrayList<RedBlueMapTile> excludedTiles = new ArrayList<RedBlueMapTile>(getExcludedTiles(!includeGrass));
 		for(int y = 0; y < heightInTiles; y++) {
 			for(int x = 0; x < widthInTiles; x++) {
 				RedBlueMapTile tile = getTile(x, y);
@@ -279,7 +285,8 @@ public class RedBlueMap {
 	}
 
 	/**
-	 * @return the global encounter rate of the area, returns 0 if there are no encounters
+	 * @return the global encounter rate of the area, returns 0 if there are no
+	 *         encounters
 	 */
 	public int getGlobalEncounterRate() {
 		return globalEncounterRate;

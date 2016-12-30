@@ -187,8 +187,8 @@ public class RedBlueMap {
 							if(xTile >= widthInTiles) {
 								xTile = widthInTiles - xTile;
 							}
-							if(yTile >= widthInTiles) {
-								yTile = widthInTiles - yTile;
+							if(yTile >= heightInTiles) {
+								yTile = heightInTiles - yTile;
 							}
 							result.add(map.getTile(xTile, yTile));
 						}

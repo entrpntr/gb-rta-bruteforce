@@ -21,6 +21,7 @@ import dabomstew.rta.astar.Node;
 import dabomstew.rta.generic.RBMap;
 import dabomstew.rta.generic.RBMapDestination;
 import dabomstew.rta.generic.RBMapTile;
+import dabomstew.rta.generic.RBPokemon;
 import mrwint.gbtasgen.Gb;
 
 public class NidoBotFFEF {
@@ -239,29 +240,30 @@ public class NidoBotFFEF {
 						int owFrames = ow.getOverworldFrames() + edge.getFrames();
 						// String pruneDsum = dsumPrune ? " [*]" : "";
 						String defaultYbf = "";
-						if ((enc.dvs == 0xFFEF || enc.dvs == 0xFFEE || enc.dvs == 0xFEEF)) {
-							System.out.println("GOD MON FOUND");
-							wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
-							wrap.injectRBInput(A);
-							wrap.advanceFrame();
-							wrap.advanceToAddress(RedBlueAddr.playCryAddr);
-							wrap.injectRBInput(DOWN | A);
-							wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
-							wrap.injectRBInput(A | RIGHT);
-							int res2 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr,
-									RedBlueAddr.catchFailureAddr);
-							if (res2 == RedBlueAddr.catchSuccessAddr) {
-								defaultYbf = ", default ybf: [*]";
-							} else {
-								defaultYbf = ", default ybf: [ ]";
+						if ((enc.species == RBPokemon.NIDORAN_MALE.getIndexNumber())) {
+							if ((enc.dvs == 0xFFEF || enc.dvs == 0xFFEE || enc.dvs == 0xFEEF)) {
+								wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
+								wrap.injectRBInput(A);
+								wrap.advanceFrame();
+								wrap.advanceToAddress(RedBlueAddr.playCryAddr);
+								wrap.injectRBInput(DOWN | A);
+								wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
+								wrap.injectRBInput(A | RIGHT);
+								int res2 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr,
+										RedBlueAddr.catchFailureAddr);
+								if (res2 == RedBlueAddr.catchSuccessAddr) {
+									defaultYbf = ", default ybf: [*]";
+								} else {
+									defaultYbf = ", default ybf: [ ]";
+								}
+								System.out.println(ow.toString() + " " + edgeAction.logStr() + ", "
+										+ String.format("species %d lv%d DVs %04X rng %s encrng %s", enc.species, enc.level,
+												enc.dvs, enc.battleRNG, rngAtEnc)
+										+ ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames)
+										+ defaultYbf
+								// + pruneDsum
+								);
 							}
-							System.out.println(ow.toString() + " " + edgeAction.logStr() + ", "
-									+ String.format("species %d lv%d DVs %04X rng %s encrng %s", enc.species, enc.level,
-											enc.dvs, enc.battleRNG, rngAtEnc)
-									+ ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames)
-									+ defaultYbf
-							// + pruneDsum
-							);
 						}
 						writer.println(ow.toString() + " " + edgeAction.logStr() + ", "
 								+ String.format("species %d lv%d DVs %04X rng %s encrng %s", enc.species, enc.level,

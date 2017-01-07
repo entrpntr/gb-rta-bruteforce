@@ -66,5 +66,5 @@ public class StartingPositionManager implements Iterable<Position> {
 		}
 		return tmpList.iterator();
 	}
-
+	
 }

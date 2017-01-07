@@ -4,11 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -17,13 +18,15 @@ import dabomstew.rta.FileFunctions;
 import dabomstew.rta.GBMemory;
 import dabomstew.rta.GBWrapper;
 import dabomstew.rta.RedBlueAddr;
+import dabomstew.rta.astar.AStar;
+import dabomstew.rta.astar.Location;
 import dabomstew.rta.astar.Node;
 import dabomstew.rta.generic.RBMap;
 import dabomstew.rta.generic.RBMapDestination;
-import dabomstew.rta.generic.RBMapTile;
 import mrwint.gbtasgen.Gb;
 
-public class NidoBotFFEF {
+public class SafariBot {
+
 	private static final int NO_INPUT = 0x00;
 
 	public static final int A = 0x01;
@@ -37,39 +40,29 @@ public class NidoBotFFEF {
 	public static final int DOWN = 0x80;
 
 	private static final int HARD_RESET = 0x800;
-
-	public static final int SLOT1 = 0x01; // 51/256 (~20%)
-	public static final int SLOT2 = 0x02; // 51/256 (~20%)
-	public static final int SLOT3 = 0x04; // 39/256 (~15%);
-	public static final int SLOT4 = 0x08; // 25/256 (~10%)
-	public static final int SLOT5 = 0x10; // 25/256 (~10%)
-	public static final int SLOT6 = 0x20; // 25/256 (~10%)
-	public static final int SLOT7 = 0x40; // 13/256 (~5%)
-	public static final int SLOT8 = 0x80; // 13/256 (~5%)
-	public static final int SLOT9 = 0x100; // 11/256 (~4%)
-	public static final int SLOT10 = 0x200; // 3/256 (~1%)
-
-	public static final int SLOTS;
-	public static final RBMap ENCOUNTER_MAP = RBMap.ROUTE_22;
+	
+	private static final boolean ON_BIKE = true;
 
 	private static final String gameName;
 	private static PrintWriter writer;
+	private static PrintWriter yoloball;
 
 	// Graph is only built right now to waste 10 steps, so more would need to be
 	// added to make use of >= 204 frames.
 	// Also more intros would need to be spelled out.
 	private static final int MAX_COST;
 	static {
-		int BLUE_COST = 138;
-		gameName = "red";
+		int BLUE_COST = 204 / (ON_BIKE ? 1 : 2);
+		gameName = "blue";
 		MAX_COST = (gameName.equals("blue")) ? BLUE_COST : BLUE_COST + 28;
-		SLOTS = (gameName.equals("blue")) ? SLOT10 : SLOT4;
 	}
 
 	// TODO: LOOK AT TUNING THESE MORE
 	private static final double DSUM_HIGH_COEF = 0.686;
 	private static final double DSUM_LOW_COEF = 0.623;
 	private static final double DSUM_MARGIN_OF_ERROR = 5.0;
+
+	private static int foundManips = 0;
 
 	// Sort tiles by starting cost (lower starting cost takes priority),
 	// then by starting distance from grass (longer distance takes priority).
@@ -105,8 +98,11 @@ public class NidoBotFFEF {
 			System.exit(0);
 		}
 
-		File file = new File(gameName + "_ffef_encounters.txt");
+		File file = new File(gameName + "_safari_encounters.txt");
 		writer = new PrintWriter(file);
+		
+		File file2 = new File(gameName + "_safari_yoloball.txt");
+		yoloball = new PrintWriter(file2);
 
 		// TODO: Programmatically add intros for manips with higher cost caps
 		List<IntroSequence> introSequences = new ArrayList<>();
@@ -124,7 +120,7 @@ public class NidoBotFFEF {
 		introSequences.add(new IntroSequence(abss, gfSkip, nido1, title0, cont, cont));
 		introSequences.add(new IntroSequence(holdpal, gfSkip, nido1, title0, cont, cont));
 
-		initTiles(false, new RBMapDestination(RBMap.VIRIDIAN_CITY, RBMapDestination.WEST_CONNECTION));
+		initTiles(ON_BIKE);
 		Collections.shuffle(saveTiles);
 
 		// Collections.sort(saveTiles, new SaveTileComparator());
@@ -230,7 +226,7 @@ public class NidoBotFFEF {
 				res = wrap.advanceWithJoypadToAddress(input, RedBlueAddr.encounterTestAddr,
 						RedBlueAddr.joypadOverworldAddr);
 				if (res == RedBlueAddr.encounterTestAddr) {
-					if (mem.getHRA() >= 0 && mem.getHRA() < RBMap.getMapByID(mem.getMap()).getGlobalEncounterRate()) {
+					if (mem.getHRA() >= 0 && mem.getHRA() <= 29) {
 						String rngAtEnc = mem.getRNGStateWithDsum();
 						wrap.advanceFrame();
 						wrap.advanceFrame();
@@ -239,29 +235,26 @@ public class NidoBotFFEF {
 						int owFrames = ow.getOverworldFrames() + edge.getFrames();
 						// String pruneDsum = dsumPrune ? " [*]" : "";
 						String defaultYbf = "";
-						if ((enc.dvs == 0xFFEF || enc.dvs == 0xFFEE || enc.dvs == 0xFEEF)) {
-							System.out.println("GOD MON FOUND");
-							wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
-							wrap.injectRBInput(A);
-							wrap.advanceFrame();
+						if (enc.species == 26 || enc.species == 2 || enc.species == 29 || enc.species == 60) {
 							wrap.advanceToAddress(RedBlueAddr.playCryAddr);
-							wrap.injectRBInput(DOWN | A);
-							wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
-							wrap.injectRBInput(A | RIGHT);
-							int res2 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr,
+							wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
+							wrap.injectRBInput(B);
+							wrap.advanceFrame();
+							int res2 = wrap.advanceWithJoypadToAddress(A, RedBlueAddr.catchSuccessAddr,
 									RedBlueAddr.catchFailureAddr);
 							if (res2 == RedBlueAddr.catchSuccessAddr) {
 								defaultYbf = ", default ybf: [*]";
+								yoloball.println(ow.toString() + " " + edgeAction.logStr() + ", "
+										+ String.format("species %d lv%d DVs %04X rng %s encrng %s", enc.species, enc.level,
+												enc.dvs, enc.battleRNG, rngAtEnc)
+										+ ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames)
+										+ defaultYbf
+								// + pruneDsum
+								);
+								yoloball.flush();
 							} else {
 								defaultYbf = ", default ybf: [ ]";
 							}
-							System.out.println(ow.toString() + " " + edgeAction.logStr() + ", "
-									+ String.format("species %d lv%d DVs %04X rng %s encrng %s", enc.species, enc.level,
-											enc.dvs, enc.battleRNG, rngAtEnc)
-									+ ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames)
-									+ defaultYbf
-							// + pruneDsum
-							);
 						}
 						writer.println(ow.toString() + " " + edgeAction.logStr() + ", "
 								+ String.format("species %d lv%d DVs %04X rng %s encrng %s", enc.species, enc.level,
@@ -271,6 +264,16 @@ public class NidoBotFFEF {
 						// + pruneDsum
 						);
 						writer.flush();
+						foundManips++;
+						if (foundManips > 100) {
+							foundManips = 0;
+							try {
+								Files.copy(new File("red_ffef_encounters.txt").toPath(), new File("ffef.txt").toPath(),
+										StandardCopyOption.REPLACE_EXISTING);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						}
 					}
 				} else if (res == RedBlueAddr.joypadOverworldAddr) {
 					while (mem.getMap() == ow.getMap() && mem.getX() == ow.getX() && mem.getY() == ow.getY()) {
@@ -440,44 +443,10 @@ public class NidoBotFFEF {
 				predictHigh -= 256.0;
 				predictLow -= 256.0;
 			}
-			if ((SLOTS & SLOT1) != 0 && predictLow <= 0
-					&& predictHigh >= (50 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
-				return true;
-			}
-			if ((SLOTS & SLOT2) != 0 && predictLow <= 51
-					&& predictHigh >= (101 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
-				return true;
-			}
-			if ((SLOTS & SLOT3) != 0 && predictLow <= 102
-					&& predictHigh >= (140 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
-				return true;
-			}
-			if ((SLOTS & SLOT4) != 0 && predictLow <= 141
-					&& predictHigh >= (165 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
-				return true;
-			}
-			if ((SLOTS & SLOT5) != 0 && predictLow <= 166
-					&& predictHigh >= (190 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
-				return true;
-			}
-			if ((SLOTS & SLOT6) != 0 && predictLow <= 191
-					&& predictHigh >= (215 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
-				return true;
-			}
-			if ((SLOTS & SLOT7) != 0 && predictLow <= 216
-					&& predictHigh >= (228 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
-				return true;
-			}
-			if ((SLOTS & SLOT8) != 0 && predictLow <= 229
-					&& predictHigh >= (241 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
-				return true;
-			}
-			if ((SLOTS & SLOT9) != 0 && predictLow <= 242
-					&& predictHigh >= (252 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
-				return true;
-			}
-			if ((SLOTS & SLOT10) != 0 && predictLow <= 253
-					&& predictHigh >= (255 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
+//			if (predictLow <= 242.0 || (predictHigh >= 255.0 && (predictLow <= 256.0 || predictLow % 256.0 <= 242.0))) {
+//				return true;
+//			}
+			if(predictLow <= 242.0 && predictHigh >= 28.0) {
 				return true;
 			}
 			return false;
@@ -509,8 +478,7 @@ public class NidoBotFFEF {
 	}
 
 	public static void makeSave(RBMap map, int x, int y) throws IOException {
-		String prefix = (map == RBMap.VIRIDIAN_CITY) ? "viridian" : "r22";
-		byte[] baseSave = FileFunctions.readFileFullyIntoBuffer("baseSaves/" + prefix + "_ffef_" + gameName + ".sav");
+		byte[] baseSave = FileFunctions.readFileFullyIntoBuffer("baseSaves/safari.sav");
 		int baseX = x;
 		int baseY = y;
 		int tlPointer = map.getTLPointer(baseX, baseY);
@@ -523,6 +491,8 @@ public class NidoBotFFEF {
 		baseSave[0x2CEF] = (byte) 6;
 		baseSave[0x2CF0] = (byte) 9;
 		baseSave[0x2CF1] = (byte) 12;
+		baseSave[0x29AC] = ON_BIKE ? (byte) 1 : (byte) 0;
+		baseSave[0x29B8] = (byte) 0xFF;
 		int csum = 0;
 		for (int i = 0x2598; i < 0x3523; i++) {
 			csum += baseSave[i] & 0xFF;
@@ -646,10 +616,10 @@ public class NidoBotFFEF {
 	// new Integer[] {START},
 	// new Integer[] {1});
 
-	private static final int PW_START_X = 30;
-	private static final int PW_START_Y = 174;
-	private static final int PW_WIDTH = 44;
-	private static final int PW_HEIGHT = 13;
+	private static final int PW_START_X = 500;
+	private static final int PW_START_Y = 500;
+	private static final int PW_WIDTH = 30;
+	private static final int PW_HEIGHT = 26;
 
 	private static List<SaveTile> saveTiles = new ArrayList<>();
 	private static HashSet<String> seenStates = new HashSet<>();
@@ -662,176 +632,267 @@ public class NidoBotFFEF {
 	// Put tiles in terms of pokeworld for sake of sanity
 
 	private static void initTiles(boolean onBike, RBMapDestination... destinations) {
+		ArrayList<RBMap> maps = new ArrayList<RBMap>();
+		int stepCost = onBike ? 9 : 17;
 		long startTime = System.currentTimeMillis();
-		int numFramesPerStep = onBike ? 9 : 17;
-		HashMap<RBMap, RBMapDestination> dests = new HashMap<RBMap, RBMapDestination>();
-		HashMap<OverworldTile, List<Node>> paths = new HashMap<OverworldTile, List<Node>>();
-		for (RBMapDestination dest : destinations) {
-			dests.put(dest.getMap(), dest);
-		}
-		for (int i = 0; i <= PW_WIDTH; i++) {
-			for (int j = 0; j <= PW_HEIGHT; j++) {
-				int pwX = i + PW_START_X;
-				int pwY = j + PW_START_Y;
+		for (int x = 0; x <= PW_WIDTH; x++) {
+			for (int y = 0; y <= PW_HEIGHT; y++) {
+				int pwX = x + PW_START_X;
+				int pwY = y + PW_START_Y;
 				RBMap map = RBMap.getMapByPosition(pwX, pwY);
+				if (!maps.contains(map)) {
+					maps.add(map);
+				}
 				int tileX = pwX - map.getPokeworldOffsetX();
 				int tileY = pwY - map.getPokeworldOffsetY();
-				pw[i][j] = map.getOverworldTile(tileX, tileY);
-			}
-		}
-		for (int i = 0; i <= PW_WIDTH; i++) {
-			for (int j = 0; j <= PW_HEIGHT; j++) {
-				if (pw[i][j] == null) {
-					// tile is solid, don't want to waste calculating paths
-					continue;
-				}
-				RBMap map = RBMap.getMapByID(pw[i][j].getMap());
-				RBMapDestination dest = dests.get(map);
-				if (dest == null) {
-					dest = new RBMapDestination(map);
-					dests.put(map, dest);
-				}
-				OverworldTilePath path = new OverworldTilePath(pw[i][j], dest);
-				if (path.getShortestPath() == null) {
-					// could not find a path to the destination
-					continue;
-				}
-				List<Node> shortestPath = path.getShortestPath();
-				pw[i][j].setMinStepsToGrass(shortestPath.size());
-				paths.put(pw[i][j], shortestPath);
-			}
-		}
-		for (int i = 0; i <= PW_WIDTH; i++) {
-			for (int j = 0; j <= PW_HEIGHT; j++) {
-				if (pw[i][j] == null) {
-					// tile is solid, don't want to waste calculating paths
-					continue;
-				}
-				RBMap map = RBMap.getMapByID(pw[i][j].getMap());
-				RBMapDestination dest = dests.get(map);
-				List<Node> path = paths.get(pw[i][j]);
-				if (path == null) {
-					continue;
-				}
-				if (dest.getMode() == RBMapDestination.WEST_CONNECTION
-						&& path.get(path.size() - 1).getPosition().x == 0) {
-					RBMap destMap = map.getWestConnection();
-					int tileX = destMap.getWidthInTiles() - 1;
-					int tileY = path.get(path.size() - 1).getPosition().y + map.getPokeworldOffsetY()
-							- destMap.getPokeworldOffsetY();
-					pw[i][j].setMinStepsToGrass(pw[i][j].getMinStepsToGrass()
-							+ destMap.getOverworldTile(tileX, tileY).getMinStepsToGrass());
-				}
-				if (dest.getMode() == RBMapDestination.EAST_CONNECTION
-						&& path.get(path.size() - 1).getPosition().x == map.getWidthInTiles() - 1) {
-					RBMap destMap = map.getWestConnection();
-					int tileX = destMap.getWidthInTiles() + 1;
-					int tileY = path.get(path.size() - 1).getPosition().y + map.getPokeworldOffsetY()
-							- destMap.getPokeworldOffsetY();
-					pw[i][j].setMinStepsToGrass(pw[i][j].getMinStepsToGrass()
-							+ destMap.getOverworldTile(tileX, tileY).getMinStepsToGrass());
-				}
-				if (dest.getMode() == RBMapDestination.SOUTH_CONNECTION
-						&& path.get(path.size() - 1).getPosition().y == map.getHeightInTiles() - 1) {
-					RBMap destMap = map.getWestConnection();
-					int tileX = path.get(path.size() - 1).getPosition().x + map.getPokeworldOffsetX()
-							- destMap.getPokeworldOffsetX();
-					int tileY = destMap.getHeightInTiles() + 1;
-					pw[i][j].setMinStepsToGrass(pw[i][j].getMinStepsToGrass()
-							+ destMap.getOverworldTile(tileX, tileY).getMinStepsToGrass());
-				}
-				if (dest.getMode() == RBMapDestination.NORTH_CONNECTION
-						&& path.get(path.size() - 1).getPosition().y == 0) {
-					RBMap destMap = map.getWestConnection();
-					int tileX = path.get(path.size() - 1).getPosition().x + map.getPokeworldOffsetX()
-							- destMap.getPokeworldOffsetX();
-					int tileY = destMap.getHeightInTiles() - 1;
-					pw[i][j].setMinStepsToGrass(pw[i][j].getMinStepsToGrass()
-							+ destMap.getOverworldTile(tileX, tileY).getMinStepsToGrass());
-				}
-			}
-		}
-		for (int i = 0; i <= PW_WIDTH; i++) {
-			for (int j = 0; j <= PW_HEIGHT; j++) {
-				if (pw[i][j] == null) {
-					// tile is solid, don't want to waste calculating edges
-					continue;
-				}
-				RBMap map = RBMap.getMapByID(pw[i][j].getMap());
-				RBMapTile tile = map.getTile(pw[i][j].getX(), pw[i][j].getY());
-				if (tile.canMoveLeft()) {
-					if (i != 0) {
-						OverworldTile destTile = pw[i - 1][j];
-						if (destTile != null) {
-							int cost = Math.abs(
-									numFramesPerStep * (destTile.getMinStepsToGrass() - pw[i][j].getMinStepsToGrass() + 1));
-							RBMap destMap = RBMap.getMapByID(destTile.getMap());
-							if (destMap.getTile(destTile.getX(), destTile.getY()).isGrassTile()
-									&& dests.get(destMap).getMode() == RBMapDestination.GRASS_PATCHES) {
-								cost = 0;
-							}
-							pw[i][j].addEdge(new OverworldEdge(OverworldAction.LEFT, cost, numFramesPerStep, destTile));
-						}
-					}
-				}
-				if (tile.canMoveRight()) {
-					if (i != PW_WIDTH) {
-						OverworldTile destTile = pw[i + 1][j];
-						if (destTile != null) {
-							int cost = Math.abs(
-									numFramesPerStep * (destTile.getMinStepsToGrass() - pw[i][j].getMinStepsToGrass() + 1));
-							RBMap destMap = RBMap.getMapByID(destTile.getMap());
-							if (destMap.getTile(destTile.getX(), destTile.getY()).isGrassTile()
-									&& dests.get(destMap).getMode() == RBMapDestination.GRASS_PATCHES) {
-								cost = 0;
-							}
-							pw[i][j].addEdge(new OverworldEdge(OverworldAction.RIGHT, cost, numFramesPerStep, destTile));
-						}
-					}
-				}
-				if (tile.canMoveUp()) {
-					if (j != 0) {
-						OverworldTile destTile = pw[i][j - 1];
-						if (destTile != null) {
-							int cost = Math.abs(
-									numFramesPerStep * (destTile.getMinStepsToGrass() - pw[i][j].getMinStepsToGrass() + 1));
-							RBMap destMap = RBMap.getMapByID(destTile.getMap());
-							if (destMap.getTile(destTile.getX(), destTile.getY()).isGrassTile()
-									&& dests.get(destMap).getMode() == RBMapDestination.GRASS_PATCHES) {
-								cost = 0;
-							}
-							pw[i][j].addEdge(new OverworldEdge(OverworldAction.UP, cost, numFramesPerStep, destTile));
-						}
-					}
-				}
-				if (tile.canMoveDown()) {
-					if (j != PW_HEIGHT) {
-						OverworldTile destTile = pw[i][j + 1];
-						if (destTile != null) {
-							int cost = Math.abs(
-									numFramesPerStep * (destTile.getMinStepsToGrass() - pw[i][j].getMinStepsToGrass() + 1));
-							RBMap destMap = RBMap.getMapByID(destTile.getMap());
-							if (destMap.getTile(destTile.getX(), destTile.getY()).isGrassTile()
-									&& dests.get(destMap).getMode() == RBMapDestination.GRASS_PATCHES) {
-								cost = 0;
-							}
-							pw[i][j].addEdge(new OverworldEdge(OverworldAction.DOWN, cost, numFramesPerStep, destTile));
-						}
-					}
-				}
-				pw[i][j].addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw[i][j]));
-				// TODO: Generic SBCost
-				int sbcost = (i <= 39 - 30) ? 53 : 54;
-				pw[i][j].addEdge(new OverworldEdge(OverworldAction.START_B, sbcost, sbcost, pw[i][j]));
-				pw[i][j].addEdge(new OverworldEdge(OverworldAction.S_A_B_S, sbcost + 30, sbcost + 30, pw[i][j]));
-				pw[i][j].addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, sbcost + 60, sbcost + 60, pw[i][j]));
-				// isViridianNPC ??
-				if (map.getTile(pw[i][j].getX(), pw[i][j].getY()).isInVisionOfNPC()) {
-					saveTiles.add(new SaveTile(pw[i][j], 0, map.getId() == 33 && pw[i][j].getX() < 13));
-				}
+				pw[x][y] = map.getOverworldTile(tileX, tileY);
 			}
 		}
 		long endTime = System.currentTimeMillis();
-		System.out.println("Generic edge generation time: " + (endTime - startTime) + " ms");
+		System.out.println("Tile Init Time: " + (endTime - startTime) + " ms");
+		startTime = endTime;
+		for (RBMap map : maps) {
+			RBMapDestination destination = null;
+			for (RBMapDestination dest : destinations) {
+				if (dest.getMap() == map) {
+					destination = dest;
+					break;
+				}
+			}
+			if (destination == null) {
+				destination = new RBMapDestination(map);
+				if (destination.getDestinationTiles().isEmpty()) {
+					System.err
+							.println("Error: You did not specify a custom destination for a map without grass! MapID: "
+									+ map.getId());
+					System.exit(1);
+				}
+			}
+			for (int x = 0; x < map.getWidthInTiles(); x++) {
+				for (int y = 0; y < map.getHeightInBlocks(); y++) {
+					OverworldTile tile = map.getOverworldTile(x, y);
+					if (tile == null) {
+						continue;
+					}
+					Location tileLocation = new Location(x, y);
+					ArrayList<Location> notWorkableTiles = new ArrayList<Location>();
+					Location dest = getClosestTileWithWorkablePath(map, destination, tileLocation, notWorkableTiles);
+					if (dest == null) {
+						continue;
+					}
+					List<Node> path = AStar.findPath(map, tileLocation, dest, false, AStar.BASIC_COLLISION);
+					if (path == null) {
+						continue;
+					}
+					int minStepsToGrass = path.size();
+					if (destination.getMode() == RBMapDestination.WEST_CONNECTION) {
+						if (path.size() != 0 && path.get(path.size() - 1).getPosition().x == 0) {
+							int pwX = map.getPokeworldOffsetX() - 1;
+							int pwY = map.getPokeworldOffsetY() + y;
+							RBMap destMap = RBMap.getMapByPosition(pwX, pwY);
+							if (destMap != null) {
+								int xTile = map.getWidthInTiles() - 1;
+								int yTile = y + map.getPokeworldOffsetY() - destMap.getPokeworldOffsetY();
+								List<Node> secondaryPath = AStar.findPath(destMap, new Location(xTile, yTile),
+										new Location(33, 11), false, AStar.BASIC_COLLISION);
+								if (secondaryPath != null) {
+									minStepsToGrass += secondaryPath.size() + 1;
+								}
+							}
+						}
+					}
+					tile.setMinStepsToGrass(minStepsToGrass);
+				}
+			}
+			endTime = System.currentTimeMillis();
+			System.out.println("Path Finding Time: " + (endTime - startTime) + " ms");
+			startTime = endTime;
+			for (int x = 0; x < map.getWidthInTiles(); x++) {
+				for (int y = 0; y < map.getHeightInBlocks(); y++) {
+					OverworldTile tile = map.getOverworldTile(x, y);
+					if (tile == null) {
+						continue;
+					}
+					if (map.getTile(x, y).canMoveLeft()) {
+						int xTile = x - 1;
+						int yTile = y;
+						int pwX = map.getPokeworldOffsetX() + xTile;
+						int pwY = map.getPokeworldOffsetY() + yTile;
+						RBMap destMap = RBMap.getMapByPosition(pwX, pwY);
+						if (xTile < 0) {
+							xTile += destMap.getWidthInTiles();
+							yTile += map.getPokeworldOffsetY() - destMap.getPokeworldOffsetY();
+						}
+						OverworldTile destTile = destMap.getOverworldTile(xTile, yTile);
+						if (!destMap.getTile(xTile, yTile).isSolid() && !destMap.getTile(xTile, yTile).isOccupiedByNPC()
+								&& !destMap.getTile(xTile, yTile).isWarp()) {
+							tile.addEdge(new OverworldEdge(OverworldAction.LEFT,
+									Math.abs(
+											stepCost * (destTile.getMinStepsToGrass() - tile.getMinStepsToGrass() + 1)),
+									stepCost, destTile));
+						}
+					}
+					if (map.getTile(x, y).canMoveRight()) {
+						int xTile = x + 1;
+						int yTile = y;
+						int pwX = map.getPokeworldOffsetX() + xTile;
+						int pwY = map.getPokeworldOffsetY() + yTile;
+						RBMap destMap = RBMap.getMapByPosition(pwX, pwY);
+						if (xTile >= map.getWidthInTiles()) {
+							xTile -= map.getWidthInTiles();
+							yTile += map.getPokeworldOffsetY() - destMap.getPokeworldOffsetY();
+						}
+						OverworldTile destTile = destMap.getOverworldTile(xTile, yTile);
+						if (!destMap.getTile(xTile, yTile).isSolid() && !destMap.getTile(xTile, yTile).isOccupiedByNPC()
+								&& !destMap.getTile(xTile, yTile).isWarp()) {
+							tile.addEdge(new OverworldEdge(OverworldAction.RIGHT,
+									Math.abs(
+											stepCost * (destTile.getMinStepsToGrass() - tile.getMinStepsToGrass() + 1)),
+									stepCost, destTile));
+						}
+					}
+					if (map.getTile(x, y).canMoveUp()) {
+						int xTile = x;
+						int yTile = y - 1;
+						int pwX = map.getPokeworldOffsetX() + xTile;
+						int pwY = map.getPokeworldOffsetY() + yTile;
+						RBMap destMap = RBMap.getMapByPosition(pwX, pwY);
+						if (yTile < 0) {
+							xTile += map.getPokeworldOffsetX() - destMap.getPokeworldOffsetX();
+							yTile += destMap.getHeightInTiles();
+						}
+						OverworldTile destTile = destMap.getOverworldTile(xTile, yTile);
+						if (!destMap.getTile(xTile, yTile).isSolid() && !destMap.getTile(xTile, yTile).isOccupiedByNPC()
+								&& !destMap.getTile(xTile, yTile).isWarp()) {
+							tile.addEdge(new OverworldEdge(OverworldAction.UP,
+									Math.abs(
+											stepCost * (destTile.getMinStepsToGrass() - tile.getMinStepsToGrass() + 1)),
+									stepCost, destTile));
+						}
+					}
+					if (map.getTile(x, y).canMoveDown()) {
+						int xTile = x;
+						int yTile = y + 1;
+						int pwX = map.getPokeworldOffsetX() + xTile;
+						int pwY = map.getPokeworldOffsetY() + yTile;
+						RBMap destMap = RBMap.getMapByPosition(pwX, pwY);
+						if (yTile >= map.getHeightInTiles()) {
+							xTile += map.getPokeworldOffsetX() - destMap.getPokeworldOffsetX();
+							yTile -= map.getHeightInTiles();
+						}
+						OverworldTile destTile = destMap.getOverworldTile(xTile, yTile);
+						if (!destMap.getTile(xTile, yTile).isSolid() && !destMap.getTile(xTile, yTile).isOccupiedByNPC()
+								&& !destMap.getTile(xTile, yTile).isWarp()) {
+							tile.addEdge(new OverworldEdge(OverworldAction.DOWN,
+									Math.abs(
+											stepCost * (destTile.getMinStepsToGrass() - tile.getMinStepsToGrass() + 1)),
+									stepCost, destTile));
+						}
+					}
+					tile.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, tile));
+					// TODO: generic sbCost
+					int sbCost = map == RBMap.ROUTE_22 ? 53 : 54;
+					tile.addEdge(new OverworldEdge(OverworldAction.START_B, sbCost, sbCost, tile));
+					// tile.addEdge(new OverworldEdge(OverworldAction.S_A_B_S,
+					// sbCost + 30, sbCost + 30, tile));
+					// tile.addEdge(new
+					// OverworldEdge(OverworldAction.S_A_B_A_B_S, sbCost + 60,
+					// sbCost + 60, tile));
+					Collections.sort(tile.getEdgeList());
+				}
+			}
+		}
+		endTime = System.currentTimeMillis();
+		System.out.println("Edge Generation Time: " + (endTime - startTime) + " ms");
+		startTime = endTime;
+//		for (int x = 0; x <= PW_WIDTH; x++) {
+//			for (int y = 0; y <= PW_HEIGHT; y++) {
+//				int pwX = x + PW_START_X;
+//				int pwY = y + PW_START_Y;
+//				RBMap map = RBMap.getMapByPosition(pwX, pwY);
+//				int tileX = pwX - map.getPokeworldOffsetX();
+//				int tileY = pwY - map.getPokeworldOffsetY();
+//				OverworldTile tile = map.getOverworldTile(tileX, tileY);
+//				if (tile == null) {
+//					continue;
+//				}
+//				if (tile.getMinStepsToGrass() > 0) {
+//					saveTiles.add(new SaveTile(tile, 0, map.getTile(tileX, tileY).isInVisionOfNPC()));
+//				}
+//			}
+//		}
+		for (int x = 19; x <= 28; x++) {
+			for (int y = 1; y <= 9; y++) {
+				int pwX = x + PW_START_X;
+				int pwY = y + PW_START_Y;
+				RBMap map = RBMap.getMapByPosition(pwX, pwY);
+				int tileX = pwX - map.getPokeworldOffsetX();
+				int tileY = pwY - map.getPokeworldOffsetY();
+				OverworldTile tile = map.getOverworldTile(tileX, tileY);
+				if (tile == null) {
+					continue;
+				}
+				if (tile.getMinStepsToGrass() > 0 && !map.getTile(tileX, tileY).isInVisionOfNPC()) {
+					saveTiles.add(new SaveTile(tile, 0, map.getTile(tileX, tileY).isInVisionOfNPC()));
+				}
+			}
+		}
+		for (int x = 1; x <= 9; x++) {
+			for (int y = 7; y <= 16; y++) {
+				int pwX = x + PW_START_X;
+				int pwY = y + PW_START_Y;
+				RBMap map = RBMap.getMapByPosition(pwX, pwY);
+				int tileX = pwX - map.getPokeworldOffsetX();
+				int tileY = pwY - map.getPokeworldOffsetY();
+				OverworldTile tile = map.getOverworldTile(tileX, tileY);
+				if (tile == null) {
+					continue;
+				}
+				if (tile.getMinStepsToGrass() > 0 && !map.getTile(tileX, tileY).isInVisionOfNPC()) {
+					saveTiles.add(new SaveTile(tile, 0, map.getTile(tileX, tileY).isInVisionOfNPC()));
+				}
+			}
+		}
+		endTime = System.currentTimeMillis();
+		System.out.println("Savetile Generation Time: " + (endTime - startTime) + " ms");
+		startTime = endTime;
+	}
+
+	private static Location getClosestTileWithWorkablePath(RBMap map, RBMapDestination destination,
+			Location tileLocation, List<Location> notWorkableTiles) {
+		OverworldTile closestDestinationTile = null;
+		int closestDistance = Integer.MAX_VALUE;
+		Location closestDestinationTileLocation = new Location(0, 0);
+		List<Node> path = null;
+		for (Location destinationTile : destination.getDestinationTiles()) {
+			if (notWorkableTiles.contains(destinationTile)) {
+				continue;
+			}
+			List<Node> currPath = AStar.findPath(map, tileLocation, destinationTile, false, AStar.BASIC_COLLISION);
+			if (currPath == null) {
+				continue;
+			}
+			if (closestDestinationTile == null) {
+				closestDestinationTile = map.getOverworldTile(destinationTile.x, destinationTile.y);
+				closestDistance = currPath.size();
+				path = currPath;
+				closestDestinationTileLocation = destinationTile;
+				continue;
+			}
+			if (currPath.size() < closestDistance) {
+				closestDestinationTile = map.getOverworldTile(destinationTile.x, destinationTile.y);
+				closestDistance = currPath.size();
+				path = currPath;
+				closestDestinationTileLocation = destinationTile;
+			}
+		}
+		if (notWorkableTiles.size() > 16) {
+			return null;
+		}
+		if (path == null) {
+			notWorkableTiles.add(closestDestinationTileLocation);
+			return getClosestTileWithWorkablePath(map, destination, closestDestinationTileLocation, notWorkableTiles);
+		}
+		return closestDestinationTileLocation;
 	}
 }

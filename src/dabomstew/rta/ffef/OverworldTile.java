@@ -3,10 +3,13 @@ package dabomstew.rta.ffef;
 import java.util.ArrayList;
 import java.util.List;
 
+import dabomstew.rta.astar.Node;
+
 public class OverworldTile {
     private int map;
     private int x;
     private int y;
+    private List<Node> path;
     private List<OverworldEdge> edgeList;
     private int minStepsToGrass;
     private boolean encounterTile;
@@ -62,4 +65,12 @@ public class OverworldTile {
     public List<OverworldEdge> getEdgeList() {
         return edgeList;
     }
+
+	public List<Node> getPath() {
+		return path;
+	}
+
+	public void setPath(List<Node> path) {
+		this.path = path;
+	}
 }

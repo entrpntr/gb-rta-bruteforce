@@ -1,9 +1,9 @@
-package dabomstew.rta;
+package dabomstew.rta.generic;
 
-public class RedBlueMapTile {
+public class RBMapTile {
 
 	// TODO: maybe make positions bytes for less ram usage?
-	private RedBlueMap map;
+	private RBMap map;
 	private int x;
 	private int y;
 	private boolean isSolid;
@@ -15,7 +15,7 @@ public class RedBlueMapTile {
 	private boolean canMoveUp;
 	private boolean canMoveDown;
 
-	public RedBlueMapTile(RedBlueMap map, int x, int y, byte data) {
+	public RBMapTile(RBMap map, int x, int y, byte data) {
 		this.map = map;
 		this.x = x;
 		this.y = y;
@@ -32,7 +32,7 @@ public class RedBlueMapTile {
 	/**
 	 * @return - The map of the tile
 	 */
-	public RedBlueMap getMap() {
+	public RBMap getMap() {
 		return map;
 	}
 
@@ -107,5 +107,14 @@ public class RedBlueMapTile {
 	 */
 	public boolean isGrassTile() {
 		return isGrassTile;
+	}
+	
+	public boolean isInVisionOfNPC() {
+		for(RBNPC npc : map.getNPCs()) {
+			if(npc.getTilesAround().contains(this)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

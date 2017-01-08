@@ -34,17 +34,21 @@ public class RBNPC {
 				if(xTile < 0) {
 					// on map to the left
 					xTile += tileMap.getWidthInTiles();
+					yTile -= tileMap.getHeightInTiles() - map.getHeightInTiles();
 				}
 				if(yTile < 0) {
 					// on map above
+					xTile -= tileMap.getWidthInTiles() - map.getWidthInTiles();
 					yTile += tileMap.getHeightInTiles();
 				}
 				if(xTile >= map.getWidthInTiles()) {
 					// on map to the right
 					xTile -= map.getWidthInTiles();
+					yTile -= tileMap.getHeightInTiles() - map.getHeightInTiles();
 				}
 				if(yTile >= map.getHeightInTiles()) {
 					// on map below
+					xTile -= tileMap.getWidthInTiles() - map.getWidthInTiles();
 					yTile -= map.getHeightInTiles();
 				}
 				result.add(tileMap.getTile(xTile, yTile));

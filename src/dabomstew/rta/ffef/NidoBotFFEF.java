@@ -51,7 +51,6 @@ public class NidoBotFFEF {
 	public static final int SLOT10 = 0x200; // 3/256 (~1%)
 
 	public static final int SLOTS;
-	public static final RBMap ENCOUNTER_MAP = RBMap.ROUTE_22;
 
 	private static final String gameName;
 	private static PrintWriter writer;
@@ -212,7 +211,7 @@ public class NidoBotFFEF {
 			double predictHigh = ((double) ow.getDsum()) + 2048.0 - highDsumChange - DSUM_MARGIN_OF_ERROR;
 
 			// if(inferDsumDebug(predictHigh, predictLow)) {
-			if (inferDsum(predictHigh, predictLow)) {
+			if (inferDsum(RBMap.getMapByID(ow.getMap()), predictHigh, predictLow)) {
 				continue;
 			}
 
@@ -434,7 +433,7 @@ public class NidoBotFFEF {
 	}
 
 	// returns true if should prune
-	private static boolean inferDsum(double predictHigh, double predictLow) {
+	private static boolean inferDsum(RBMap encounterMap, double predictHigh, double predictLow) {
 		if (Math.abs(predictHigh - predictLow) >= 256.0) {
 			return false;
 		} else {
@@ -443,43 +442,43 @@ public class NidoBotFFEF {
 				predictLow -= 256.0;
 			}
 			if ((SLOTS & SLOT1) != 0 && predictLow <= 0
-					&& predictHigh >= (50 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
+					&& predictHigh >= (50 + encounterMap.getGlobalEncounterRate() - 1) % 256) {
 				return true;
 			}
 			if ((SLOTS & SLOT2) != 0 && predictLow <= 51
-					&& predictHigh >= (101 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
+					&& predictHigh >= (101 + encounterMap.getGlobalEncounterRate() - 1) % 256) {
 				return true;
 			}
 			if ((SLOTS & SLOT3) != 0 && predictLow <= 102
-					&& predictHigh >= (140 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
+					&& predictHigh >= (140 + encounterMap.getGlobalEncounterRate() - 1) % 256) {
 				return true;
 			}
 			if ((SLOTS & SLOT4) != 0 && predictLow <= 141
-					&& predictHigh >= (165 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
+					&& predictHigh >= (165 + encounterMap.getGlobalEncounterRate() - 1) % 256) {
 				return true;
 			}
 			if ((SLOTS & SLOT5) != 0 && predictLow <= 166
-					&& predictHigh >= (190 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
+					&& predictHigh >= (190 + encounterMap.getGlobalEncounterRate() - 1) % 256) {
 				return true;
 			}
 			if ((SLOTS & SLOT6) != 0 && predictLow <= 191
-					&& predictHigh >= (215 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
+					&& predictHigh >= (215 + encounterMap.getGlobalEncounterRate() - 1) % 256) {
 				return true;
 			}
 			if ((SLOTS & SLOT7) != 0 && predictLow <= 216
-					&& predictHigh >= (228 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
+					&& predictHigh >= (228 + encounterMap.getGlobalEncounterRate() - 1) % 256) {
 				return true;
 			}
 			if ((SLOTS & SLOT8) != 0 && predictLow <= 229
-					&& predictHigh >= (241 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
+					&& predictHigh >= (241 + encounterMap.getGlobalEncounterRate() - 1) % 256) {
 				return true;
 			}
 			if ((SLOTS & SLOT9) != 0 && predictLow <= 242
-					&& predictHigh >= (252 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
+					&& predictHigh >= (252 + encounterMap.getGlobalEncounterRate() - 1) % 256) {
 				return true;
 			}
 			if ((SLOTS & SLOT10) != 0 && predictLow <= 253
-					&& predictHigh >= (255 + ENCOUNTER_MAP.getGlobalEncounterRate() - 1) % 256) {
+					&& predictHigh >= (255 + encounterMap.getGlobalEncounterRate() - 1) % 256) {
 				return true;
 			}
 			return false;
@@ -495,7 +494,7 @@ public class NidoBotFFEF {
 		double highFrames = 17.0 * ((double) (minSteps + effWastableSteps)) + MAX_COST - ow.getWastedFrames();
 		double predictLow = dsum - lowFrames * DSUM_LOW_COEF + DSUM_MARGIN_OF_ERROR;
 		double predictHigh = dsum - highFrames * DSUM_HIGH_COEF - DSUM_MARGIN_OF_ERROR;
-		return inferDsum(predictHigh, predictLow);
+		return inferDsum(RBMap.getMapByID(ow.getMap()), predictHigh, predictLow);
 	}
 
 	/*

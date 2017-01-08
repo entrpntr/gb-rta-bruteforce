@@ -24,7 +24,7 @@ public class RBNPC {
 		for(int i = NPC_VISION_START_X; i < NPC_VISION_END_X; i++) {
 			for(int j = NPC_VISION_START_Y; j < NPC_VISION_END_Y; j++) {
 				int xTile = x + i;
-				int yTile = y + i;
+				int yTile = y + j;
 				int pwXTile = xTile + map.getPokeworldOffsetX();
 				int pwYTile = yTile + map.getPokeworldOffsetY();
 				RBMap tileMap = RBMap.getMapByPosition(pwXTile, pwYTile);

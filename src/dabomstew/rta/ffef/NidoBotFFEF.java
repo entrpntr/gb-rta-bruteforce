@@ -828,7 +828,7 @@ public class NidoBotFFEF {
 				pw[i][j].addEdge(new OverworldEdge(OverworldAction.S_A_B_S, sbcost + 30, sbcost + 30, pw[i][j]));
 				pw[i][j].addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, sbcost + 60, sbcost + 60, pw[i][j]));
 				// isViridianNPC ??
-				if (map.getTile(pw[i][j].getX(), pw[i][j].getY()).isInVisionOfNPC()) {
+				if (!map.getTile(pw[i][j].getX(), pw[i][j].getY()).isInVisionOfNPC()) {
 					saveTiles.add(new SaveTile(pw[i][j], 0, map.getId() == 33 && pw[i][j].getX() < 13));
 				}
 			}

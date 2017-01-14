@@ -6,7 +6,7 @@ import mrwint.gbtasgen.Gb;
 import java.io.IOException;
 
 public class NidoIGT0Checker {
-    private static final int NO_INPUT = 0x00;
+	public static final int NO_INPUT = 0x00;
 
     public static final int A = 0x01;
     public static final int B = 0x02;

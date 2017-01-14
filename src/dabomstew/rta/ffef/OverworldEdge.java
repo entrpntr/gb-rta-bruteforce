@@ -1,6 +1,6 @@
 package dabomstew.rta.ffef;
 
-public class OverworldEdge implements Comparable {
+public class OverworldEdge implements Comparable<Object> {
     private OverworldAction action;
     private int cost;
     private int frames;

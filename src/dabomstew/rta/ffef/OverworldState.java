@@ -101,7 +101,6 @@ public class OverworldState {
     }
 
     @Override public int hashCode() {
-        int v = viridianNpc ? 1 : 0;
         return this.getMap() + 2*this.getX() + 3*this.getY() + 11*rdiv + 13*hra + 17*hrs;
     }
 

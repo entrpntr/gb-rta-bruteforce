@@ -54,6 +54,7 @@ public class GenericBot {
 
 	private static final String gameName;
 	private static PrintWriter writer;
+	private static PrintWriter foundManips;
 
 	// Graph is only built right now to waste 10 steps, so more would need to be
 	// added to make use of >= 204 frames.
@@ -133,24 +134,18 @@ public class GenericBot {
 			System.exit(0);
 		}
 
-		File file = new File(gameName + "_ffef_encounters.txt");
-		writer = new PrintWriter(file);
+		writer = new PrintWriter(new File(gameName + "_" + targetSpecies.getName().toLowerCase() + "_encounters.txt"));
+		foundManips = new PrintWriter(new File(gameName + "_" + targetSpecies.getName().toLowerCase() + "_foundManips.txt"));
 
 		// TODO: Programmatically add intros for manips with higher cost caps
-		List<IntroSequence> introSequences = new ArrayList<>();
-		introSequences.add(new IntroSequence(nopal, gfSkip, nido0, title0, cont, cont));
-		introSequences.add(new IntroSequence(pal, gfSkip, nido0, title0, cont, cont));
-		introSequences.add(new IntroSequence(abss, gfSkip, nido0, title0, cont, cont));
-		introSequences.add(new IntroSequence(holdpal, gfSkip, nido0, title0, cont, cont));
-		introSequences.add(new IntroSequence(nopal, gfSkip, nido0, title0, cont, backout, cont, cont));
-		introSequences.add(new IntroSequence(pal, gfSkip, nido0, title0, cont, backout, cont, cont));
-		introSequences.add(new IntroSequence(abss, gfSkip, nido0, title0, cont, backout, cont, cont));
-		introSequences.add(new IntroSequence(holdpal, gfSkip, nido0, title0, cont, backout, cont, cont));
-
-		introSequences.add(new IntroSequence(nopal, gfSkip, nido1, title0, cont, cont));
-		introSequences.add(new IntroSequence(pal, gfSkip, nido1, title0, cont, cont));
-		introSequences.add(new IntroSequence(abss, gfSkip, nido1, title0, cont, cont));
-		introSequences.add(new IntroSequence(holdpal, gfSkip, nido1, title0, cont, cont));
+		IntroSequenceGenerator.addPalStrats(nopal, pal, holdpal, abss);
+		IntroSequenceGenerator.addGFStrats(gfSkip, gfWait);
+		IntroSequenceGenerator.addNidoStrats(nido0, nido1, nido2, nido3, nido4, nido5);
+		IntroSequenceGenerator.addTitleStrats(title0);
+		IntroSequenceGenerator.addFileStrats(new Strat[] {cont, cont}, new Strat[] { cont, backout, cont, cont });
+		List<IntroSequence> introSequences = IntroSequenceGenerator.generate();
+		Collections.sort(introSequences);
+		System.out.println("Number of intro sequences: " + introSequences.size());
 
 		initTiles(false, new RBMapDestination(RBMap.VIRIDIAN_CITY, RBMapDestination.WEST_CONNECTION));
 		
@@ -273,13 +268,14 @@ public class GenericBot {
 									mem.getMap() == RBMap.SAFARI_ZONE_EAST.getId() || 
 									mem.getMap() == RBMap.SAFARI_ZONE_NORTH.getId() || 
 									mem.getMap() == RBMap.SAFARI_ZONE_WEST.getId());
-							System.out.println(ow.toString() + " " + edgeAction.logStr() + ", "
+							foundManips.println(ow.toString() + " " + edgeAction.logStr() + ", "
 									+ String.format("species %d lv%d DVs %04X rng %s encrng %s", enc.species, enc.level,
 											enc.dvs, enc.battleRNG, rngAtEnc)
 									+ ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames)
 									+ defaultYbf
 							// + pruneDsum
 							);
+							foundManips.flush();
 						}
 						writer.println(ow.toString() + " " + edgeAction.logStr() + ", "
 								+ String.format("species %d lv%d DVs %04X rng %s encrng %s", enc.species, enc.level,
@@ -673,6 +669,64 @@ public class GenericBot {
 		}
 	}
 
+	static class IntroSequenceGenerator {
+
+		private static List<Strat> nidoStrats = new ArrayList<Strat>();
+		private static List<PalStrat> palStrats = new ArrayList<PalStrat>();
+		private static List<Strat> gfStrats = new ArrayList<Strat>();
+		private static List<Strat> titleStrats = new ArrayList<Strat>();
+		private static List<Strat[]> fileStrats = new ArrayList<Strat[]>();
+
+		public static void addNidoStrats(Strat... strats) {
+			nidoStrats.addAll(Arrays.asList(strats));
+		}
+
+		public static void addPalStrats(PalStrat... strats) {
+			palStrats.addAll(Arrays.asList(strats));
+		}
+
+		public static void addGFStrats(Strat... strats) {
+			gfStrats.addAll(Arrays.asList(strats));
+		}
+
+		public static void addTitleStrats(Strat... strats) {
+			titleStrats.addAll(Arrays.asList(strats));
+		}
+
+		public static void addFileStrats(Strat[]... strats) {
+			fileStrats.addAll(Arrays.asList(strats));
+		}
+
+		public static List<IntroSequence> generate() {
+			List<IntroSequence> result = new ArrayList<IntroSequence>();
+			for(PalStrat palStrat : palStrats) {
+				for(Strat gfStrat : gfStrats) {
+					for(Strat nidoStrat : nidoStrats) {
+						for(Strat titleStrat: titleStrats) {
+							for(Strat[] fileStrat : fileStrats) {
+								List<Strat> strats = new ArrayList<Strat>();
+								strats.add(palStrat);
+								strats.add(gfStrat);
+								strats.add(nidoStrat);
+								strats.add(titleStrat);
+								strats.addAll(Arrays.asList(fileStrat));
+								Strat[] stratsArray = new Strat[strats.size()];
+								stratsArray = strats.toArray(stratsArray);
+								result.add(new IntroSequence(stratsArray));
+							}
+						}
+					}
+				}
+			}
+			nidoStrats.clear();
+			palStrats.clear();
+			gfStrats.clear();
+			titleStrats.clear();
+			fileStrats.clear();
+			return result;
+		}
+	}
+	
 	private static PalStrat pal = new PalStrat("_pal", 0, new Integer[] { RedBlueAddr.biosReadKeypadAddr },
 			new Integer[] { UP }, new Integer[] { 1 });
 	private static PalStrat nopal = new PalStrat("_nopal", 0, new Integer[] { RedBlueAddr.biosReadKeypadAddr },
@@ -684,32 +738,22 @@ public class GenericBot {
 			new Integer[] { RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.initAddr }, new Integer[] { UP, UP },
 			new Integer[] { 0, 0 });
 
-	private static Strat nido0 = new Strat("_hop0", 0, new Integer[] { RedBlueAddr.joypadAddr },
-			new Integer[] { UP | SELECT | B }, new Integer[] { 1 });
-	private static Strat nido1 = new Strat("_hop1", 131,
-			new Integer[] { RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.joypadAddr },
-			new Integer[] { NO_INPUT, NO_INPUT, A }, new Integer[] { 0, 0, 1 });
+	 private static Strat nido0 = new Strat("_hop0", 0, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {UP | SELECT | B}, new Integer[] {1});
+	    private static Strat nido1 = new Strat("_hop1", 131, new Integer[] {RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.joypadAddr}, new Integer[] {NO_INPUT, NO_INPUT, A}, new Integer[] {0, 0, 1});
+	    private static Strat nido2 = new Strat("_hop2", 190, new Integer[] {RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.joypadAddr}, new Integer[] {NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, A}, new Integer[] {0, 0, 0, 0, 1});
+	    private static Strat nido3 = new Strat("_hop3", 298, new Integer[] {RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.joypadAddr}, new Integer[] {NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, A}, new Integer[] {0, 0, 0, 0, 0, 0, 1});
+	    private static Strat nido4 = new Strat("_hop4", 447, new Integer[] {RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.joypadAddr}, new Integer[] {NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, A}, new Integer[] {0, 0, 0, 0, 0, 0, 0, 0, 1});
+	    private static Strat nido5 = new Strat("_hop5", 536, new Integer[] {RedBlueAddr.displayTitleScreenAddr}, new Integer[] {NO_INPUT}, new Integer[] {0});
 
 	private static Strat cont = new Strat("", 0, new Integer[] { RedBlueAddr.joypadAddr }, new Integer[] { A },
 			new Integer[] { 1 });
-	// private static Strat cont = new Strat("_cont", 0, new Integer[]
-	// {RedBlueAddr.joypadAddr}, new Integer[] {A}, new Integer[] {1});
 
 	private static Strat backout = new Strat("_backout", 97, new Integer[] { RedBlueAddr.joypadAddr },
 			new Integer[] { B }, new Integer[] { 1 });
-
-	private static Strat gfSkip = new Strat("", 0, new Integer[] { RedBlueAddr.joypadAddr },
-			new Integer[] { UP | SELECT | B }, new Integer[] { 1 });
+	private static Strat gfSkip = new Strat("_gfskip", 0, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {UP | SELECT | B}, new Integer[] {1});
+    private static Strat gfWait = new Strat("_gfwait", 253, new Integer[] {RedBlueAddr.delayAtEndOfShootingStarAddr}, new Integer[] {NO_INPUT}, new Integer[] {0});
 	private static Strat title0 = new Strat("", 0, new Integer[] { RedBlueAddr.joypadAddr }, new Integer[] { START },
 			new Integer[] { 1 });
-	// private static Strat gfSkip = new Strat("_gfskip", 0,
-	// new Integer[] {RedBlueAddr.joypadAddr},
-	// new Integer[] {UP | SELECT | B},
-	// new Integer[] {1});
-	// private static Strat title0 = new Strat("_title0", 0,
-	// new Integer[] {RedBlueAddr.joypadAddr},
-	// new Integer[] {START},
-	// new Integer[] {1});
 
 	private static List<SaveTile> saveTiles = new ArrayList<>();
 	private static HashSet<String> seenStates = new HashSet<>();

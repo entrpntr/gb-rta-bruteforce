@@ -40,3 +40,5 @@ The framework is written in Java, so it's easiest to use with Java (or compatibl
 Main programs are in NidoBot/ShrewBot/LassIGT0Checker/MoonIGT0Checker/CrystalTIDManip/RedBlueTIDManip .java files. Each of these programs can be modified for custom manip needs.
 
 Currently, the programs are set up expecting a roms folder to be created in the root directory. The expected names for the ROMs are: pokered.gbc, pokeblue.gbc, pokecrystal.gbc, and gbc_bios.bin (for the GBC bootrom).
+
+There is a dependency needed right now for the FFEF bot. You can use the gradle wrapper provided to import it (`gradlew idea` or `gradlew eclipse`; change to `gradlew.bat` if on Windows) and add the library to your classpath to make sure the bot runs properly.

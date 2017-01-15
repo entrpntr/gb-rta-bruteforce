@@ -110,4 +110,24 @@ public class OverworldState {
                 "" + pos.getMap() + "#" + pos.getX() + "," + pos.getY() + "-" + turnframe + npcTimers + "-" +
                 rdiv + "-" + hra + "-" + hrs;
     }
+
+    public long getFfefUniqId() {
+        int baseX = (pos.getMap() == 1) ? 40 : 0;
+        int baseY = (pos.getMap() == 1) ? 162 : 170;
+        long pwX = baseX + pos.getX();
+        long pwY = baseY + pos.getY();
+        String[] npcs = npcTimers.split("-");
+        long npc1 = Integer.parseInt(npcs[1]);
+        long npc2;
+        if (pwX >= 60) {
+            npc2 = Integer.parseInt(npcs[3]);
+        } else if (pwX > 55) {
+            npc2 = Integer.parseInt(npcs[4]);
+        } else {
+            npc2 = Integer.parseInt(npcs[6]);
+        }
+        long rdivLower = rdiv % 256;
+        long rdivUpper = rdiv / 256;
+        return (pwX << 56) + (pwY << 48) + (npc1 << 40) + (npc2 << 32) + (rdivUpper << 24) + (rdivLower << 16) + (hra << 8) + hrs;
+    }
 }

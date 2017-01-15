@@ -67,7 +67,7 @@ public class LassIGT0Checker {
             csum += baseSave[i] & 0xFF;
         }
         baseSave[0x3523] = (byte) ((csum & 0xFF) ^ 0xFF); // cpl
-        FileFunctions.writeBytesToFile("roms/blue.sav", baseSave);
+        FileFunctions.writeBytesToFile("testroms/pokeblue.sav", baseSave);
 
         Gb[] gbs = new Gb[numThreads];
         GBMemory[] mems = new GBMemory[numThreads];

@@ -24,20 +24,23 @@ public class GoldTIDManip {
     private static final int START = 0x08;
     private static final int HARD_RESET = 0x800;
 
+    private static final String gameName = "gold";
+
     // Change this to increase/decrease number of intro sequence combinations processed
-    private static final int MAX_COST = 3000;
+    //private static final int MAX_COST = 3000;
+    private static final int MAX_COST = 427;
 
     private static final int BASE_COST = 332 + 32;
 
-    private static HoldStrat gfSkip = new HoldStrat("_gfskip_title", 0 + 55, new Integer[] {}, new Integer[] {}, new Integer[] {});
-    private static HoldStrat intro0 = new HoldStrat("_intro0_title", 344 + 55, new Integer[] {GoldAddr.introScene1Addr}, new Integer[] {NO_INPUT}, new Integer[] {0});
-    private static HoldStrat intro1 = new HoldStrat("_intro1_title", 1830 + 55, new Integer[] {GoldAddr.introScene2Addr}, new Integer[] {NO_INPUT}, new Integer[] {0});
-    private static HoldStrat intro2 = new HoldStrat("_intro2_title", 2290 + 55, new Integer[] {GoldAddr.introScene3Addr}, new Integer[] {NO_INPUT}, new Integer[] {0});
-    private static HoldStrat intro3 = new HoldStrat("_intro3_title", 2913 + 55, new Integer[] {GoldAddr.titleScreenAddr}, new Integer[] {NO_INPUT}, new Integer[] {0});
+    private static Strat gfSkip = new Strat("_gfskip", 0, new Integer[] {GoldAddr.readJoypadAddr}, new Integer[] {START}, new Integer[] {1});
+    private static Strat intro0 = new Strat("_intro0", 344, new Integer[] {GoldAddr.introScene1Addr, GoldAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
+    private static Strat intro1 = new Strat("_intro1", 1830, new Integer[] {GoldAddr.introScene2Addr, GoldAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
+    private static Strat intro2 = new Strat("_intro2", 2290, new Integer[] {GoldAddr.introScene3Addr, GoldAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
+    private static Strat intro3 = new Strat("_intro3", 2913, new Integer[] {GoldAddr.titleScreenAddr}, new Integer[] {NO_INPUT}, new Integer[] {0});
 
-    private static Strat titleSkip = new Strat("_title", 55, new Integer[] {GoldAddr.titleScreenAddr + 3, GoldAddr.mainMenuAddr}, new Integer[] {START, NO_INPUT}, new Integer[] {0, 0});
+    private static Strat titleSkip = new Strat("_title", 55, new Integer[] {GoldAddr.titleScreenAddr}, new Integer[] {START}, new Integer[] {1});
     private static Strat newGame = new Strat("_newgame", 8, new Integer[] {GoldAddr.readJoypadAddr}, new Integer[] {A}, new Integer[] {52});
-    private static Strat backout = new Strat("_backout", 16, new Integer[] {GoldAddr.readJoypadAddr}, new Integer[] {B}, new Integer[] {8});
+    private static Strat backout = new Strat("_backout", 16, new Integer[] {GoldAddr.readJoypadAddr}, new Integer[] {B}, new Integer[] {1});
 
     private static List<Strat> intro = Arrays.asList(gfSkip, intro0, intro1, intro2, intro3);
 
@@ -56,17 +59,17 @@ public class GoldTIDManip {
         }
         public void execute(GBWrapper wrap) {
             for(int i=0; i<addr.length; i++) {
-                wrap.advanceToAddress(addr[i]);
-                wrap.injectGoldInput(input[i]);
+                wrap.advanceWithJoypadToAddress(input[i], addr[i]);
+                //wrap.injectGoldInput(input[i]);
                 for(int j=0; j<advanceFrames[i]; j++) {
-                    wrap.advanceFrame();
+                    wrap.advanceFrame(input[i]);
                 }
             }
         }
     }
 
-    private static class HoldStrat extends Strat {
-        HoldStrat(String name, int cost, Integer[] addr, Integer[] input, Integer[] advanceFrames) {
+    private static class HStrat extends Strat {
+        HStrat(String name, int cost, Integer[] addr, Integer[] input, Integer[] advanceFrames) {
             super(name, cost, addr, input, advanceFrames);
         }
         @Override public void execute(GBWrapper wrap) {
@@ -81,7 +84,7 @@ public class GoldTIDManip {
             //wrap.advanceWithJoypadToAddress(START, GoldAddr.readJoypadAddr);
             //wrap.advanceWithJoypadToAddress(START, GoldAddr.titleScreenAddr + 3);
             wrap.advanceWithJoypadToAddress(START, GoldAddr.mainMenuAddr);
-            //wrap.advanceFrame(START);
+            wrap.advanceFrame(START);
             wrap.advanceWithJoypadToAddress(A, 0x5D15);
         }
     }
@@ -94,7 +97,7 @@ public class GoldTIDManip {
             super(other);
         }
         @Override public String toString() {
-            String ret = "gold";
+            String ret = gameName;
             for(Strat s : this) {
                 ret += s.name;
             }
@@ -134,8 +137,9 @@ public class GoldTIDManip {
             System.exit(0);
         }
 
-        File file = new File("gold_tids.txt");
-        PrintWriter writer = new PrintWriter(file);
+        //File file = new File(gameName + "_tids.txt");
+        //PrintWriter writer = new PrintWriter(file);
+        PrintWriter writer = new PrintWriter(System.out);
 
         ArrayList<Strat> waitStrats = new ArrayList<>();
         int maxwaits = (MAX_COST - BASE_COST - 55 - 8)/4;
@@ -153,7 +157,7 @@ public class GoldTIDManip {
 
         ArrayList<IntroSequence> introSequences = new ArrayList<>();
         for(Strat s : intro) {
-            IntroSequence introSequence = new IntroSequence(s);
+            IntroSequence introSequence = new IntroSequence(s, titleSkip);
             int ngmax = (MAX_COST - (introSequence.cost() + BASE_COST + 8));
             for(int i=0; ngmax>=0 && i<=ngmax/71; i++) {
                 introSequences.add(append(introSequence, newGame));
@@ -171,7 +175,7 @@ public class GoldTIDManip {
         // Init gambatte with 1 screen
         Gb.loadGambatte(1);
         Gb gb = new Gb(0, false);
-        gb.startEmulator("roms/pokegold.gbc");
+        gb.startEmulator("roms/poke" + gameName + ".gbc");
         GBMemory mem = new GBMemory(gb);
         GBWrapper wrap = new GBWrapper(gb, mem);
         for(IntroSequence seq : introSequences) {
@@ -183,10 +187,6 @@ public class GoldTIDManip {
                             + ": TID = " + String.format("0x%4s", Integer.toHexString(tid).toUpperCase()).replace(' ', '0') + " (" + String.format("%5s)", tid).replace(' ', '0')
                             + ", LID = " + String.format("0x%4s", Integer.toHexString(lid).toUpperCase()).replace(' ', '0') + " (" + String.format("%5s)", lid).replace(' ', '0')
                             + ", Cost: " + (seq.cost() + BASE_COST));
-            System.out.println(seq.toString()
-                    + ": TID = " + String.format("0x%4s", Integer.toHexString(tid).toUpperCase()).replace(' ', '0') + " (" + String.format("%5s)", tid).replace(' ', '0')
-                    + ", LID = " + String.format("0x%4s", Integer.toHexString(lid).toUpperCase()).replace(' ', '0') + " (" + String.format("%5s)", lid).replace(' ', '0')
-                    + ", Cost: " + (seq.cost() + BASE_COST));
             gb.step(HARD_RESET);
         }
         writer.flush();

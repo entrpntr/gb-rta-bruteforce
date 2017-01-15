@@ -9,6 +9,7 @@ libgambatte/include/mrwint_gbtasgen_Gb.h
 bin/
 movies/*
 roms/*
+testroms/*
 saves/*
 assembly/dk.asm
 assembly/sml2_10.asm
@@ -34,7 +35,11 @@ log.txt
 *_statesimport*.txt
 *ffef*.txt
 *tids*.txt
+*lucky*.txt
 
+*.ipr
+*.iws
+*.zip
 
 # hidden files
 .*

@@ -3,6 +3,7 @@ package dabomstew.rta.ffef;
 import dabomstew.rta.*;
 import mrwint.gbtasgen.Gb;
 
+import java.io.File;
 import java.io.IOException;
 
 public class NidoIGT0Checker {
@@ -21,28 +22,46 @@ public class NidoIGT0Checker {
     private static final int HARD_RESET = 0x800;
 
     // TODO: READ THIS STUFF FROM LOGS
-    static String gameName = "blue";
+    static String gameName = "red";
     static int map = 1;
-    static int x = 1;
-    static int y = 17;
-    static String path = "L L L L L D S_A_B_S D S_B A D L L L U";
-
+    static int x = 7;
+    static int y = 18;
+    //static String path = "L L L L L D S_A_B_S D S_B A D L L L U";
+    //static String path = "L D U A L L U L L L L A U L L L L L A D D A D D L A D L A U U A U";
+    //static String path = "L L A L R A U L A D R A L L A L L A D L D D A L L A L U";
+    static String path = "L L L U L L U A D L A L U L L L D D A D D A D L A L L A L U U A U";
+    //static String path = "L L L L L L L L R R R L L L L L L L D D D L L U U U U D D";
     private static Gb gb;
     private static GBWrapper wrap;
     private static GBMemory mem;
 
     public static void main(String[] args) throws IOException {
-        Gb.loadGambatte(1);
-        gb = new Gb(0, false);
-        gb.startEmulator("roms/poke" + gameName + ".gbc");
-        mem = new GBMemory(gb);
-        wrap = new GBWrapper(gb, mem);
+        if (!new File("testroms").exists()) {
+            new File("testroms").mkdir();
+            System.err.println("I need ROMs to simulate!");
+            System.exit(0);
+        }
 
+        if (!new File("testroms/poke" + gameName + ".gbc").exists()) {
+            System.err.println("Could not find poke" + gameName + ".gbc in testroms directory!");
+            System.exit(0);
+        }
+
+        Gb.loadGambatte(1);
+
+        // TODO: There are currently hacks for specific Nido paths
         String[] actions = path.split(" ");
         int successes = 60;
         for(int i=0; i<=59; i++) {
             makeSave(map, x, y, i);
+            gb = new Gb(0, false);
+            gb.startEmulator("testroms/poke" + gameName + ".gbc");
+            mem = new GBMemory(gb);
+            wrap = new GBWrapper(gb, mem);
 
+            //wrap.advanceWithJoypadToAddress(DOWN, RedBlueAddr.biosReadKeypadAddr);
+            //wrap.advanceFrame(DOWN);
+            //wrap.advanceFrame();
             // TODO: DON'T HARDCODE INTRO; ABSTRACT INTRO STRATS TO BE USABLE BY SEARCHER AND CHECKER
             wrap.advanceToAddress(RedBlueAddr.joypadAddr);
             wrap.injectRBInput(UP | SELECT | B);
@@ -65,7 +84,9 @@ public class NidoIGT0Checker {
             for(int j=0; j<actions.length; j++) {
                 OverworldAction owAction = OverworldAction.fromString(actions[j]);
                 boolean lastAction = j==actions.length-1;
-                if(!execute(owAction, lastAction)) {
+                boolean ledgejump = j==path.lastIndexOf("D")/2;
+                //boolean ledgejump = false;
+                if(!execute(owAction, lastAction, ledgejump)) {
                     System.out.println(" - FAILURE");
                     successes--;
                     break;
@@ -73,14 +94,14 @@ public class NidoIGT0Checker {
                     System.out.println();
                 }
             }
-            gb.step(HARD_RESET);
+          //  gb.step(HARD_RESET);
         }
         System.out.println();
         System.out.println("Successes: " + successes + "/60");
     }
 
     // TODO: ABSTRACT THIS OUT TO BE USABLE BY SEARCHER AND CHECKER
-    private static boolean execute(OverworldAction owAction, boolean lastAction) {
+    private static boolean execute(OverworldAction owAction, boolean lastAction, boolean ledgeJump) {
         int res;
         //System.out.print(owAction.logStr());
         switch(owAction) {
@@ -111,7 +132,7 @@ public class NidoIGT0Checker {
                                 "species %d lv%d DVs %04X rng %s encrng %s",
                                 enc.species, enc.level, enc.dvs, enc.battleRNG, rngAtEnc
                         ));
-                        if (enc.species == 3 && (enc.dvs == 0xFFEF || enc.dvs == 0xFFEE)) {
+                        if (enc.species == 3 && enc.level == 4 && (enc.dvs == 0xFFEF || enc.dvs == 0xFBEE )) {
                             wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
                             wrap.injectRBInput(A);
                             wrap.advanceFrame();
@@ -133,10 +154,17 @@ public class NidoIGT0Checker {
                     } else if(lastAction) {
                         System.out.print("NO ENCOUNTER");
                         return false;
+                    } else {
+                        wrap.advanceWithJoypadToAddress(input, RedBlueAddr.joypadOverworldAddr);
+                        return true;
                     }
-                    return false;
                 } else {
                     // TODO: implement NPC collision and ledgejumping
+                    if(ledgeJump) {
+                        wrap.injectRBInput(input);
+                        wrap.advanceFrame(input);
+                        wrap.advanceWithJoypadToAddress(input, RedBlueAddr.joypadOverworldAddr);
+                    }
                     if(lastAction) {
                         System.out.println();
                     }
@@ -223,6 +251,6 @@ public class NidoIGT0Checker {
             csum += baseSave[i] & 0xFF;
         }
         baseSave[0x3523] = (byte) ((csum & 0xFF) ^ 0xFF); // cpl
-        FileFunctions.writeBytesToFile("roms/poke" + gameName + ".sav", baseSave);
+        FileFunctions.writeBytesToFile("testroms/poke" + gameName + ".sav", baseSave);
     }
 }

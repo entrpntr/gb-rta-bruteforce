@@ -9,6 +9,9 @@ import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import org.eclipse.collections.impl.list.mutable.primitive.LongArrayList;
+import org.eclipse.collections.impl.set.mutable.primitive.LongHashSet;
+
 public class NidoBotFFEF {
     private static final int NO_INPUT = 0x00;
 
@@ -31,15 +34,18 @@ public class NidoBotFFEF {
     // Also more intros would need to be spelled out.
     private static final int MAX_COST;
     static {
-        int BLUE_COST = 138;
+        int RED_COST = 157;
         gameName = "red";
-        MAX_COST = (gameName.equals("blue")) ? BLUE_COST : BLUE_COST + 28;
+        MAX_COST = (gameName.equals("red")) ? RED_COST : RED_COST - 21;
     }
 
     // TODO: LOOK AT TUNING THESE MORE
     private static final double DSUM_HIGH_COEF = 0.686;
     private static final double DSUM_LOW_COEF = 0.623;
     private static final double DSUM_MARGIN_OF_ERROR = 5.0;
+
+    private static LongArrayList seenStates = new LongArrayList(100000);
+    //private static LongHashSet seenStates = new LongHashSet(100000);
 
     // Sort tiles by starting cost (lower starting cost takes priority),
     // then by starting distance from grass (longer distance takes priority).
@@ -57,11 +63,6 @@ public class NidoBotFFEF {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        // Make folder if necessary
-        if (!new File("logs").exists()) {
-            new File("logs").mkdir();
-        }
-
         if (!new File("roms").exists()) {
             new File("roms").mkdir();
             System.err.println("I need ROMs to simulate!");
@@ -96,10 +97,11 @@ public class NidoBotFFEF {
 
         Collections.sort(saveTiles, new SaveTileComparator());
         for(SaveTile saveTile : saveTiles) {
-            // Comment these lines ouif you want to search the whole space
-            if(saveTile.getOwPos().getMinStepsToGrass() > 22) {
-                continue;
-            }
+            // Comment these lines out if you want to search the whole space
+            //if(saveTile.getOwPos().getMinStepsToGrass() < 23 || saveTile.getOwPos().getMinStepsToGrass() > 35) {
+            //if(saveTile.getOwPos().getMinStepsToGrass() > 22 || (saveTile.getOwPos().getX()==7 && saveTile.getOwPos().getY()==18)) {
+            //    continue;
+            //}
 
             OverworldTile savePos = saveTile.getOwPos();
             makeSave(savePos.getMap(), savePos.getX(), savePos.getY());
@@ -111,12 +113,21 @@ public class NidoBotFFEF {
             mem = new GBMemory(gb);
             wrap = new GBWrapper(gb, mem);
 
-            for (IntroSequence intro : introSequences) {
+            for (int i=0; i<introSequences.size(); i++) {
+                //if((i==0 || i==1) && saveTile.getOwPos().getMap() == 1 && saveTile.getOwPos().getX() == 6 && saveTile.getOwPos().getY() == 18) {
+                //    continue;
+                //}
+                IntroSequence intro = introSequences.get(i);
                 int baseCost = saveTile.getStartCost() + intro.cost();
                 if (baseCost <= MAX_COST) {
-                    //System.out.println("--- [" + savePos.getMap() + "#" + savePos.getX() + "," + savePos.getY() + "] " + intro.toString() + " ---");
                     intro.execute(wrap);
                     wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
+                    int hra = mem.getHRA();
+                    int hrs = mem.getHRS();
+                    int dsum = (hra + hrs) % 256;
+                    String header = "------  [" + savePos.getMap() + "#" + savePos.getX() + "," + savePos.getY() + "] " + intro.toString() + " | baseDsum: " + dsum + "; baseCost: " + baseCost + "  ------";
+                    System.out.println(header);
+                    //writer.println(header);
                     OverworldState owState = new OverworldState(savePos.toString() + " - " + intro.toString() + ":",
                             saveTile.getOwPos(), 1, true, gb.getDivState(), mem.getHRA(), mem.getHRS(),
                             saveTile.isViridianNpc(), mem.getTurnFrameStatus(), mem.getNPCTimers(), baseCost, 0);
@@ -133,9 +144,23 @@ public class NidoBotFFEF {
         if(ow.getWastedFrames() > MAX_COST) {
             return;
         }
-        if(!seenStates.add(ow.getUniqId())) {
+/*
+        if(!seenStates.add(ow.getFfefUniqId())) {
             return;
         }
+*/
+///*
+        long ffefUid = ow.getFfefUniqId();
+        int idx = seenStates.binarySearch(ffefUid);
+        if(idx >= 0) {
+            return;
+        }
+        seenStates.addAtIndex(-1*idx-1, ffefUid);
+//*/
+        if(seenStates.size() % 100000 == 0) {
+            System.out.println("# seen states: " + seenStates.size());
+        }
+
         if(ow.getMap() == 33 && ow.getX()==33 && ow.getY()==11 && ow.getWastedFrames()+34>MAX_COST) {
             return;
         }
@@ -148,11 +173,14 @@ public class NidoBotFFEF {
 
         for(OverworldEdge edge : ow.getPos().getEdgeList()) {
             OverworldAction edgeAction = edge.getAction();
-            if (ow.getMap() == 1 && ow.getX() == 47 - 30 && edgeAction == OverworldAction.RIGHT && ow.isViridianNpc()) {
+            if (ow.getMap() == 1 && ow.getX() == 7 && edgeAction == OverworldAction.RIGHT && ow.isViridianNpc()) {
                 continue;
             }
-            if (ow.aPressCounter() > 0 && (edgeAction == OverworldAction.A || edgeAction == OverworldAction.START_B
+            if (ow.aPressCounter() == 2 && (edgeAction == OverworldAction.START_B
                     || edgeAction == OverworldAction.S_A_B_S || edgeAction == OverworldAction.S_A_B_A_B_S)) {
+                continue;
+            }
+            if (ow.aPressCounter() > 0 && edgeAction == OverworldAction.A) {
                 continue;
             }
             if (!ow.canPressStart() && (edgeAction == OverworldAction.START_B || edgeAction == OverworldAction.S_A_B_S
@@ -201,7 +229,7 @@ public class NidoBotFFEF {
                             int owFrames = ow.getOverworldFrames() + edge.getFrames();
                           //  String pruneDsum = dsumPrune ? " [*]" : "";
                             String defaultYbf = "";
-                            if(enc.species == 3 && (enc.dvs == 0xFFEF || enc.dvs == 0xFFEE)) {
+                            if(enc.species == 3 && enc.level == 4 && (enc.dvs == 0xFFEF || enc.dvs == 0xFFEE)) {
                                 wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
                                 wrap.injectRBInput(A);
                                 wrap.advanceFrame();
@@ -224,6 +252,9 @@ public class NidoBotFFEF {
                                             ) + ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames) + defaultYbf
               //                              + pruneDsum
                             );
+                            writer.flush();
+                        } else {
+                            wrap.advanceWithJoypadToAddress(input, RedBlueAddr.joypadOverworldAddr);
                         }
                     } else if (res == RedBlueAddr.joypadOverworldAddr) {
                         while (mem.getMap() == ow.getMap() && mem.getX() == ow.getX() && mem.getY() == ow.getY()) {
@@ -246,7 +277,7 @@ public class NidoBotFFEF {
                                 , edge.getNextPos(), Math.max(0, ow.aPressCounter() - 1), true, gb.getDivState(), mem.getHRA(), mem.getHRS(),
                                 ow.isViridianNpc() || newViridianNPC, mem.getTurnFrameStatus(), mem.getNPCTimers(),
                                 ow.getWastedFrames() + edgeCost + extraWastedFrames,
-                                ow.getOverworldFrames() + edge.getFrames());
+                                ow.getOverworldFrames() + edge.getFrames() + extraWastedFrames);
                         //overworldSearch(newState, prune || dsumPrune);
                         overworldSearch(newState);
                     }
@@ -256,10 +287,11 @@ public class NidoBotFFEF {
                     wrap.injectRBInput(A);
                     wrap.advanceFrame(A);
                     res = wrap.advanceWithJoypadToAddress(A, RedBlueAddr.joypadOverworldAddr, RedBlueAddr.printLetterDelayAddr);
+                    wastedFrames = readIGT() - initIGT;
                     if (res == RedBlueAddr.joypadOverworldAddr) {
                         newState = new OverworldState(ow.toString() + " " + edgeAction.logStr(), edge.getNextPos(), 2,
                                 true, gb.getDivState(), mem.getHRA(), mem.getHRS(), ow.isViridianNpc(), mem.getTurnFrameStatus(),
-                                mem.getNPCTimers(), ow.getWastedFrames() + 2, ow.getOverworldFrames() + 2);
+                                mem.getNPCTimers(), ow.getWastedFrames() + wastedFrames, ow.getOverworldFrames() + wastedFrames);
                         //overworldSearch(newState, prune || dsumPrune);
                         overworldSearch(newState);
                     }
@@ -360,12 +392,14 @@ public class NidoBotFFEF {
                 if (predictLow <= 141.0 || (predictHigh >= 170.0 && (predictLow <= 256.0 || predictLow % 256.0 <= 141.0))) {
                     writer.println("PRUNED: " + ow.toString() + " [" + edge.getAction().logStr() + " -> " + edge.getNextPos().getX() + "," + edge.getNextPos().getY() + "]"
                     + " -- High: " + String.format("%.3f", predictHigh) + ", Low: " + String.format("%.3f", (predictLow % 256.0)));
+                    writer.flush();
                     return true;
                 }
             } else if(gameName.equals("blue")) {
                 if (predictLow <= 253.0 && predictHigh >= 4.0) {
                     writer.println("PRUNED: " + ow.toString() + " [" + edge.getAction().logStr() + " -> " + edge.getNextPos().getX() + "," + edge.getNextPos().getY() + "]"
                     + " -- High: " + String.format("%.3f", predictHigh) + ", Low: " + String.format("%.3f", (predictLow % 256.0)));
+                    writer.flush();
                     return true;
                 }
             }
@@ -383,11 +417,11 @@ public class NidoBotFFEF {
                 predictLow-=256.0;
             }
             if(gameName.equals("red")) {
-                if (predictLow <= 141.0 || (predictHigh >= 170.0 && (predictLow <= 256.0 || predictLow % 256.0 <= 141.0))) {
+                if (predictLow < 141.0 || (predictHigh > 170.0 && (predictLow < 256.0 || predictLow % 256.0 < 141.0))) {
                     return true;
                 }
             } else if(gameName.equals("blue")) {
-                if (predictLow <= 253.0 && predictHigh >= 4.0) {
+                if (predictLow < 253.0 && predictHigh > 4.0) {
                     return true;
                 }
             }
@@ -574,7 +608,8 @@ public class NidoBotFFEF {
     // new Integer[] {1});
 
     private static List<SaveTile> saveTiles = new ArrayList<>();
-    private static HashSet<String> seenStates = new HashSet<>();
+    //private static HashSet<String> seenStates = new HashSet<>();
+
     private static final OverworldTile[][] pw = new OverworldTile[45][14];
 
     private static Gb gb;
@@ -1517,8 +1552,8 @@ public class NidoBotFFEF {
                     // START_B, S_A_B_S, S_A_B_A_B_S (any more starts to get unreasonable imo)
                     int sbcost = (x <= 39-30) ? 53 : 54;
                     pw[x][y].addEdge(new OverworldEdge(OverworldAction.START_B, sbcost, sbcost, pw[x][y]));
-                    pw[x][y].addEdge(new OverworldEdge(OverworldAction.S_A_B_S, sbcost+30, sbcost+30, pw[x][y]));
-                    pw[x][y].addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, sbcost+60, sbcost+60, pw[x][y]));
+                    pw[x][y].addEdge(new OverworldEdge(OverworldAction.S_A_B_S, sbcost+29, sbcost+30, pw[x][y]));
+                    pw[x][y].addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, sbcost+58, sbcost+60, pw[x][y]));
                     Collections.sort(pw[x][y].getEdgeList());
 
                     // MIN_STEPS_TO_GRASS

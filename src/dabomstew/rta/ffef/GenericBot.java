@@ -433,7 +433,7 @@ public class GenericBot {
 				wrap.advanceToAddress(RedBlueAddr.playCryAddr);
 				wrap.injectRBInput(DOWN | A);
 				wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
-				int ballInputs = ballSlot == 1 ? A | RIGHT : A | B | RIGHT;
+				int ballInputs = ballSlot == 1 ? A | RIGHT : A | B | DOWN;
 				wrap.injectRBInput(ballInputs);
 				int res2 = wrap.advanceWithJoypadToAddress(ballInputs, RedBlueAddr.catchSuccessAddr,
 						RedBlueAddr.catchFailureAddr);

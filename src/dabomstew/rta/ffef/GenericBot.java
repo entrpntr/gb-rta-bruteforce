@@ -424,7 +424,7 @@ public class GenericBot {
 				gb.loadState(yoloballSave);
 				gb.writeMemory(0xD164, pokemon.getSpecies().getIndexNumber()); // write the new species
 				for(int i = 0; i < pokemon.getNameLength(); i++) {
-					gb.writeMemory(0xD2B5, 0x80); // write the new name
+					gb.writeMemory(0xD2B5 + i, 0x80); // write the new name
 				}
 				gb.writeMemory(0xD2B5 + pokemon.getNameLength(), 0x50); // termination character
 				wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);

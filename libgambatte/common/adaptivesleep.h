@@ -14,7 +14,7 @@
  *   You should have received a copy of the GNU General Public License     *
  *   version 2 along with this program; if not, write to the               *
  *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.             *
  ***************************************************************************/
 #ifndef ADAPTIVE_SLEEP_H
 #define ADAPTIVE_SLEEP_H
@@ -22,13 +22,14 @@
 #include "usec.h"
 
 class AdaptiveSleep {
-	usec_t oversleep;
-	usec_t oversleepVar;
-	unsigned noSleep;
-	
 public:
-	AdaptiveSleep() : oversleep(0), oversleepVar(0), noSleep(60) {}
+	AdaptiveSleep() : oversleep_(0), oversleepVar_(0), noSleep_(60) {}
 	usec_t sleepUntil(usec_t base, usec_t inc);
+
+private:
+	usec_t oversleep_;
+	usec_t oversleepVar_;
+	unsigned noSleep_;
 };
 
 #endif

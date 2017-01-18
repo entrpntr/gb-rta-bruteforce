@@ -1,24 +1,25 @@
-/***************************************************************************
- *   Copyright (C) 2008 by Sindre Aamås                                    *
- *   sinamas@users.sourceforge.net                                         *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License version 2 as     *
- *   published by the Free Software Foundation.                            *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License version 2 for more details.                *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   version 2 along with this program; if not, write to the               *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+//
+//   Copyright (C) 2008 by sinamas <sinamas at users.sourceforge.net>
+//
+//   This program is free software; you can redistribute it and/or modify
+//   it under the terms of the GNU General Public License version 2 as
+//   published by the Free Software Foundation.
+//
+//   This program is distributed in the hope that it will be useful,
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//   GNU General Public License version 2 for more details.
+//
+//   You should have received a copy of the GNU General Public License
+//   version 2 along with this program; if not, write to the
+//   Free Software Foundation, Inc.,
+//   51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
+//
+
 #ifndef SAVESTATE_H
 #define SAVESTATE_H
 
+#include <cstddef>
 #include <ctime>
 
 namespace gambatte {
@@ -28,34 +29,35 @@ class SaverList;
 struct SaveState {
 	template<typename T>
 	class Ptr {
-		T *ptr;
-		unsigned long sz;
-		
 	public:
-		Ptr() : ptr(0), sz(0) {}
-		const T* get() const { return ptr; }
-		unsigned long getSz() const { return sz; }
-		void set(T *ptr, const unsigned long sz) { this->ptr = ptr; this->sz = sz; }
-		
+		Ptr() : ptr(0), size_(0) {}
+		T const * get() const { return ptr; }
+		std::size_t size() const { return size_; }
+		void set(T *p, std::size_t size) { ptr = p; size_ = size; }
+
 		friend class SaverList;
 		friend void setInitState(SaveState &, bool, bool, std::time_t);
+
+	private:
+		T *ptr;
+		std::size_t size_;
 	};
 
 	struct CPU {
 		unsigned long cycleCounter;
-		unsigned short PC;
-		unsigned short SP;
-		unsigned char A;
-		unsigned char B;
-		unsigned char C;
-		unsigned char D;
-		unsigned char E;
-		unsigned char F;
-		unsigned char H;
-		unsigned char L;
-		bool skip;
+		unsigned short pc;
+		unsigned short sp;
+		unsigned char a;
+		unsigned char b;
+		unsigned char c;
+		unsigned char d;
+		unsigned char e;
+		unsigned char f;
+		unsigned char h;
+		unsigned char l;
+		unsigned char /*bool*/ skip;
 	} cpu;
-	
+
 	struct Mem {
 		Ptr<unsigned char> vram;
 		Ptr<unsigned char> sram;
@@ -73,24 +75,24 @@ struct SaveState {
 		unsigned short dmaDestination;
 		unsigned char rambank;
 		unsigned char oamDmaPos;
-		bool IME;
-		bool halted;
-		bool enableRam;
-		bool rambankMode;
-		bool hdmaTransfer;
-		unsigned char /*bool*/ biosMode;
-        unsigned char /*bool*/ cgbSwitching;
-        unsigned char /*bool*/ agbMode;
-        unsigned char /*bool*/ gbIsCgb;
+		unsigned char /*bool*/ IME;
+		unsigned char /*bool*/ halted;
+		unsigned char /*bool*/ enableRam;
+		unsigned char /*bool*/ rambankMode;
+		unsigned char /*bool*/ hdmaTransfer;
+	        unsigned char /*bool*/ biosMode;
+		unsigned char /*bool*/ cgbSwitching;
+		unsigned char /*bool*/ agbMode;
+	        unsigned char /*bool*/ gbIsCgb;
 	} mem;
-	
+
 	struct PPU {
 		Ptr<unsigned char> bgpData;
 		Ptr<unsigned char> objpData;
 		//SpriteMapper::OamReader
 		Ptr<unsigned char> oamReaderBuf;
 		Ptr<bool> oamReaderSzbuf;
-		
+
 		unsigned long videoCycles;
 		unsigned long enableDisplayM0Time;
 		unsigned short lastM0Time;
@@ -115,50 +117,51 @@ struct SaveState {
 		unsigned char oldWy;
 		unsigned char winDrawState;
 		unsigned char wscx;
-		bool weMaster;
-		bool pendingLcdstatIrq;
-		unsigned char /*bool*/ isCgb;
+		unsigned char /*bool*/ weMaster;
+		unsigned char /*bool*/ pendingLcdstatIrq;
+	        unsigned char /*bool*/ isCgb;
 	} ppu;
-	
+
 	struct SPU {
 		struct Duty {
 			unsigned long nextPosUpdate;
 			unsigned char nr3;
 			unsigned char pos;
+			unsigned char /*bool*/ high;
 		};
-		
+
 		struct Env {
 			unsigned long counter;
 			unsigned char volume;
 		};
-		
+
 		struct LCounter {
 			unsigned long counter;
 			unsigned short lengthCounter;
 		};
-		
+
 		struct {
 			struct {
 				unsigned long counter;
 				unsigned short shadow;
 				unsigned char nr0;
-				bool negging;
+				unsigned char /*bool*/ negging;
 			} sweep;
 			Duty duty;
 			Env env;
 			LCounter lcounter;
 			unsigned char nr4;
-			bool master;
+			unsigned char /*bool*/ master;
 		} ch1;
-		
+
 		struct {
 			Duty duty;
 			Env env;
 			LCounter lcounter;
 			unsigned char nr4;
-			bool master;
+			unsigned char /*bool*/ master;
 		} ch2;
-		
+
 		struct {
 			Ptr<unsigned char> waveRam;
 			LCounter lcounter;
@@ -168,9 +171,9 @@ struct SaveState {
 			unsigned char nr4;
 			unsigned char wavePos;
 			unsigned char sampleBuf;
-			bool master;
+			unsigned char /*bool*/ master;
 		} ch3;
-		
+
 		struct {
 			struct {
 				unsigned long counter;
@@ -179,12 +182,12 @@ struct SaveState {
 			Env env;
 			LCounter lcounter;
 			unsigned char nr4;
-			bool master;
+			unsigned char /*bool*/ master;
 		} ch4;
-		
+
 		unsigned long cycleCounter;
 	} spu;
-	
+
 	struct RTC {
 		unsigned long baseTime;
 		unsigned long haltTime;
@@ -193,7 +196,7 @@ struct SaveState {
 		unsigned char dataH;
 		unsigned char dataM;
 		unsigned char dataS;
-		bool lastLatchData;
+		unsigned char /*bool*/ lastLatchData;
 	} rtc;
 };
 

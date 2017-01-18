@@ -14,7 +14,7 @@
  *   You should have received a copy of the GNU General Public License     *
  *   version 2 along with this program; if not, write to the               *
  *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.             *
  ***************************************************************************/
 #ifndef RGB32CONV_H
 #define RGB32CONV_H
@@ -24,7 +24,7 @@ class VideoLink;
 class Rgb32Conv {
 public:
 	enum PixelFormat { RGB32, RGB16, UYVY };
-	static VideoLink* create(PixelFormat pf, unsigned width, unsigned height);
+	static VideoLink * create(PixelFormat pf, unsigned width, unsigned height);
 };
 
 #endif

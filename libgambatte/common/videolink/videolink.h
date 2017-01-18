@@ -14,17 +14,19 @@
  *   You should have received a copy of the GNU General Public License     *
  *   version 2 along with this program; if not, write to the               *
  *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.             *
  ***************************************************************************/
 #ifndef VIDEOLINK_H
 #define VIDEOLINK_H
 
+#include <cstddef>
+
 class VideoLink {
 public:
 	virtual ~VideoLink() {}
-	virtual void* inBuf() const = 0;
-	virtual int inPitch() const = 0;
-	virtual void draw(void *dst, int dstpitch) = 0;
+	virtual void * inBuf() const = 0;
+	virtual std::ptrdiff_t inPitch() const = 0;
+	virtual void draw(void *dst, std::ptrdiff_t dstpitch) = 0;
 };
 
 #endif

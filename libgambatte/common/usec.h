@@ -14,16 +14,12 @@
  *   You should have received a copy of the GNU General Public License     *
  *   version 2 along with this program; if not, write to the               *
  *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.             *
  ***************************************************************************/
 #ifndef USEC_H
 #define USEC_H
 
 typedef unsigned long usec_t;
-
-static inline usec_t negate(usec_t t) {
-	return usec_t(0) - t;
-}
 
 usec_t getusecs();
 void usecsleep(usec_t usecs);

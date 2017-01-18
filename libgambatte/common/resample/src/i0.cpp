@@ -14,7 +14,7 @@
  *   You should have received a copy of the GNU General Public License     *
  *   version 2 along with this program; if not, write to the               *
  *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.             *
  ***************************************************************************/
 #include "i0.h"
 
@@ -22,15 +22,14 @@ double i0(double x) {
 	double sum = 1.0;
 	double xpm_dmfac = 1.0;
 	double m = 1.0;
-	unsigned n = 16;
-	
+
 	x = 0.25 * x * x;
-	
-	do {
-		xpm_dmfac *= x / (m*m);
+
+	for (int n = 16; n--;) {
+		xpm_dmfac *= x / (m * m);
 		sum += xpm_dmfac;
 		m += 1.0;
-	} while (--n);
-	
+	}
+
 	return sum;
 }

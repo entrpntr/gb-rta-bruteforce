@@ -117,7 +117,7 @@ public:
 };
 
 bool GambatteSdl::init(const char* romName) {
-	//std::printf("Gambatte SDL SVN\n");
+        //std::printf("Gambatte SDL SVN\n");
 
 	keepRunning = true;
 	
@@ -144,7 +144,7 @@ bool GambatteSdl::init(const char* romName) {
 			PakInfo const &pak = gambatte.pakInfo();
 			//std::puts(gambatte.romTitle().c_str());
 			//std::printf("GamePak type: %s rambanks: %u rombanks: %u\n",
-			 //           pak.mbc().c_str(), pak.rambanks(), pak.rombanks());
+			//            pak.mbc().c_str(), pak.rambanks(), pak.rombanks());
 			//std::printf("header checksum: %s\n", pak.headerChecksumOk() ? "ok" : "bad");
 			//std::printf("cgb: %d\n", gambatte.isCgb());
 		}
@@ -229,10 +229,10 @@ void GambatteSdl::step() {
 	const BlitterWrapper::Buf &vbuf = sdl.blitter.inBuf(screen);
 
 	while (true) {
-		unsigned emusamples = SAMPLES_PER_FRAME - overflowSamples;
+		std::size_t emusamples = SAMPLES_PER_FRAME - overflowSamples;
 		if (gambatte.runFor(vbuf.pixels, vbuf.pitch,
 				reinterpret_cast<gambatte::uint_least32_t*>(inBuf.get()), emusamples) >= 0) {
-			//sdl.blitter.draw();
+		        //sdl.blitter.draw();
 			//sdl.blitter.present();
 		}
 
@@ -288,7 +288,7 @@ void dualGbStep(GambatteSdl* gbL, GambatteSdl* gbR, bool cableconnected) {
 		// gambatte_runfor() aborts early when a frame is produced, but we don't want that, hence the while()
 		while (gbL->overflowSamples < dualTarget)
 		{
-			unsigned emusamples = dualTarget - gbL->overflowSamples;
+			std::size_t emusamples = dualTarget - gbL->overflowSamples;
 			if (gbL->gambatte.runFor(vbufL.pixels, vbufL.pitch,
 					reinterpret_cast<gambatte::uint_least32_t*>(gbL->inBuf.get()), emusamples) >= 0) {
 				sdl.blitter.draw();
@@ -302,7 +302,7 @@ void dualGbStep(GambatteSdl* gbL, GambatteSdl* gbR, bool cableconnected) {
 		}
 		while (gbR->overflowSamples < dualTarget)
 		{
-			unsigned emusamples = dualTarget - gbR->overflowSamples;
+			std::size_t emusamples = dualTarget - gbR->overflowSamples;
 			if (gbR->gambatte.runFor(vbufR.pixels, vbufR.pitch,
 					reinterpret_cast<gambatte::uint_least32_t*>(gbR->inBuf.get()), emusamples) >= 0) {
 				sdl.blitter.draw();
@@ -319,21 +319,21 @@ void dualGbStep(GambatteSdl* gbL, GambatteSdl* gbR, bool cableconnected) {
 		if (!cableconnected)
 			continue;
 
-		if (gbL->gambatte.p_->cpu.memory.linkStatus(256) != 0) // ClockTrigger
+		if (gbL->gambatte.p_->cpu.mem_.linkStatus(256) != 0) // ClockTrigger
 		{
-			gbL->gambatte.p_->cpu.memory.linkStatus(257); // ack
-			int lo = gbL->gambatte.p_->cpu.memory.linkStatus(258); // GetOut
-			int ro = gbR->gambatte.p_->cpu.memory.linkStatus(258);
-			gbL->gambatte.p_->cpu.memory.linkStatus(ro & 0xff); // ShiftIn
-			gbR->gambatte.p_->cpu.memory.linkStatus(lo & 0xff); // ShiftIn
+			gbL->gambatte.p_->cpu.mem_.linkStatus(257); // ack
+			int lo = gbL->gambatte.p_->cpu.mem_.linkStatus(258); // GetOut
+			int ro = gbR->gambatte.p_->cpu.mem_.linkStatus(258);
+			gbL->gambatte.p_->cpu.mem_.linkStatus(ro & 0xff); // ShiftIn
+			gbR->gambatte.p_->cpu.mem_.linkStatus(lo & 0xff); // ShiftIn
 		}
-		if (gbR->gambatte.p_->cpu.memory.linkStatus(256) != 0) // ClockTrigger
+		if (gbR->gambatte.p_->cpu.mem_.linkStatus(256) != 0) // ClockTrigger
 		{
-			gbR->gambatte.p_->cpu.memory.linkStatus(257); // ack
-			int lo = gbL->gambatte.p_->cpu.memory.linkStatus(258); // GetOut
-			int ro = gbR->gambatte.p_->cpu.memory.linkStatus(258);
-			gbL->gambatte.p_->cpu.memory.linkStatus(ro & 0xff); // ShiftIn
-			gbR->gambatte.p_->cpu.memory.linkStatus(lo & 0xff); // ShiftIn
+			gbR->gambatte.p_->cpu.mem_.linkStatus(257); // ack
+			int lo = gbL->gambatte.p_->cpu.mem_.linkStatus(258); // GetOut
+			int ro = gbR->gambatte.p_->cpu.mem_.linkStatus(258);
+			gbL->gambatte.p_->cpu.mem_.linkStatus(ro & 0xff); // ShiftIn
+			gbR->gambatte.p_->cpu.mem_.linkStatus(lo & 0xff); // ShiftIn
 		}
 
 		if (dualTarget >= SAMPLES_PER_FRAME)
@@ -345,7 +345,7 @@ void dualGbStep(GambatteSdl* gbL, GambatteSdl* gbR, bool cableconnected) {
 	}
 	gbL->overflowSamples = gbL->overflowSamples - SAMPLES_PER_FRAME;
 	gbR->overflowSamples = gbR->overflowSamples - SAMPLES_PER_FRAME;
-  dualTarget = STEP;
+        dualTarget = STEP;
 }
 
 void saveDualState(GambatteSdl* gbL, GambatteSdl* gbR, std::vector<char>& data) {
@@ -412,8 +412,8 @@ JNIEXPORT void JNICALL Java_mrwint_gbtasgen_Gb_ninitDualGb
   UNUSED(env);UNUSED(clazz);
 
   // connect link cable
-  ((GambatteSdl*)gbL)->gambatte.p_->cpu.memory.linkStatus(259);
-  ((GambatteSdl*)gbR)->gambatte.p_->cpu.memory.linkStatus(259);
+  ((GambatteSdl*)gbL)->gambatte.p_->cpu.mem_.linkStatus(259);
+  ((GambatteSdl*)gbR)->gambatte.p_->cpu.mem_.linkStatus(259);
 }
 
 // nstepDual
@@ -579,7 +579,7 @@ JNIEXPORT jint JNICALL Java_mrwint_gbtasgen_Gb_getROMSize
     (JNIEnv *env, jclass clazz, jlong gb){
   UNUSED(env);UNUSED(clazz);
 
-  return ((GambatteSdl*)gb)->gambatte.p_->cpu.memory.cart.memptrs.numRombanks*0x4000;
+  return ((GambatteSdl*)gb)->gambatte.p_->cpu.mem_.cart_.memptrs_.numRombanks*0x4000;
 }
 
 // getROM
@@ -587,10 +587,10 @@ JNIEXPORT void JNICALL Java_mrwint_gbtasgen_Gb_getROM
     (JNIEnv *env, jclass clazz, jlong gb, jintArray arr){
   UNUSED(env);UNUSED(clazz);UNUSED(arr);
 
-  int size = ((GambatteSdl*)gb)->gambatte.p_->cpu.memory.cart.memptrs.numRombanks*0x4000;
+  int size = ((GambatteSdl*)gb)->gambatte.p_->cpu.mem_.cart_.memptrs_.numRombanks*0x4000;
   jint *rom_store = env->GetIntArrayElements(arr, 0);
   for(int i=0;i<size;i++)
-    rom_store[i] = ((GambatteSdl*)gb)->gambatte.p_->cpu.memory.cart.memptrs.romdata()[i];
+    rom_store[i] = ((GambatteSdl*)gb)->gambatte.p_->cpu.mem_.cart_.memptrs_.romdata()[i];
   env->ReleaseIntArrayElements(arr, rom_store, 0);
 }
 
@@ -601,12 +601,12 @@ JNIEXPORT void JNICALL Java_mrwint_gbtasgen_Gb_getRegisters
 
   jint *registers_store = env->GetIntArrayElements(arr, 0);
 
-  registers_store[0] = ((GambatteSdl*)gb)->gambatte.p_->cpu.PC_;
-  registers_store[1] = ((GambatteSdl*)gb)->gambatte.p_->cpu.SP;
-  registers_store[2] = ((GambatteSdl*)gb)->gambatte.p_->cpu.A_ << 8;
-  registers_store[3] = (((GambatteSdl*)gb)->gambatte.p_->cpu.B << 8) + ((GambatteSdl*)gb)->gambatte.p_->cpu.C;
-  registers_store[4] = (((GambatteSdl*)gb)->gambatte.p_->cpu.D << 8) + ((GambatteSdl*)gb)->gambatte.p_->cpu.E;
-  registers_store[5] = (((GambatteSdl*)gb)->gambatte.p_->cpu.H << 8) + ((GambatteSdl*)gb)->gambatte.p_->cpu.L;
+  registers_store[0] = ((GambatteSdl*)gb)->gambatte.p_->cpu.pc_;
+  registers_store[1] = ((GambatteSdl*)gb)->gambatte.p_->cpu.sp;
+  registers_store[2] = ((GambatteSdl*)gb)->gambatte.p_->cpu.a_ << 8;
+  registers_store[3] = (((GambatteSdl*)gb)->gambatte.p_->cpu.b << 8) + ((GambatteSdl*)gb)->gambatte.p_->cpu.c;
+  registers_store[4] = (((GambatteSdl*)gb)->gambatte.p_->cpu.d << 8) + ((GambatteSdl*)gb)->gambatte.p_->cpu.e;
+  registers_store[5] = (((GambatteSdl*)gb)->gambatte.p_->cpu.h << 8) + ((GambatteSdl*)gb)->gambatte.p_->cpu.l;
 
   env->ReleaseIntArrayElements(arr, registers_store, 0);
 }
@@ -624,31 +624,6 @@ JNIEXPORT void JNICALL Java_mrwint_gbtasgen_Gb_getMemory
   env->ReleaseIntArrayElements(arr, mem_store, 0);
 }
 
-JNIEXPORT void JNICALL Java_mrwint_gbtasgen_Gb_getInterestingMemory
-    (JNIEnv *env, jclass clazz, jlong gb, jintArray arr){
-  UNUSED(env);UNUSED(clazz);UNUSED(arr);
-
-  jint *mem_store = env->GetIntArrayElements(arr, 0);
-  
-  for(int i=0;i<0x10;i++)
-	  mem_store[i] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xc208 + i*0x10);
-  
-  mem_store[0x10] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xCC4B);
-  mem_store[0x11] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xD362);
-  mem_store[0x12] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xD361);
-  mem_store[0x13] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xD35E);
-  mem_store[0x14] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xFFD3);
-  mem_store[0x15] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xFFD4);
-  mem_store[0x16] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xD057);
-  mem_store[0x17] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xCFE5);
-  mem_store[0x18] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xCFF3);
-  mem_store[0x19] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xCFF1);
-  mem_store[0x1A] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xCFF2);
-  mem_store[0x1B] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xFFDA);
-  mem_store[0x1C] = Java_mrwint_gbtasgen_Gb_readMemory(env, clazz, gb, 0xD730);
-  env->ReleaseIntArrayElements(arr, mem_store, 0);
-}
-
 // readMemory
 JNIEXPORT jint JNICALL Java_mrwint_gbtasgen_Gb_readMemory
     (JNIEnv *env, jclass clazz, jlong gb, jint address){
@@ -657,24 +632,24 @@ JNIEXPORT jint JNICALL Java_mrwint_gbtasgen_Gb_readMemory
   {
 	const unsigned P = address;
 	if (P < 0x8000)
-		return ((GambatteSdl*)gb)->gambatte.p_->cpu.memory.cart.romdata(P >> 14)[P];
+		return ((GambatteSdl*)gb)->gambatte.p_->cpu.mem_.cart_.romdata(P >> 14)[P];
 
 	if (P < 0xA000)
-		return ((GambatteSdl*)gb)->gambatte.p_->cpu.memory.cart.vrambankptr()[P];
+		return ((GambatteSdl*)gb)->gambatte.p_->cpu.mem_.cart_.vrambankptr()[P];
 
 	if (P < 0xC000) {
-		if (((GambatteSdl*)gb)->gambatte.p_->cpu.memory.cart.rsrambankptr())
-			return ((GambatteSdl*)gb)->gambatte.p_->cpu.memory.cart.rsrambankptr()[P];
+		if (((GambatteSdl*)gb)->gambatte.p_->cpu.mem_.cart_.rsrambankptr())
+			return ((GambatteSdl*)gb)->gambatte.p_->cpu.mem_.cart_.rsrambankptr()[P];
 		else {
 			std::printf("error: cart.rsrambankptr() not present");
-			return ((GambatteSdl*)gb)->gambatte.p_->cpu.memory.cart.rtcRead();
+			return ((GambatteSdl*)gb)->gambatte.p_->cpu.mem_.cart_.rtcRead();
 		}
 	}
 
 	if (P < 0xFE00)
-		return ((GambatteSdl*)gb)->gambatte.p_->cpu.memory.cart.wramdata(P >> 12 & 1)[P & 0xFFF];
+		return ((GambatteSdl*)gb)->gambatte.p_->cpu.mem_.cart_.wramdata(P >> 12 & 1)[P & 0xFFF];
 
-	return ((GambatteSdl*)gb)->gambatte.p_->cpu.memory.ioamhram[P - 0xFE00];
+	return ((GambatteSdl*)gb)->gambatte.p_->cpu.mem_.ioamhram_[P - 0xFE00];
   }
 
 //  return ((GambatteSdl*)gb)->gambatte.p_->cpu.memory.read(address,((GambatteSdl*)gb)->gambatte.p_->cpu.cycleCounter_);
@@ -685,7 +660,7 @@ JNIEXPORT void JNICALL Java_mrwint_gbtasgen_Gb_writeMemory
     (JNIEnv *env, jclass clazz, jlong gb, jint address, jint value){
   UNUSED(env);UNUSED(clazz);
 
-  ((GambatteSdl*)gb)->gambatte.p_->cpu.memory.write(address,value,((GambatteSdl*)gb)->gambatte.p_->cpu.cycleCounter_);
+  ((GambatteSdl*)gb)->gambatte.p_->cpu.mem_.write(address,value,((GambatteSdl*)gb)->gambatte.p_->cpu.cycleCounter_);
 }
 
 // getDivState
@@ -694,8 +669,8 @@ JNIEXPORT jint JNICALL Java_mrwint_gbtasgen_Gb_getDivState
   UNUSED(env);UNUSED(clazz);
 
   int cc = ((GambatteSdl*)gb)->gambatte.p_->cpu.cycleCounter_;
-  int divOff = cc - ((GambatteSdl*)gb)->gambatte.p_->cpu.memory.divLastUpdate;
-  int div = ((GambatteSdl*)gb)->gambatte.p_->cpu.memory.ioamhram[0x104];
+  int divOff = cc - ((GambatteSdl*)gb)->gambatte.p_->cpu.mem_.divLastUpdate_;
+  int div = ((GambatteSdl*)gb)->gambatte.p_->cpu.mem_.ioamhram_[0x104];
   return (((div << 8) + divOff) >> 2) & 0x3FFF;
 }
 
@@ -704,6 +679,6 @@ JNIEXPORT void JNICALL Java_mrwint_gbtasgen_Gb_offsetDiv
     (JNIEnv *env, jclass clazz, jlong gb, jint offset){
   UNUSED(env);UNUSED(clazz);
 
-  ((GambatteSdl*)gb)->gambatte.p_->cpu.memory.divLastUpdate -= (offset << 2);
+  ((GambatteSdl*)gb)->gambatte.p_->cpu.mem_.divLastUpdate_ -= (offset << 2);
 }
 

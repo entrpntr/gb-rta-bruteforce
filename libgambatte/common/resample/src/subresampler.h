@@ -14,7 +14,7 @@
  *   You should have received a copy of the GNU General Public License     *
  *   version 2 along with this program; if not, write to the               *
  *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.             *
  ***************************************************************************/
 #ifndef SUBRESAMPLER_H
 #define SUBRESAMPLER_H
@@ -23,11 +23,11 @@
 
 class SubResampler {
 public:
-	virtual std::size_t resample(short *out, const short *in, std::size_t inlen) = 0;
+	virtual ~SubResampler() {}
+	virtual std::size_t resample(short *out, short const *in, std::size_t inlen) = 0;
 	virtual unsigned mul() const = 0;
 	virtual unsigned div() const = 0;
 	virtual void adjustDiv(unsigned /*div*/) {}
-	virtual ~SubResampler() {}
 };
 
 #endif

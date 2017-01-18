@@ -14,7 +14,7 @@
  *   You should have received a copy of the GNU General Public License     *
  *   version 2 along with this program; if not, write to the               *
  *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.             *
  ***************************************************************************/
 #ifndef CATROM2X_H
 #define CATROM2X_H
@@ -25,15 +25,17 @@
 #include "gbint.h"
 
 class Catrom2x : public VideoLink {
-	const Array<gambatte::uint_least32_t> buffer_;
 public:
-	enum { OUT_WIDTH = VfilterInfo::IN_WIDTH * 2 };
-	enum { OUT_HEIGHT = VfilterInfo::IN_HEIGHT * 2 };
-	
+	enum { out_width  = VfilterInfo::in_width  * 2 };
+	enum { out_height = VfilterInfo::in_height * 2 };
+
 	Catrom2x();
-	virtual void* inBuf() const;
-	virtual int inPitch() const;
-	virtual void draw(void *dst, int dstpitch);
+	virtual void * inBuf() const;
+	virtual std::ptrdiff_t inPitch() const;
+	virtual void draw(void *dst, std::ptrdiff_t dstpitch);
+
+private:
+	Array<gambatte::uint_least32_t> const buffer_;
 };
 
 #endif

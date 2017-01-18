@@ -14,7 +14,7 @@
  *   You should have received a copy of the GNU General Public License     *
  *   version 2 along with this program; if not, write to the               *
  *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.             *
  ***************************************************************************/
 #include "../resamplerinfo.h"
 #include "chainresampler.h"
@@ -25,26 +25,18 @@
 #include "rectsinc.h"
 #include "linint.h"
 
-struct LinintInfo {
-	static Resampler* create(long inRate, long outRate, std::size_t) { return new Linint<ChainResampler::channels>(inRate, outRate); }
+static Resampler * createLinint(long inRate, long outRate, std::size_t ) {
+	return new Linint<ResamplerInfo::channels>(inRate, outRate);
+}
+
+ResamplerInfo const ResamplerInfo::resamplers_[] = {
+	{ "Fast", createLinint },
+	{ "High quality (polyphase FIR)", ChainResampler::create<RectSinc> },
+// 	{ "Hamming windowed sinc (~50 dB SNR)", ChainResampler::create<HammingSinc> },
+// 	{ "Blackman windowed sinc (~70 dB SNR)", ChainResampler::create<BlackmanSinc> },
+	{ "Very high quality (polyphase FIR)", ChainResampler::create<Kaiser50Sinc> },
+	{ "Highest quality (polyphase FIR)", ChainResampler::create<Kaiser70Sinc> },
 };
 
-template<template<unsigned,unsigned> class T>
-struct ChainSincInfo {
-	static Resampler* create(long inRate, long outRate, std::size_t periodSz) {
-		ChainResampler *r = new ChainResampler;
-		r->init<T>(inRate, outRate, periodSz);
-		return r;
-	}
-};
-
-const ResamplerInfo ResamplerInfo::resamplers[] = {
-	{ "Fast", LinintInfo::create },
-	{ "High quality (CIC + sinc chain)", ChainSincInfo<RectSinc>::create },
-// 	{ "Hamming windowed sinc (~50 dB SNR)", ChainSincInfo<HammingSinc>::create },
-// 	{ "Blackman windowed sinc (~70 dB SNR)", ChainSincInfo<BlackmanSinc>::create },
-	{ "Very high quality (CIC + sinc chain)", ChainSincInfo<Kaiser50Sinc>::create },
-	{ "Highest quality (CIC + sinc chain)", ChainSincInfo<Kaiser70Sinc>::create }
-};
-
-const std::size_t ResamplerInfo::num_ = sizeof ResamplerInfo::resamplers / sizeof *ResamplerInfo::resamplers;
+std::size_t const ResamplerInfo::num_ =
+	sizeof ResamplerInfo::resamplers_ / sizeof *ResamplerInfo::resamplers_;

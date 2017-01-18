@@ -14,24 +14,19 @@
  *   You should have received a copy of the GNU General Public License     *
  *   version 2 along with this program; if not, write to the               *
  *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.             *
  ***************************************************************************/
 #ifndef SKIPSCHED_H
 #define SKIPSCHED_H
 
 class SkipSched {
-	unsigned skipped;
-	unsigned skippedmax;
-
 public:
-	SkipSched() { reset(); }
-
-	void reset() {
-		skipped = 0;
-		skippedmax = 2 - 1;
-	}
-
+	SkipSched() : skipped_(0), skippedmax_(2 - 1) {}
 	bool skipNext(bool wantskip);
+
+private:
+	unsigned skipped_;
+	unsigned skippedmax_;
 };
 
 #endif

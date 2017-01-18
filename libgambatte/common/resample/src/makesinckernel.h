@@ -14,15 +14,12 @@
  *   You should have received a copy of the GNU General Public License     *
  *   version 2 along with this program; if not, write to the               *
  *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.             *
  ***************************************************************************/
 #ifndef MAKE_SINC_KERNEL_H
 #define MAKE_SINC_KERNEL_H
 
-#include <cmath>
-#include <cstdlib>
-
-void makeSincKernel(short *kernel, unsigned phases, unsigned phaseLen,
-		double fc, double (*win)(long m, long M), double gain);
+void makeSincKernel(short *kernel, int phases, int phaseLen,
+                    double fc, double (*win)(long m, long M), double gain);
 
 #endif

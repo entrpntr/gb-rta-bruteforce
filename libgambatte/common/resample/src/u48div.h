@@ -14,11 +14,11 @@
  *   You should have received a copy of the GNU General Public License     *
  *   version 2 along with this program; if not, write to the               *
  *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.             *
  ***************************************************************************/
 #ifndef U48DIV_H
 #define U48DIV_H
 
-unsigned long u48div(unsigned long num1, unsigned num2, unsigned long den);
+unsigned long u48div(unsigned long numeratorLow, unsigned numeratorHigh, unsigned long denominator);
 
 #endif

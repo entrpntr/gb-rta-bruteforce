@@ -9,6 +9,7 @@ if sys.platform == 'darwin':
     global_cpppath = ['src', 'include', 'common', '/Library/Java/JavaVirtualMachines/jdk1.8.0_20.jdk/Contents/Home/include', '/Library/Java/JavaVirtualMachines/jdk1.8.0_20.jdk/Contents/Home/include/darwin']
 else:
     global_cpppath = ['src', 'include', 'common', '/usr/lib/jvm/java-8-oracle/include', '/usr/lib/jvm/java-8-oracle/include/linux']
+
 vars = Variables()
 vars.Add('CC')
 vars.Add('CXX')
@@ -16,7 +17,7 @@ vars.Add('CXX')
 env = Environment(CPPPATH = global_cpppath,
                   CFLAGS = global_cflags + global_defines,
                   CXXFLAGS = global_cxxflags + global_defines,
-                  LINKFLAGS = '-lz',
+		  LINKFLAGS = '-lz',
                   variables = vars)
 
 env.ParseConfig('sdl-config --cflags --libs')
@@ -90,4 +91,3 @@ else:
 conf.Finish()
 
 env.SharedLibrary('gambatte', sourceFiles)
-

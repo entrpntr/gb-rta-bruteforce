@@ -14,7 +14,7 @@
  *   You should have received a copy of the GNU General Public License     *
  *   version 2 along with this program; if not, write to the               *
  *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.             *
  ***************************************************************************/
 #ifndef UPSAMPLER_H
 #define UPSAMPLER_H
@@ -24,28 +24,30 @@
 
 template<unsigned channels>
 class Upsampler : public SubResampler {
-	unsigned mul_;
-	
 public:
-	Upsampler(const unsigned mul) : mul_(mul) {}
-	std::size_t resample(short *out, const short *in, std::size_t inlen);
-	unsigned mul() const { return mul_; }
-	unsigned div() const { return 1; }
+	explicit Upsampler(unsigned mul) : mul_(mul) {}
+	virtual std::size_t resample(short *out, short const *in, std::size_t inlen);
+	virtual unsigned mul() const { return mul_; }
+	virtual unsigned div() const { return 1; }
+
+private:
+	unsigned mul_;
 };
 
 template<unsigned channels>
-std::size_t Upsampler<channels>::resample(short *out, const short *in, std::size_t inlen) {
-	if (inlen) {
-		std::memset(out, 0, inlen * mul_ * sizeof(short) * channels);
-		
+std::size_t Upsampler<channels>::resample(short *out, short const *in, std::size_t const inlen) {
+	unsigned const mul = mul_;
+	if (std::size_t n = inlen) {
+		std::memset(out, 0, inlen * mul * channels * sizeof *out);
+
 		do {
-			std::memcpy(out, in, sizeof(short) * channels);
+			std::memcpy(out, in, channels * sizeof *out);
 			in += channels;
-			out += mul_ * channels;
-		} while (--inlen);
+			out += mul * channels;
+		} while (--n);
 	}
-	
-	return inlen * mul_;
+
+	return inlen * mul;
 }
 
 #endif

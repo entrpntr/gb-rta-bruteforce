@@ -14,22 +14,22 @@
  *   You should have received a copy of the GNU General Public License     *
  *   version 2 along with this program; if not, write to the               *
  *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.             *
  ***************************************************************************/
 #include "skipsched.h"
 
 bool SkipSched::skipNext(bool skip) {
-	if (skipped) {
-		if (skipped < skippedmax / 2)
+	if (skipped_) {
+		if (skipped_ < skippedmax_ / 2)
 			skip = true;
 		else
-			skipped = skip = 0;
+			skipped_ = skip = 0;
 	} else if (skip) {
-		skippedmax += skippedmax / 2 < 8;
-	} else if (skippedmax / 2)
-		--skippedmax;
+		skippedmax_ += skippedmax_ / 2 < 8;
+	} else if (skippedmax_ / 2)
+		--skippedmax_;
 
-	skipped += skip;
+	skipped_ += skip;
 
 	return skip;
 }

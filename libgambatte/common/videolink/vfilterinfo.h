@@ -14,7 +14,7 @@
  *   You should have received a copy of the GNU General Public License     *
  *   version 2 along with this program; if not, write to the               *
  *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *   51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.             *
  ***************************************************************************/
 #ifndef VFILTERINFO_H
 #define VFILTERINFO_H
@@ -24,15 +24,15 @@
 class VideoLink;
 
 struct VfilterInfo {
-	enum { IN_WIDTH = 160 };
-	enum { IN_HEIGHT = 144 };
-	
-	const char *handle;
+	enum { in_width  = 160 };
+	enum { in_height = 144 };
+
+	char const *handle;
 	unsigned outWidth;
 	unsigned outHeight;
-	VideoLink* (*create)();
-	
-	static const VfilterInfo& get(std::size_t n);
+	VideoLink * (*create)();
+
+	static VfilterInfo const & get(std::size_t n);
 	static std::size_t numVfilters();
 };
 

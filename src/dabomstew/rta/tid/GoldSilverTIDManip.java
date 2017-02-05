@@ -1,6 +1,6 @@
 package dabomstew.rta.tid;
 
-import dabomstew.rta.GoldAddr;
+import dabomstew.rta.GoldSilverAddr;
 import mrwint.gbtasgen.Gb;
 
 import java.io.*;
@@ -13,30 +13,60 @@ import java.util.List;
 import dabomstew.rta.GBMemory;
 import dabomstew.rta.GBWrapper;
 
-public class GoldTIDManip {
+// TODO: Watching the entire intro isn't implemented; would be needed for manips over 3000 cost
+public class GoldSilverTIDManip {
     private static final int NO_INPUT = 0x00;
     private static final int A = 0x01;
     private static final int B = 0x02;
     private static final int START = 0x08;
     private static final int HARD_RESET = 0x800;
 
-    private static final String gameName = "gold";
+    private static final String gameName;
+
+    private static Strat titleSkip;
+    private static Strat newGame;
+    private static Strat backout;
+
+    private static List<Strat> intro;
+
+    static {
+        /* Change this to "gold" or "silver" before running */
+        gameName = "gold";
+
+        int introScene1Addr;
+        int introScene2Addr;
+        int introScene3Addr;
+        int titleScreenAddr;
+        if(gameName.equals("gold")) {
+            introScene1Addr = GoldSilverAddr.goldIntroScene1Addr;
+            introScene2Addr = GoldSilverAddr.goldIntroScene2Addr;
+            introScene3Addr = GoldSilverAddr.goldIntroScene3Addr;
+            titleScreenAddr = GoldSilverAddr.goldTitleScreenAddr;
+        } else {
+            introScene1Addr = GoldSilverAddr.silverIntroScene1Addr;
+            introScene2Addr = GoldSilverAddr.silverIntroScene2Addr;
+            introScene3Addr = GoldSilverAddr.silverIntroScene3Addr;
+            titleScreenAddr = GoldSilverAddr.silverTitleScreenAddr;
+        }
+
+        Strat gfSkip = new Strat("_gfskip", 0, new Integer[]{GoldSilverAddr.readJoypadAddr}, new Integer[]{START}, new Integer[]{1});
+        Strat intro0 = new Strat("_intro0", 344, new Integer[]{introScene1Addr, GoldSilverAddr.readJoypadAddr}, new Integer[]{NO_INPUT, START}, new Integer[]{0, 1});
+        Strat intro1 = new Strat("_intro1", 1830, new Integer[]{introScene2Addr, GoldSilverAddr.readJoypadAddr}, new Integer[]{NO_INPUT, START}, new Integer[]{0, 1});
+        Strat intro2 = new Strat("_intro2", 2290, new Integer[]{introScene3Addr, GoldSilverAddr.readJoypadAddr}, new Integer[]{NO_INPUT, START}, new Integer[]{0, 1});
+
+        // titleSkip = new Strat("_title", 55, new Integer[] {titleScreenAddr}, new Integer[] {START}, new Integer[] {1});
+        titleSkip = new Strat("", 55, new Integer[] {titleScreenAddr}, new Integer[] {START}, new Integer[] {1});
+        newGame = new Strat("_newgame", 8, new Integer[] {GoldSilverAddr.readJoypadAddr}, new Integer[] {A}, new Integer[] {16});
+        backout = new Strat("_backout", 16, new Integer[] {GoldSilverAddr.readJoypadAddr}, new Integer[] {B}, new Integer[] {1});
+        intro = Arrays.asList(gfSkip, intro0, intro1, intro2);
+    }
 
     // Change this to increase/decrease number of intro sequence combinations processed
     private static final int MAX_COST = 3000;
 
     private static final int BASE_COST = 332 + 32;
 
-    private static Strat gfSkip = new Strat("_gfskip", 0, new Integer[] {GoldAddr.readJoypadAddr}, new Integer[] {START}, new Integer[] {1});
-    private static Strat intro0 = new Strat("_intro0", 344, new Integer[] {GoldAddr.introScene1Addr, GoldAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
-    private static Strat intro1 = new Strat("_intro1", 1830, new Integer[] {GoldAddr.introScene2Addr, GoldAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
-    private static Strat intro2 = new Strat("_intro2", 2290, new Integer[] {GoldAddr.introScene3Addr, GoldAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
 
-    private static Strat titleSkip = new Strat("_title", 55, new Integer[] {GoldAddr.titleScreenAddr}, new Integer[] {START}, new Integer[] {1});
-    private static Strat newGame = new Strat("_newgame", 8, new Integer[] {GoldAddr.readJoypadAddr}, new Integer[] {A}, new Integer[] {16});
-    private static Strat backout = new Strat("_backout", 16, new Integer[] {GoldAddr.readJoypadAddr}, new Integer[] {B}, new Integer[] {1});
-
-    private static List<Strat> intro = Arrays.asList(gfSkip, intro0, intro1, intro2);
 
     static class Strat {
         String name;
@@ -70,7 +100,17 @@ public class GoldTIDManip {
         }
         @Override public String toString() {
             String ret = gameName;
-            for(Strat s : this) {
+            for(int i=0; i<this.size(); i++) {
+                Strat s = this.get(i);
+                if(s.name.equals(("_backout"))) {
+                    int backoutCounter = 0;
+                    while(s.name.equals("_backout")) {
+                        backoutCounter += 1;
+                        i += 2;
+                        s = this.get(i);
+                    }
+                    ret += "_backout" + backoutCounter;
+                }
                 ret += s.name;
             }
             return ret;
@@ -119,7 +159,7 @@ public class GoldTIDManip {
             Integer[] input = new Integer[i];
             Integer[] advFrames = new Integer[i];
             for(int j=0; j<i; j++) {
-                addr[j] = GoldAddr.mainMenuJoypadAddr;
+                addr[j] = GoldSilverAddr.mainMenuJoypadAddr;
                 input[j] = NO_INPUT;
                 advFrames[j] = 1;
             }

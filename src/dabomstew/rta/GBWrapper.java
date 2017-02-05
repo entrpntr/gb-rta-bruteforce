@@ -83,8 +83,12 @@ public class GBWrapper {
 		writeMemory(0xFFA4, input);
 	}
 
-	public void injectGoldInput(int input) {
+	public void injectGSInput(int input) {
 		writeMemory(0xFFA6, input);
+	}
+
+	public void injectYellowInput(int input) {
+		writeMemory(0xFFF5, input);
 	}
 
 	public void writeMemory(int address, int value) {

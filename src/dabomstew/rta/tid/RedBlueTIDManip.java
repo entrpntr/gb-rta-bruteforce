@@ -3,7 +3,6 @@ package dabomstew.rta.tid;
 import mrwint.gbtasgen.Gb;
 
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.io.File;
 import java.io.IOException;
@@ -302,7 +301,6 @@ public class RedBlueTIDManip {
             introSequences.add(append(holdpal, seq));
         }
         introSequencesTmp.clear();
-        introSequencesTmp = null;
 
         System.out.println("Number of intro sequences: " + introSequences.size());
         Collections.sort(introSequences);
@@ -322,8 +320,8 @@ public class RedBlueTIDManip {
                             + " (" + String.format("%5s)", tid).replace(' ', '0')
                             + ", Cost: " + (seq.cost() + 492));
             gb.step(HARD_RESET);
+            writer.flush();
         }
-        writer.flush();
         writer.close();
     }
 

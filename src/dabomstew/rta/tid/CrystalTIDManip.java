@@ -4,7 +4,6 @@ import dabomstew.rta.CrystalAddr;
 import mrwint.gbtasgen.Gb;
 
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +37,8 @@ public class CrystalTIDManip {
     private static Strat intro18 = new Strat("_intro8", 2254, new Integer[] {CrystalAddr.introScene19Addr, CrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
     private static Strat intro28 = new Strat("_intro9", 2827, new Integer[] {CrystalAddr.titleScreenAddr}, new Integer[] {NO_INPUT}, new Integer[] {0});
 
-    private static Strat titleSkip = new Strat("_title", 54, new Integer[] {CrystalAddr.readJoypadAddr}, new Integer[] {START}, new Integer[] {1});
+    // private static Strat titleSkip = new Strat("_title", 54, new Integer[] {CrystalAddr.readJoypadAddr}, new Integer[] {START}, new Integer[] {1});
+    private static Strat titleSkip = new Strat("", 54, new Integer[] {CrystalAddr.readJoypadAddr}, new Integer[] {START}, new Integer[] {1});
     private static Strat newGame = new Strat("_newgame", 8, new Integer[] {CrystalAddr.readJoypadAddr}, new Integer[] {A}, new Integer[] {52});
     private static Strat backout = new Strat("_backout", 44, new Integer[] {CrystalAddr.readJoypadAddr}, new Integer[] {B}, new Integer[] {1});
 
@@ -59,10 +59,9 @@ public class CrystalTIDManip {
         }
         public void execute(GBWrapper wrap) {
             for(int i=0; i<addr.length; i++) {
-                wrap.advanceToAddress(addr[i]);
-                wrap.injectCrysInput(input[i]);
+                wrap.advanceWithJoypadToAddress(input[i], addr[i]);
                 for(int j=0; j<advanceFrames[i]; j++) {
-                    wrap.advanceFrame();
+                    wrap.advanceFrame(input[i]);
                 }
             }
         }
@@ -77,7 +76,17 @@ public class CrystalTIDManip {
         }
         @Override public String toString() {
             String ret = "crystal";
-            for(Strat s : this) {
+            for(int i=0; i<this.size(); i++) {
+                Strat s = this.get(i);
+                if(s.name.equals(("_backout"))) {
+                    int backoutCounter = 0;
+                    while(s.name.equals("_backout")) {
+                        backoutCounter += 1;
+                        i += 2;
+                        s = this.get(i);
+                    }
+                    ret += "_backout" + backoutCounter;
+                }
                 ret += s.name;
             }
             return ret;
@@ -166,8 +175,8 @@ public class CrystalTIDManip {
                             + ", LID = " + String.format("0x%4s", Integer.toHexString(lid).toUpperCase()).replace(' ', '0') + " (" + String.format("%5s)", lid).replace(' ', '0')
                             + ", Cost: " + (seq.cost() + BASE_COST));
             gb.step(HARD_RESET);
+            writer.flush();
         }
-        writer.flush();
         writer.close();
     }
 

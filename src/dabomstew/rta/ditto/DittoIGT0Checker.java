@@ -27,20 +27,21 @@ public class DittoIGT0Checker {
 
     private static int x = 24;
     private static int y = 17;
-    private static String path = "R L R S_B L R S_A_B_S L R U U U L D D D";
-
+    //private static String path = "U L D";
+    //private static String path = "R L A U R";
+    private static String path = "U U L S_A_B_S L L U U U U S_B U U U R";
     private static GBWrapper wrap;
     private static GBMemory mem;
 
     public static void main(String[] args) throws IOException {
-        if (!new File("roms").exists()) {
-            new File("roms").mkdir();
+        if (!new File("testroms").exists()) {
+            new File("testroms").mkdir();
             System.err.println("I need ROMs to simulate!");
             System.exit(0);
         }
 
-        if (!new File("roms/poke" + gameName + ".gbc").exists()) {
-            System.err.println("Could not find poke" + gameName + ".gbc in roms directory!");
+        if (!new File("testroms/poke" + gameName + ".gbc").exists()) {
+            System.err.println("Could not find poke" + gameName + ".gbc in testroms directory!");
             System.exit(0);
         }
 
@@ -51,13 +52,14 @@ public class DittoIGT0Checker {
         for(int i=0; i<=59; i++) {
             makeSave(x, y, i);
             Gb gb = new Gb(0, false);
-            gb.startEmulator("roms/poke" + gameName + ".gbc");
+            gb.startEmulator("testroms/poke" + gameName + ".gbc");
             mem = new GBMemory(gb);
             wrap = new GBWrapper(gb, mem);
 
             // TODO: DON'T HARDCODE INTRO; ABSTRACT INTRO STRATS TO BE USABLE BY SEARCHER AND CHECKER
             wrap.advanceWithJoypadToAddress(UP, RedBlueAddr.biosReadKeypadAddr);
             wrap.advanceFrame(UP);
+            //wrap.advanceToAddress(RedBlueAddr.delayAtEndOfShootingStarAddr);
             wrap.advanceToAddress(RedBlueAddr.joypadAddr);
             wrap.injectRBInput(UP | SELECT | B);
             wrap.advanceFrame();
@@ -67,6 +69,20 @@ public class DittoIGT0Checker {
             wrap.advanceToAddress(RedBlueAddr.joypadAddr);
             wrap.injectRBInput(START);
             wrap.advanceFrame();
+/*
+            wrap.advanceToAddress(RedBlueAddr.joypadAddr);
+            wrap.injectRBInput(A);
+            wrap.advanceFrame();
+            wrap.advanceToAddress(RedBlueAddr.joypadAddr);
+            wrap.injectRBInput(B);
+            wrap.advanceFrame();
+            wrap.advanceToAddress(RedBlueAddr.joypadAddr);
+            wrap.injectRBInput(A);
+            wrap.advanceFrame();
+            wrap.advanceToAddress(RedBlueAddr.joypadAddr);
+            wrap.injectRBInput(B);
+            wrap.advanceFrame();
+*/
             wrap.advanceToAddress(RedBlueAddr.joypadAddr);
             wrap.injectRBInput(A);
             wrap.advanceFrame();
@@ -74,6 +90,16 @@ public class DittoIGT0Checker {
             wrap.injectRBInput(A);
             wrap.advanceFrame();
             wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
+            //wrap.writeMemory(0xD2B5, 0x80);
+            //wrap.writeMemory(0xD2B6, 0x50);
+            //wrap.writeMemory(0xD158, 0x80);
+            //wrap.writeMemory(0xD159, 0x50);
+            //wrap.writeMemory(0xD31D, 0x04);
+            //wrap.writeMemory(0xD320, 0x0D);
+            //wrap.writeMemory(0xD322, 0x12);
+            //wrap.writeMemory(0xD324, 0x09);
+            //wrap.writeMemory(0xD325, 0x01);
+            //wrap.writeMemory(0xD326, 0xFF);
             //wrap.writeMemory(0xD16D, 1);
             String f = (i < 10) ? " " + i : "" + i;
             System.out.print("[" + f + "] ");
@@ -138,7 +164,7 @@ public class DittoIGT0Checker {
                             wrap.advanceFrame(A | RIGHT);
                             int res2 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
 */
-                            wrap.writeMemory(0xD158 + 4, 0x50);
+                            //wrap.writeMemory(0xD158 + 4, 0x50);
                             wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
                             wrap.injectRBInput(A);
                             wrap.advanceFrame();
@@ -250,6 +276,6 @@ public class DittoIGT0Checker {
             csum += baseSave[i] & 0xFF;
         }
         baseSave[0x3523] = (byte) ((csum & 0xFF) ^ 0xFF); // cpl
-        FileFunctions.writeBytesToFile("roms/poke" + gameName + ".sav", baseSave);
+        FileFunctions.writeBytesToFile("testroms/poke" + gameName + ".sav", baseSave);
     }
 }

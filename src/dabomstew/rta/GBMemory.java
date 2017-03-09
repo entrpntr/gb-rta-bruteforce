@@ -154,7 +154,15 @@ public class GBMemory {
     }
 
     public int getIGT() {
-		return 3600*read(0x1D)+60*read(0x1E)+read(0x1F);
+		return 3600*gb.readMemory(0xDA43)+60*gb.readMemory(0xDA44)+gb.readMemory(0xDA45);
+	}
+
+	public String getCans() {
+		return "" + gb.readMemory(0xD743) + ", " + gb.readMemory(0xD744);
+	}
+
+	public int getEnemyHP() {
+		return gb.readMemory(0xCFE7);
 	}
 
 }

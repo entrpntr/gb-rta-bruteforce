@@ -20,12 +20,23 @@ public class RedBlueTIDManip {
     private static final int SELECT = 0x04;
     private static final int START = 0x08;
     private static final int UP = 0x40;
+    private static final int DOWN = 0x80;
     private static final int HARD_RESET = 0x800;
 
     /* Change this to "blue" or "red" before running */
     private static final String gameName = "red";
     /* Change this to increase/decrease number of intro sequence combinations processed */
-    private static final int MAX_COST = 2750;
+    private static final int MAX_COST;
+    /* Generate standard TIDs, or ones that include options. Opts mode is annoying, so max cost is lower. */
+    private static boolean optsMode = false;
+    
+    static {
+        if(optsMode) {
+            MAX_COST = 2350;
+        } else {
+            MAX_COST = 2750;
+        }
+    }
 
     //static int BASE_COST = 492, HOP_BASE_COST = 172, HOP1_COST = 131, HOP2_COST = 190, HOP3_COST = 298, HOP4_COST = 447, HOP5_COST = 536, SCROLL_ROUGHCOST = 270, SOFT_RESET_COST = 363, NG_WINDOW_COST = 20, START_NG_COST = 20, BACKOUT_COST = 142, OAK_SPEECH_COST = 114;
     private static final int TITLE_BASE_COST = (gameName.equals("blue") ? 0 : 1);
@@ -45,22 +56,27 @@ public class RedBlueTIDManip {
     private static Strat nido2 = new Strat("_hop2", 172 + 190 + TITLE_BASE_COST, new Integer[] {RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.joypadAddr}, new Integer[] {NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, A}, new Integer[] {0, 0, 0, 0, 1});
     private static Strat nido3 = new Strat("_hop3", 172 + 298 + TITLE_BASE_COST, new Integer[] {RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.joypadAddr}, new Integer[] {NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, A}, new Integer[] {0, 0, 0, 0, 0, 0, 1});
     private static Strat nido4 = new Strat("_hop4", 172 + 447 + TITLE_BASE_COST, new Integer[] {RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.joypadAddr}, new Integer[] {NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, A}, new Integer[] {0, 0, 0, 0, 0, 0, 0, 0, 1});
-    private static Strat nido5 = new Strat("_hop5", 172 + 536 + TITLE_BASE_COST, new Integer[] {RedBlueAddr.displayTitleScreenAddr}, new Integer[] {NO_INPUT}, new Integer[] {0});
-    private static List<Strat> nido = Arrays.asList(nido0, nido1, nido2, nido3, nido4, nido5);
+    private static Strat nido5 = new Strat("_hop5", 172 + 487 + TITLE_BASE_COST, new Integer[] {RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.joypadAddr}, new Integer[] {NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, A}, new Integer[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1});
+    private static Strat nido6 = new Strat("_hop6", 172 + 536 + TITLE_BASE_COST, new Integer[] {RedBlueAddr.displayTitleScreenAddr}, new Integer[] {NO_INPUT}, new Integer[] {0});
+    private static List<Strat> nido = Arrays.asList(nido0, nido1, nido2, nido3, nido4, nido5, nido6);
 
     private static Strat newGame = new Strat("_newgame", 20 + 20, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {A}, new Integer[] {32});
     private static Strat backout = new Strat("_backout", 142 + 20 + TITLE_BASE_COST, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {B}, new Integer[] {1});
+    private static Strat options = new Strat("_opt", 24, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {DOWN | A}, new Integer[] {1});
+    private static Strat optback = new Strat("(backout)", 48, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {START}, new Integer[] {1});
 
     private static ResetStrat gfReset = new ResetStrat("_gfreset", 363, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {A | B | START | SELECT}, new Integer[] {0});
     private static ResetStrat hop0Reset = new ResetStrat("_hop0(reset)", 363 + 4, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {A | B | START | SELECT}, new Integer[] {0});
     private static ResetStrat ngReset = new ResetStrat("_ngreset", 363, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {A | B | START | SELECT}, new Integer[] {0});
+    private static ResetStrat optReset = new ResetStrat("_opt(reset)", 363 + 24, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {DOWN | A}, new Integer[] {0});
     private static ResetStrat oakReset = new ResetStrat("_oakreset", 363 + 114, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {A | B | START | SELECT}, new Integer[] {0});
 
     private static ResetStrat hop1Reset = new ResetStrat("_hop1(reset)", 363 + 131 + 3, new Integer[] {RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.joypadAddr}, new Integer[] {NO_INPUT, NO_INPUT, A | B | START | SELECT}, new Integer[] {0, 0, 0});
     private static ResetStrat hop2Reset = new ResetStrat("_hop2(reset)", 363 + 190 + 4, new Integer[] {RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.joypadAddr}, new Integer[] {NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, A | B | START | SELECT}, new Integer[] {0, 0, 0, 0, 0});
     private static ResetStrat hop3Reset = new ResetStrat("_hop3(reset)", 363 + 298 + 5, new Integer[] {RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.joypadAddr}, new Integer[] {NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, A | B | START | SELECT}, new Integer[] {0, 0, 0, 0, 0, 0, 0});
     private static ResetStrat hop4Reset = new ResetStrat("_hop4(reset)", 363 + 447 + 4, new Integer[] {RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.joypadAddr}, new Integer[] {NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, A | B | START | SELECT}, new Integer[] {0, 0, 0, 0, 0, 0, 0, 0, 0});
-    private static List<ResetStrat> hopResets = Arrays.asList(hop1Reset, hop2Reset, hop3Reset, hop4Reset);
+    private static ResetStrat hop5Reset = new ResetStrat("_hop5(reset)", 363 + 487 + 3, new Integer[] {RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.animateNidorinoAddr, RedBlueAddr.checkInterruptAddr, RedBlueAddr.joypadAddr}, new Integer[] {NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, NO_INPUT, A | B | START | SELECT}, new Integer[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+    private static List<ResetStrat> hopResets = Arrays.asList(hop1Reset, hop2Reset, hop3Reset, hop4Reset, hop5Reset);
 
     static class Strat {
         String name;
@@ -176,13 +192,14 @@ public class RedBlueTIDManip {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        if (!new File("roms").exists()) {
-            new File("roms").mkdir();
+        if (!new File("testroms").exists()) {
+            new File("testroms").mkdir();
             System.err.println("I need ROMs to simulate!");
             System.exit(0);
         }
 
-        File file = new File(gameName + "_tids.txt");
+        String suffix = (optsMode) ? "_tids_opts" : "_tids";
+        File file = new File(gameName + suffix + ".txt");
         PrintWriter writer = new PrintWriter(file);
 
         ArrayList<Strat> title = new ArrayList<>();
@@ -250,6 +267,7 @@ public class RedBlueTIDManip {
                     if(270*j <= MAX_COST - 492 - CRY_BASE_COST) {
                         resetSequences.add(append(s3, titleusb.get(j)));
                     }
+                    // TODO: move this case to next loop now that there are options strats
                     if(270*j <= MAX_COST - 492 - CRY_BASE_COST - 20) {
                         resetSequences.add(append(s3, title.get(j), ngReset));
                     }
@@ -257,19 +275,38 @@ public class RedBlueTIDManip {
             }
             s3seqs.clear();
 
-            for(IntroSequence s4 : s4seqs) {
-                IntroSequence seq = append(s4, newGame);
-                newGameSequences.add(seq);
+            while(!s4seqs.isEmpty()) {
+                ArrayList<IntroSequence> s4tmp = new ArrayList<>();
+                for (IntroSequence s4 : s4seqs) {
+                    IntroSequence seq = append(s4, newGame);
+                    newGameSequences.add(seq);
 
-                int ngcost = s4.cost() + 20 + 20;
-                if((MAX_COST - 492 - ngcost) >= 142 + TITLE_BASE_COST + CRY_BASE_COST) {
-                    s3seqs.add(append(s4, backout));
+                    int ngcost = s4.cost() + 20 + 20;
+                    if ((MAX_COST - 492 - ngcost) >= 142 + TITLE_BASE_COST + CRY_BASE_COST) {
+                        s3seqs.add(append(s4, backout));
+                    }
+
+                    if (optsMode && (MAX_COST - 492 - ngcost) >= 72) {
+                        s4tmp.add(append(s4, options, optback));
+                    }
+
+                    int rscost = s4.cost() + 20 + 20 + 114;
+                    if ((MAX_COST - 492 - rscost) >= 363 + 172 + TITLE_BASE_COST + CRY_BASE_COST + 20 + 20) {
+                        resetSequences.add(append(s4, newGame, oakReset));
+                    }
+
+                    int rscost2 = s4.cost() + 24;
+                    if (optsMode && (MAX_COST - 492 - rscost2) >= 363 + 172 + TITLE_BASE_COST + CRY_BASE_COST + 20 + 20) {
+                        resetSequences.add(append(s4, optReset));
+                    }
+
+                    int rscost3 = s4.cost() + 24 + 48;
+                    if (optsMode && (MAX_COST - 492 - rscost3) >= 363 + 172 + TITLE_BASE_COST + CRY_BASE_COST + 20 + 20) {
+                        resetSequences.add(append(s4, options, optback, ngReset));
+                    }
                 }
 
-                int rscost = s4.cost() + 20 + 20 + 114;
-                if((MAX_COST - 492 - rscost) >= 363 + 172 + TITLE_BASE_COST + CRY_BASE_COST + 20 + 20) {
-                    resetSequences.add(append(s4, newGame, oakReset));
-                }
+                s4seqs = new ArrayList<>(s4tmp);
             }
         }
         Collections.sort(resetSequences);
@@ -308,10 +345,13 @@ public class RedBlueTIDManip {
         // Init gambatte with 1 screen
         Gb.loadGambatte(1);
         Gb gb = new Gb(0, false);
-        gb.startEmulator("roms/poke" + gameName + ".gbc");
+        gb.startEmulator("testroms/poke" + gameName + ".gbc");
         GBMemory mem = new GBMemory(gb);
         GBWrapper wrap = new GBWrapper(gb, mem);
         for(IntroSequence seq : introSequences) {
+            if(optsMode && !seq.toString().contains("opt")) {
+                continue;
+            }
             seq.execute(wrap);
             int tid = readTID(gb);
             writer.println(
@@ -321,6 +361,7 @@ public class RedBlueTIDManip {
                             + ", Cost: " + (seq.cost() + 492));
             gb.step(HARD_RESET);
             writer.flush();
+            //System.out.println(seq.toString() + ", Cost: " + (seq.cost() + 492));
         }
         writer.close();
     }

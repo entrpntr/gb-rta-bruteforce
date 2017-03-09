@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-public class Ditto {
+public class Sandslash {
     private static final int NO_INPUT = 0x00;
     private static final int A = 0x01;
     private static final int B = 0x02;
@@ -23,10 +23,8 @@ public class Ditto {
 
     private static final int HARD_RESET = 0x800;
 
-    /* Change this to "blue" or "red" before running */
-    private static final String gameName = "red";
     /* Change this to increase/decrease number of intro sequence combinations processed */
-    private static final int MAX_COST = 340;
+    private static final int MAX_COST = 90;
 
     private static PrintWriter writer;
     private static HashSet<String> seenStates = new HashSet<>();
@@ -37,6 +35,7 @@ public class Ditto {
     private static GBMemory mem;
 
     private static void overworldSearch(OverworldState ow) {
+        //System.out.println(ow.toString());
         if(ow.getWastedFrames() > MAX_COST) {
             return;
         }
@@ -68,8 +67,8 @@ public class Ditto {
             }
 
             int lowFrames = edge.getFrames() +
-                    ((OverworldAction.isDpad(edgeAction) && edge.getNextPos().isEncounterTile()) ? 0 : edge.getNextPos().getMinStepsToGrass() * 17);
-            //int highFrames = edge.getFrames() + 17 * edge.getNextPos().getMinStepsToGrass() +
+                    ((OverworldAction.isDpad(edgeAction) && edge.getNextPos().isEncounterTile()) ? 0 : edge.getNextPos().getMinStepsToGrass() * 9);
+            //int highFrames = edge.getFrames() + 9 * edge.getNextPos().getMinStepsToGrass() +
             //        MAX_COST - ow.getWastedFrames() - edgeCost;
             int highFrames = MAX_COST - ow.getWastedFrames();
             double lowDsumChange = ((double)lowFrames)*DSUM_LOW_COEF;
@@ -106,23 +105,23 @@ public class Ditto {
                             //  String pruneDsum = dsumPrune ? " [*]" : "";
                             String defaultYbf = "";
                             String redbarYbf = "";
-                            if(enc.species == 76) {
+                            if(enc.species == 97) {
                                 // non-redbar
-                                ByteBuffer saveState2 = gb.saveState();
+//                                ByteBuffer saveState2 = gb.saveState();
                                 wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
                                 wrap.injectRBInput(A);
                                 wrap.advanceFrame();
                                 wrap.advanceToAddress(RedBlueAddr.playCryAddr);
                                 wrap.injectRBInput(DOWN | A);
                                 wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
-                                wrap.injectRBInput(A | RIGHT);
-                                int res2 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
+                                wrap.injectRBInput(DOWN | A | RIGHT);
+                                int res2 = wrap.advanceWithJoypadToAddress(DOWN | A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
                                 if(res2 == RedBlueAddr.catchSuccessAddr) {
                                     defaultYbf = ", default ybf: [*]";
                                 } else {
                                     defaultYbf = ", default ybf: [ ]";
                                 }
-
+/*
                                 // redbar
                                 gb.loadState(saveState2);
                                 wrap.writeMemory(0xD16D, 1);
@@ -139,7 +138,7 @@ public class Ditto {
                                 } else {
                                     redbarYbf = ", redbar ybf: [ ]";
                                 }
-
+                                */
                             }
                             writer.println(
                                     ow.toString() + " " + edgeAction.logStr() + ", " +
@@ -153,8 +152,7 @@ public class Ditto {
                         } else {
                             res = wrap.advanceWithJoypadToAddress(input, RedBlueAddr.joypadOverworldAddr);
                         }
-                    }
-                    if (res == RedBlueAddr.joypadOverworldAddr) {
+                    } if (res == RedBlueAddr.joypadOverworldAddr) {
                         int igt = readIGT();
                         int extraWastedFrames = igt - initIGT - edge.getFrames();
                         //String pruneDsum = prune ? "[*]" : "";
@@ -257,189 +255,189 @@ public class Ditto {
         }
     }
     public static void main(String[] args) throws IOException {
-        saveTiles.add(new SaveTile(pw24_16, 17, false));
-        saveTiles.add(new SaveTile(pw25_16, 34, false));
+        saveTiles.add(new SaveTile(pw24_16, 9, false));
+        saveTiles.add(new SaveTile(pw25_16, 18, false));
         saveTiles.add(new SaveTile(pw24_17, 0, false));
-        saveTiles.add(new SaveTile(pw25_17, 17, false));
+        saveTiles.add(new SaveTile(pw25_17, 9, false));
 
-        pw21_12.addEdge(new OverworldEdge(OverworldAction.DOWN, 17, 17, pw21_13));
-        pw21_12.addEdge(new OverworldEdge(OverworldAction.RIGHT, 17, 17, pw22_12));
+        pw21_12.addEdge(new OverworldEdge(OverworldAction.DOWN, 9, 9, pw21_13));
+        pw21_12.addEdge(new OverworldEdge(OverworldAction.RIGHT, 9, 9, pw22_12));
         pw21_12.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw21_12));
         pw21_12.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw21_12));
         pw21_12.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw21_12));
         //pw21_12.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw21_12));
         pw21_12.setMinStepsToGrass(1);
 
-        pw22_12.addEdge(new OverworldEdge(OverworldAction.LEFT, 17, 17, pw21_12));
-        pw22_12.addEdge(new OverworldEdge(OverworldAction.DOWN, 17, 17, pw22_13));
+        pw22_12.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw21_12));
+        pw22_12.addEdge(new OverworldEdge(OverworldAction.DOWN, 9, 9, pw22_13));
         pw22_12.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw22_12));
         pw22_12.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw22_12));
         pw22_12.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw22_12));
         //pw22_12.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw22_12));
         pw22_12.setMinStepsToGrass(1);
 
-        pw21_13.addEdge(new OverworldEdge(OverworldAction.UP, 17, 17, pw21_12));
-        pw21_13.addEdge(new OverworldEdge(OverworldAction.DOWN, 17, 17, pw21_14));
-        pw21_13.addEdge(new OverworldEdge(OverworldAction.RIGHT, 17, 17, pw22_13));
+        pw21_13.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw21_12));
+        pw21_13.addEdge(new OverworldEdge(OverworldAction.DOWN, 9, 9, pw21_14));
+        pw21_13.addEdge(new OverworldEdge(OverworldAction.RIGHT, 9, 9, pw22_13));
         pw21_13.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw21_13));
         pw21_13.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw21_13));
         pw21_13.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw21_13));
         //pw21_13.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw21_13));
         pw21_13.setMinStepsToGrass(1);
 
-        pw22_13.addEdge(new OverworldEdge(OverworldAction.UP, 17, 17, pw22_12));
-        pw22_13.addEdge(new OverworldEdge(OverworldAction.LEFT, 17, 17, pw21_13));
-        pw22_13.addEdge(new OverworldEdge(OverworldAction.DOWN, 17, 17, pw22_14));
-        pw22_13.addEdge(new OverworldEdge(OverworldAction.RIGHT, 17, 17, pw23_13));
+        pw22_13.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw22_12));
+        pw22_13.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw21_13));
+        pw22_13.addEdge(new OverworldEdge(OverworldAction.DOWN, 9, 9, pw22_14));
+        pw22_13.addEdge(new OverworldEdge(OverworldAction.RIGHT, 9, 9, pw23_13));
         pw22_13.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw22_13));
         pw22_13.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw22_13));
         pw22_13.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw22_13));
         //pw22_13.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw22_13));
         pw22_13.setMinStepsToGrass(1);
 
-        pw23_13.addEdge(new OverworldEdge(OverworldAction.LEFT, 17, 17, pw22_13));
-        pw23_13.addEdge(new OverworldEdge(OverworldAction.DOWN, 17, 17, pw23_14));
+        pw23_13.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw22_13));
+        pw23_13.addEdge(new OverworldEdge(OverworldAction.DOWN, 9, 9, pw23_14));
         pw23_13.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw23_13));
         pw23_13.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw23_13));
         pw23_13.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw23_13));
         //pw23_13.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw23_13));
         pw23_13.setMinStepsToGrass(1);
 
-        pw20_14.addEdge(new OverworldEdge(OverworldAction.DOWN, 17, 17, pw20_15));
-        pw20_14.addEdge(new OverworldEdge(OverworldAction.RIGHT, 17, 17, pw21_14));
+        pw20_14.addEdge(new OverworldEdge(OverworldAction.DOWN, 9, 9, pw20_15));
+        pw20_14.addEdge(new OverworldEdge(OverworldAction.RIGHT, 9, 9, pw21_14));
         pw20_14.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw20_14));
         pw20_14.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw20_14));
         pw20_14.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw20_14));
         //pw20_14.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw20_14));
         pw20_14.setMinStepsToGrass(1);
 
-        pw21_14.addEdge(new OverworldEdge(OverworldAction.UP, 17, 17, pw21_13));
-        pw21_14.addEdge(new OverworldEdge(OverworldAction.LEFT, 17, 17, pw20_14));
-        pw21_14.addEdge(new OverworldEdge(OverworldAction.DOWN, 17, 17, pw21_15));
-        pw21_14.addEdge(new OverworldEdge(OverworldAction.RIGHT, 17, 17, pw22_14));
+        pw21_14.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw21_13));
+        pw21_14.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw20_14));
+        pw21_14.addEdge(new OverworldEdge(OverworldAction.DOWN, 9, 9, pw21_15));
+        pw21_14.addEdge(new OverworldEdge(OverworldAction.RIGHT, 9, 9, pw22_14));
         pw21_14.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw21_14));
         pw21_14.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw21_14));
         pw21_14.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw21_14));
         //pw21_14.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw21_14));
         pw21_14.setMinStepsToGrass(1);
 
-        pw22_14.addEdge(new OverworldEdge(OverworldAction.UP, 17, 17, pw22_13));
-        pw22_14.addEdge(new OverworldEdge(OverworldAction.LEFT, 17, 17, pw21_14));
-        pw22_14.addEdge(new OverworldEdge(OverworldAction.DOWN, 17, 17, pw22_15));
-        pw22_14.addEdge(new OverworldEdge(OverworldAction.RIGHT, 17, 17, pw23_14));
+        pw22_14.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw22_13));
+        pw22_14.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw21_14));
+        pw22_14.addEdge(new OverworldEdge(OverworldAction.DOWN, 9, 9, pw22_15));
+        pw22_14.addEdge(new OverworldEdge(OverworldAction.RIGHT, 9, 9, pw23_14));
         pw22_14.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw22_14));
         pw22_14.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw22_14));
         pw22_14.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw22_14));
         //pw22_14.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw22_14));
         pw22_14.setMinStepsToGrass(1);
 
-        pw23_14.addEdge(new OverworldEdge(OverworldAction.UP, 17, 17, pw23_13));
-        pw23_14.addEdge(new OverworldEdge(OverworldAction.LEFT, 17, 17, pw22_14));
-        pw23_14.addEdge(new OverworldEdge(OverworldAction.DOWN, 17, 17, pw23_15));
-        pw23_14.addEdge(new OverworldEdge(OverworldAction.RIGHT, 17, 17, pw24_14));
+        pw23_14.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw23_13));
+        pw23_14.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw22_14));
+        pw23_14.addEdge(new OverworldEdge(OverworldAction.DOWN, 9, 9, pw23_15));
+        pw23_14.addEdge(new OverworldEdge(OverworldAction.RIGHT, 9, 9, pw24_14));
         pw23_14.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw23_14));
         pw23_14.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw23_14));
         pw23_14.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw23_14));
         //pw23_14.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw23_14));
         pw23_14.setMinStepsToGrass(1);
 
-        //pw24_14.addEdge(new OverworldEdge(OverworldAction.LEFT, 17, 17, pw23_14));
-        pw24_14.addEdge(new OverworldEdge(OverworldAction.DOWN, 17, 17, pw24_15));
-        pw24_14.addEdge(new OverworldEdge(OverworldAction.RIGHT, 17, 17, pw25_14));
+        pw24_14.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw23_14));
+        pw24_14.addEdge(new OverworldEdge(OverworldAction.DOWN, 9, 9, pw24_15));
+        pw24_14.addEdge(new OverworldEdge(OverworldAction.RIGHT, 9, 9, pw25_14));
         pw24_14.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw24_14));
         pw24_14.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw24_14));
         pw24_14.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw24_14));
         //pw24_14.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw24_14));
         pw24_14.setMinStepsToGrass(1);
 
-        pw25_14.addEdge(new OverworldEdge(OverworldAction.LEFT, 17, 17, pw24_14));
-        pw25_14.addEdge(new OverworldEdge(OverworldAction.DOWN, 17, 17, pw25_15));
+        pw25_14.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw24_14));
+        pw25_14.addEdge(new OverworldEdge(OverworldAction.DOWN, 9, 9, pw25_15));
         pw25_14.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw25_14));
         pw25_14.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw25_14));
         pw25_14.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw25_14));
         //pw25_14.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw25_14));
         pw25_14.setMinStepsToGrass(1);
 
-        pw20_15.addEdge(new OverworldEdge(OverworldAction.UP, 17, 17, pw20_14));
-        pw20_15.addEdge(new OverworldEdge(OverworldAction.RIGHT, 17, 17, pw21_15));
+        pw20_15.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw20_14));
+        pw20_15.addEdge(new OverworldEdge(OverworldAction.RIGHT, 9, 9, pw21_15));
         pw20_15.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw20_15));
         pw20_15.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw20_15));
         pw20_15.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw20_15));
         //pw20_15.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw20_15));
         pw20_15.setMinStepsToGrass(1);
 
-        pw21_15.addEdge(new OverworldEdge(OverworldAction.UP, 17, 17, pw21_14));
-        pw21_15.addEdge(new OverworldEdge(OverworldAction.LEFT, 17, 17, pw20_15));
-        pw21_15.addEdge(new OverworldEdge(OverworldAction.RIGHT, 17, 17, pw22_15));
+        pw21_15.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw21_14));
+        pw21_15.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw20_15));
+        pw21_15.addEdge(new OverworldEdge(OverworldAction.RIGHT, 9, 9, pw22_15));
         pw21_15.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw21_15));
         pw21_15.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw21_15));
         pw21_15.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw21_15));
         //pw21_15.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw21_15));
         pw21_15.setMinStepsToGrass(1);
 
-        pw22_15.addEdge(new OverworldEdge(OverworldAction.UP, 17, 17, pw22_14));
-        pw22_15.addEdge(new OverworldEdge(OverworldAction.LEFT, 17, 17, pw21_15));
-        pw22_15.addEdge(new OverworldEdge(OverworldAction.RIGHT, 17, 17, pw23_15));
+        pw22_15.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw22_14));
+        pw22_15.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw21_15));
+        pw22_15.addEdge(new OverworldEdge(OverworldAction.RIGHT, 9, 9, pw23_15));
         pw22_15.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw22_15));
         pw22_15.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw22_15));
         pw22_15.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw22_15));
         //pw22_15.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw22_15));
         pw22_15.setMinStepsToGrass(1);
 
-        pw23_15.addEdge(new OverworldEdge(OverworldAction.UP, 17, 17, pw23_14));
-        pw23_15.addEdge(new OverworldEdge(OverworldAction.LEFT, 17, 17, pw22_15));
-        pw23_15.addEdge(new OverworldEdge(OverworldAction.RIGHT, 17, 17, pw24_15));
+        pw23_15.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw23_14));
+        pw23_15.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw22_15));
+        pw23_15.addEdge(new OverworldEdge(OverworldAction.RIGHT, 9, 9, pw24_15));
         pw23_15.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw23_15));
         pw23_15.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw23_15));
         pw23_15.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw23_15));
         //pw23_15.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw23_15));
         pw23_15.setMinStepsToGrass(1);
 
-        //pw24_15.addEdge(new OverworldEdge(OverworldAction.UP, 17, 17, pw24_14));
-        //pw24_15.addEdge(new OverworldEdge(OverworldAction.LEFT, 17, 17, pw23_15));
-        pw24_15.addEdge(new OverworldEdge(OverworldAction.DOWN, 17, 17, pw24_16));
-        pw24_15.addEdge(new OverworldEdge(OverworldAction.RIGHT, 17, 17, pw25_15));
+        pw24_15.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw24_14));
+        pw24_15.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw23_15));
+        pw24_15.addEdge(new OverworldEdge(OverworldAction.DOWN, 9, 9, pw24_16));
+        pw24_15.addEdge(new OverworldEdge(OverworldAction.RIGHT, 9, 9, pw25_15));
         pw24_15.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw24_15));
         pw24_15.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw24_15));
         pw24_15.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw24_15));
         //pw24_15.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw24_15));
         pw24_15.setMinStepsToGrass(1);
 
-        //pw25_15.addEdge(new OverworldEdge(OverworldAction.UP, 17, 17, pw25_14));
-        pw25_15.addEdge(new OverworldEdge(OverworldAction.LEFT, 17, 17, pw24_15));
-        pw25_15.addEdge(new OverworldEdge(OverworldAction.DOWN, 17, 17, pw25_16));
+        pw25_15.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw25_14));
+        pw25_15.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw24_15));
+        pw25_15.addEdge(new OverworldEdge(OverworldAction.DOWN, 9, 9, pw25_16));
         pw25_15.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw25_15));
         pw25_15.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw25_15));
         pw25_15.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw25_15));
         //pw24_15.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw24_15));
         pw25_15.setMinStepsToGrass(1);
 
-        pw24_16.addEdge(new OverworldEdge(OverworldAction.UP, 17, 17, pw24_15));
-        pw24_16.addEdge(new OverworldEdge(OverworldAction.RIGHT, 17, 17, pw25_16));
+        pw24_16.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw24_15));
+        pw24_16.addEdge(new OverworldEdge(OverworldAction.RIGHT, 9, 9, pw25_16));
         pw24_16.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw24_16));
         pw24_16.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw24_16));
         pw24_16.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw24_16));
         //pw24_16.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw24_16));
         pw24_16.setMinStepsToGrass(1);
 
-        pw25_16.addEdge(new OverworldEdge(OverworldAction.UP, 17, 17, pw25_15));
-        pw25_16.addEdge(new OverworldEdge(OverworldAction.LEFT, 17, 17, pw24_16));
+        pw25_16.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw25_15));
+        pw25_16.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw24_16));
         pw25_16.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw25_16));
         pw25_16.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw25_16));
         pw25_16.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw25_16));
         //pw25_16.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw25_16));
         pw25_16.setMinStepsToGrass(1);
 
-        pw24_17.addEdge(new OverworldEdge(OverworldAction.UP, 17, 17, pw24_16));
-        pw24_17.addEdge(new OverworldEdge(OverworldAction.RIGHT, 17, 17, pw25_17));
+        pw24_17.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw24_16));
+        pw24_17.addEdge(new OverworldEdge(OverworldAction.RIGHT, 9, 9, pw25_17));
         pw24_17.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw24_17));
         pw24_17.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw24_17));
         pw24_17.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw24_17));
         //pw24_17.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw24_17));
         pw24_17.setMinStepsToGrass(2);
 
-        pw25_17.addEdge(new OverworldEdge(OverworldAction.UP, 17, 17, pw25_16));
-        pw25_17.addEdge(new OverworldEdge(OverworldAction.LEFT, 17, 17, pw24_17));
+        pw25_17.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw25_16));
+        pw25_17.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw24_17));
         pw25_17.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw25_17));
         pw25_17.addEdge(new OverworldEdge(OverworldAction.START_B, 35, 35, pw25_17));
         pw25_17.addEdge(new OverworldEdge(OverworldAction.S_A_B_S, 64, 64, pw25_17));
@@ -515,26 +513,26 @@ public class Ditto {
             new File("logs").mkdir();
         }
 
-        if (!new File("roms").exists()) {
-            new File("roms").mkdir();
+        if (!new File("testroms").exists()) {
+            new File("testroms").mkdir();
             System.err.println("I need ROMs to simulate!");
             System.exit(0);
         }
 
-        if (!new File("roms/poke" + gameName + ".gbc").exists()) {
-            System.err.println("Could not find poke" + gameName + ".gbc in roms directory!");
+        if (!new File("testroms/pokeblue-pcjack.gbc").exists()) {
+            System.err.println("Could not find pokeblue-pcjack.gbc in testroms directory!");
             System.exit(0);
         }
 
         String ts = Long.toString(System.currentTimeMillis());
-        File file = new File(gameName + "_ditto_encounters_" + ts + ".txt");
+        File file = new File("sandslash_encounters_" + ts + ".txt");
         writer = new PrintWriter(file);
         for(SaveTile saveTile : saveTiles) {
             OverworldTile savePos = saveTile.getOwPos();
             makeSave(savePos.getX(), savePos.getY());
             Gb.loadGambatte(1);
             gb = new Gb(0, false);
-            gb.startEmulator("roms/poke" + gameName + ".gbc");
+            gb.startEmulator("testroms/pokeblue-pcjack.gbc");
             mem = new GBMemory(gb);
             wrap = new GBWrapper(gb, mem);
 
@@ -551,7 +549,7 @@ public class Ditto {
                     //wrap.writeMemory(0xD31D, 0x04);
                     //wrap.writeMemory(0xD320, 0x0D);
                     //wrap.writeMemory(0xD322, 0x12);
-                    //wrap.writeMemory(0xD324, 0x13);
+                    //wrap.writeMemory(0xD324, 0x0D);
                     //wrap.writeMemory(0xD700, 0x01);
                     //wrap.writeMemory(0xD325, 0x01);
                     //wrap.writeMemory(0xD326, 0xFF);
@@ -575,11 +573,12 @@ public class Ditto {
     }
 
     private static void makeSave(int x, int y) throws IOException {
-        byte[] baseSave = FileFunctions.readFileFullyIntoBuffer("baseSaves/ditto_" + gameName + ".sav");
+        byte[] baseSave = FileFunctions.readFileFullyIntoBuffer("baseSaves/pokeblue-pcjack.sav");
         int mapWidth = 15;
         int baseX = x;
         int baseY = y;
         int tlPointer = 0xC6E8 + (baseY / 2 + 1) * (mapWidth + 6) + (baseX / 2 + 1);
+        //baseSave[0x2419] = (byte) 1;
         baseSave[0x260B] = (byte) (tlPointer & 0xFF);
         baseSave[0x260C] = (byte) (tlPointer >> 8);
         baseSave[0x260D] = (byte) baseY;
@@ -594,7 +593,7 @@ public class Ditto {
             csum += baseSave[i] & 0xFF;
         }
         baseSave[0x3523] = (byte) ((csum & 0xFF) ^ 0xFF); // cpl
-        FileFunctions.writeBytesToFile("roms/poke" + gameName + ".sav", baseSave);
+        FileFunctions.writeBytesToFile("testroms/pokeblue-pcjack.sav", baseSave);
     }
 
     static class SaveTileComparator implements Comparator<SaveTile> {
@@ -606,10 +605,6 @@ public class Ditto {
             }
         }
     }
-
-    //static int BASE_COST = 492, HOP_BASE_COST = 172, HOP1_COST = 131, HOP2_COST = 190, HOP3_COST = 298, HOP4_COST = 447, HOP5_COST = 536, SCROLL_ROUGHCOST = 270, SOFT_RESET_COST = 363, NG_WINDOW_COST = 20, START_NG_COST = 20, BACKOUT_COST = 142, OAK_SPEECH_COST = 114;
-    private static final int TITLE_BASE_COST = (gameName.equals("blue") ? 0 : 1);
-    private static final int CRY_BASE_COST = (gameName.equals("blue") ? 8 : 0);
 
     static class Strat {
         String name;
@@ -658,7 +653,7 @@ public class Ditto {
             super(other);
         }
         @Override public String toString() {
-            String ret = gameName;
+            String ret = "bluejack";
             for(Strat s : this) {
                 ret += s.name;
             }
@@ -692,7 +687,7 @@ public class Ditto {
 
     private static Strat title0 = new Strat("_title0", 0, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {START}, new Integer[] {1});
     private static Strat title1 = new Strat("_title1", 270, new Integer[] {RedBlueAddr.titleScreenPickNewMonAddr, RedBlueAddr.joypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] { 1, 1});
-    private static Strat mmback = new Strat("_mmback", 162 + TITLE_BASE_COST + CRY_BASE_COST + 88, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {B}, new Integer[] {1});
+    private static Strat mmback = new Strat("_mmback", 162 + 88, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {B}, new Integer[] {1});
     private static Strat cont = new Strat("", 0,
             new Integer[] {RedBlueAddr.joypadAddr},
             new Integer[] {A},
@@ -727,8 +722,8 @@ public class Ditto {
     private static boolean inferDsum(OverworldState ow) {
         int minSteps = ow.getPos().getMinStepsToGrass();
         double dsum = (double)(2048+ow.getHra()+ow.getHrs());
-        double lowFrames = ((double)(minSteps))*17.0;
-        //double highFrames = 17.0*((double)(minSteps))+MAX_COST-ow.getWastedFrames();
+        double lowFrames = ((double)(minSteps))*9.0;
+        //double highFrames = 9.0*((double)(minSteps))+MAX_COST-ow.getWastedFrames();
         double highFrames = MAX_COST - ow.getWastedFrames();
         double predictLow = dsum-lowFrames*DSUM_LOW_COEF+DSUM_MARGIN_OF_ERROR;
         double predictHigh = dsum-highFrames*DSUM_HIGH_COEF-DSUM_MARGIN_OF_ERROR;

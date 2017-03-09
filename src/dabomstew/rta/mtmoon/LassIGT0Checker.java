@@ -25,7 +25,7 @@ public class LassIGT0Checker {
     public static final int DOWN = 0x80;
 
     public static final int RESET = 0x800;
-    public static final int numThreads = 3;
+    public static final int numThreads = 1;
     
     public static final int maxSecond = 1;
 
@@ -37,10 +37,14 @@ public class LassIGT0Checker {
 
         ps = new PrintStream("logs/parascheck_" + System.currentTimeMillis() + ".log", "UTF-8");
 
-        int[][] segmentPaths = {{32,128,128,128,128,128,128,128,128,128,128},{64,64,64,32,64,64,32,64,32,64,64,64,64,64,32,64,64,64,64,32,32,32},{16,128,128,128,16},{16,128,128,128,16,128,128,128,128,128,128,128,128,16,17,16,16,16,16,16,16,16,16,16,16,16,16,128},{16,64,64,64,16,16,16,16},{16,128,128,16,16,16,16,16},{64,16,64,16,16,16},{128,128,128,128,128,128,128,128,32,32,128,128,32,128,128,128,128,128,128,32,128,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32},{64,64,64,64,64,64,64,32,64,64,64,64,64,64,64}};
+        int[][] segmentPaths =
+                {{32,32,32,32,32,32,32,128,32,128,128},{64,64,64,64,64,32,64,32,64,64,64,33,32,64,64,32,64,64,64,64,32,32},{128,128,17,16,128},{128,128,16,16,129,128,128,128,128,128,128,128,128,128,16,16,16,16,16,16,16,16,16,16,16,16,16,16},{16,16,64,64,64,16,16,16},{128,128,16,16,16,16,16,16},{16,64,64,16,16,16},{128,129,128,128,128,128,128,128,32,32,32,32,128,128,128,128,128,128,128,128,128,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32},
+                        {33,64,64,64,65,64,64,64,64,65,64,64,64,65,64}};
+
         String path = "";
-        for(int i=0;i<9;i++) {
-            if(i == 0) { path += "LLLLLLL"; }
+
+        for(int i=0;i<segmentPaths.length;i++) {
+            //if(i == 0) { path += "LLLLLLL"; }
             for(int input : segmentPaths[i]) {
                 if((input & 1) != 0) {
                     path += "A"+Func.inputName(input & 0xFE);
@@ -49,16 +53,16 @@ public class LassIGT0Checker {
                     path += Func.inputName(input);
                 }
             }
-            if(i == 0) { path += "LLLLL"; }
+            if(i == 0) { path += "DDDDDDDLLLLL"; }
             if(i == 1) { path += "L"; }
-            if(i == 8) { path += "LRL"; }
+            //if(i == 8) { path += "LRL"; }
         }
         path = path.replace(" ", "");
         System.out.println(path);
 
         final String finalPath = path;
 
-        byte[] baseSave = FileFunctions.readFileFullyIntoBuffer("baseSaves/blue_moon_moonlass.sav");
+        byte[] baseSave = FileFunctions.readFileFullyIntoBuffer("baseSaves/mumpfelmmm2.sav");
         baseSave[0x2CEF] = (byte) 20;
         baseSave[0x2CF0] = (byte) 0;
         baseSave[0x2CF1] = (byte) 0;
@@ -67,7 +71,7 @@ public class LassIGT0Checker {
             csum += baseSave[i] & 0xFF;
         }
         baseSave[0x3523] = (byte) ((csum & 0xFF) ^ 0xFF); // cpl
-        FileFunctions.writeBytesToFile("testroms/pokeblue.sav", baseSave);
+        FileFunctions.writeBytesToFile("testroms/pokered.sav", baseSave);
 
         Gb[] gbs = new Gb[numThreads];
         GBMemory[] mems = new GBMemory[numThreads];
@@ -75,7 +79,7 @@ public class LassIGT0Checker {
 
         for (int i = 0; i < numThreads; i++) {
             gbs[i] = new Gb(i, false);
-            gbs[i].startEmulator("roms/pokeblue.gbc");
+            gbs[i].startEmulator("testroms/pokered.gbc");
             gbs[i].step(0); // let gambatte initialize itself
             mems[i] = new GBMemory(gbs[i]);
             wraps[i] = new GBWrapper(gbs[i], mems[i]);
@@ -84,6 +88,8 @@ public class LassIGT0Checker {
         // Advance through first part of intro
         // Always use fastest buffering method because there's no way
         // anything else is worth it
+        wraps[0].advanceWithJoypadToAddress(UP, RedBlueAddr.biosReadKeypadAddr);
+        wraps[0].advanceFrame(UP);
         int[] introInputs = { B | SELECT | UP, B | SELECT | UP, START };
         int introInputCtr = 0;
         while (introInputCtr < 3) {
@@ -155,12 +161,21 @@ public class LassIGT0Checker {
                                         // Execute the action
                                         Position dest = getDestination(mem, input);
                                         wrap.injectRBInput(input);
-                                        wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr + 1);
+                                        if(input == B) {
+                                            wrap.advanceFrame();
+                                            wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
+                                        }
+                                        else if(input == START) {
+                                            wrap.advanceFrame();
+                                            wrap.advanceToAddress(RedBlueAddr.joypadAddr);
+                                        } else {
+                                            wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr + 1);
+                                        }
 
                                         if (travellingToWarp(dest.map, dest.x, dest.y)) {
                                             wrap.advanceToAddress(RedBlueAddr.enterMapAddr);
                                             wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
-                                        } else {
+                                        } else if(input != START && input != B){
                                             int result = wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr,
                                                     RedBlueAddr.newBattleAddr);
 
@@ -217,7 +232,7 @@ public class LassIGT0Checker {
                                                         wrap.advanceFrame();
                                                         wrap.advanceFrame();
                                                         boolean ybfFailed = false;
-                                                        if(mem.getMap() == 61 && mem.getX() <= 10 && mem.getY() <= 23) {
+                                                        if(mem.getMap() == 61 && mem.getX() <= 18 && mem.getY() <= 31) {
                                                             if(mem.getEncounterSpecies() == 109) {
                                                                 success = true;
                                                                 wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
@@ -230,14 +245,15 @@ public class LassIGT0Checker {
                                                                 int result3 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
                                                                 if(result3 == RedBlueAddr.catchFailureAddr) {
                                                                     ybfFailed = true;
+                                                                    success = false;
                                                                 }
                                                             }
                                                         }
                                                         log += String
-                                                                .format("[%s] Encounter at map %d x %d y %d Species %d Level %d DVs %04X %s",
+                                                                .format("[%s] Encounter at map %d x %d y %d Species %d Level %d DVs %04X rdiv %04X hra %02X hrs %02X %s",
                                                                         success ? "S" : "F", mem.getMap(), mem.getX(),
                                                                         mem.getY(), mem.getEncounterSpecies(),
-                                                                        mem.getEncounterLevel(), mem.getEncounterDVs(), ybfFailed ? "**YOLOBALL FAIL**" : "");
+                                                                        mem.getEncounterLevel(), mem.getEncounterDVs(), gb.getDivState(), mem.getHRA(), mem.getHRS(), ybfFailed ? "**YOLOBALL FAIL**" : "");
                                                         // trash state, throw it
                                                         // in the bin
                                                         // (encounter)
@@ -264,8 +280,8 @@ public class LassIGT0Checker {
                                     }
 
                                     if (!garbage) {
-                                        log += String.format("[F] No encounter at map %d x %d y %d", mem.getMap(),
-                                                mem.getX(), mem.getY());
+                                        log += String.format("[F] No encounter at map %d x %d y %d rdiv %04X hra %02X hrs %02X", mem.getMap(),
+                                                mem.getX(), mem.getY(), gb.getDivState(), mem.getHRA(), mem.getHRS());
                                     }
 
                                     log += String.format(" (time=%dms)", System.currentTimeMillis() - startFrame);
@@ -337,6 +353,10 @@ public class LassIGT0Checker {
             return RIGHT;
         case 'A':
             return A;
+        case 'B':
+            return B;
+        case 'S':
+            return START;
         default:
             return 0;
         }

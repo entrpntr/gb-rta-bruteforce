@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.eclipse.collections.impl.list.mutable.primitive.LongArrayList;
-import org.eclipse.collections.impl.set.mutable.primitive.LongHashSet;
+//import org.eclipse.collections.impl.set.mutable.primitive.LongHashSet;
 
 public class NidoBotFFEF {
     private static final int NO_INPUT = 0x00;
@@ -45,7 +45,6 @@ public class NidoBotFFEF {
     private static final double DSUM_MARGIN_OF_ERROR = 5.0;
 
     private static LongArrayList seenStates = new LongArrayList(100000);
-    //private static LongHashSet seenStates = new LongHashSet(100000);
 
     // Sort tiles by starting cost (lower starting cost takes priority),
     // then by starting distance from grass (longer distance takes priority).
@@ -74,7 +73,8 @@ public class NidoBotFFEF {
             System.exit(0);
         }
 
-        File file = new File(gameName + "_ffef_encounters.txt");
+        String ts = Long.toString(System.currentTimeMillis());
+        File file = new File(gameName + "_ffef_encounters_" + ts + ".txt");
         writer = new PrintWriter(file);
 
         // TODO: Programmatically add intros for manips with higher cost caps
@@ -95,13 +95,20 @@ public class NidoBotFFEF {
 
         initTiles();
 
+        //boolean startProcessing = false;
         Collections.sort(saveTiles, new SaveTileComparator());
         for(SaveTile saveTile : saveTiles) {
             // Comment these lines out if you want to search the whole space
             //if(saveTile.getOwPos().getMinStepsToGrass() < 23 || saveTile.getOwPos().getMinStepsToGrass() > 35) {
-            //if(saveTile.getOwPos().getMinStepsToGrass() > 22 || (saveTile.getOwPos().getX()==7 && saveTile.getOwPos().getY()==18)) {
+            //if(saveTile.getOwPos().getMinStepsToGrass() > 22 || (saveTile.getOwPos().getX()/2==3 && saveTile.getOwPos().getY()==18)) {
             //    continue;
             //}
+/*
+            if(saveTile.getOwPos().getX()==18 && saveTile.getOwPos().getY()==20) {
+                startProcessing = true;
+            }
+
+            if(!startProcessing) {continue;}*/
 
             OverworldTile savePos = saveTile.getOwPos();
             makeSave(savePos.getMap(), savePos.getX(), savePos.getY());
@@ -114,7 +121,7 @@ public class NidoBotFFEF {
             wrap = new GBWrapper(gb, mem);
 
             for (int i=0; i<introSequences.size(); i++) {
-                //if((i==0 || i==1) && saveTile.getOwPos().getMap() == 1 && saveTile.getOwPos().getX() == 6 && saveTile.getOwPos().getY() == 18) {
+                //if((i<6) && saveTile.getOwPos().getMap() == 1 && saveTile.getOwPos().getX() == 18 && saveTile.getOwPos().getY() == 20) {
                 //    continue;
                 //}
                 IntroSequence intro = introSequences.get(i);
@@ -254,9 +261,10 @@ public class NidoBotFFEF {
                             );
                             writer.flush();
                         } else {
-                            wrap.advanceWithJoypadToAddress(input, RedBlueAddr.joypadOverworldAddr);
+                            res = wrap.advanceWithJoypadToAddress(input, RedBlueAddr.joypadOverworldAddr);
                         }
-                    } else if (res == RedBlueAddr.joypadOverworldAddr) {
+                    }
+                    if (res == RedBlueAddr.joypadOverworldAddr) {
                         while (mem.getMap() == ow.getMap() && mem.getX() == ow.getX() && mem.getY() == ow.getY()) {
                             wrap.injectRBInput(input);
                             wrap.advanceFrame(input);

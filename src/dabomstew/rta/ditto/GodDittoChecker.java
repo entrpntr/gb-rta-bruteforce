@@ -74,14 +74,35 @@ public class GodDittoChecker {
             wrap.advanceToAddress(RedBlueAddr.joypadAddr);
             wrap.injectRBInput(UP | SELECT | B);
             wrap.advanceFrame();
+/*
+            wrap.advanceToAddress(RedBlueAddr.joypadAddr);
+            wrap.injectRBInput(UP | SELECT | B);
+            wrap.advanceFrame();
+*/
             wrap.advanceToAddress(RedBlueAddr.animateNidorinoAddr);
             wrap.advanceToAddress(RedBlueAddr.checkInterruptAddr);
             wrap.advanceToAddress(RedBlueAddr.joypadAddr);
             wrap.injectRBInput(A);
             wrap.advanceFrame();
+
             wrap.advanceToAddress(RedBlueAddr.joypadAddr);
             wrap.injectRBInput(START);
             wrap.advanceFrame();
+/*
+            wrap.advanceToAddress(RedBlueAddr.joypadAddr);
+            wrap.injectRBInput(A);
+            wrap.advanceFrame();
+            wrap.advanceToAddress(RedBlueAddr.joypadAddr);
+            wrap.injectRBInput(B);
+            wrap.advanceFrame();
+            wrap.advanceToAddress(RedBlueAddr.joypadAddr);
+            wrap.injectRBInput(A);
+            wrap.advanceFrame();
+            wrap.advanceToAddress(RedBlueAddr.joypadAddr);
+            wrap.injectRBInput(B);
+            wrap.advanceFrame();
+            */
+
             wrap.advanceToAddress(RedBlueAddr.joypadAddr);
             wrap.injectRBInput(A);
             wrap.advanceFrame();
@@ -98,9 +119,10 @@ public class GodDittoChecker {
                                 gb.loadState(saveState);
 
                                 wrap.writeMemory(0xD31D, 0x04);
-                                wrap.writeMemory(0xD320, 0x0D);
-                                wrap.writeMemory(0xD322, 0x12);
-                                wrap.writeMemory(0xD324, 0x09);
+                                wrap.writeMemory(0xD320, 0x0F);
+                                wrap.writeMemory(0xD322, 0x14);
+                                wrap.writeMemory(0xD324, 0x0B);
+                                //wrap.writeMemory(0xD700, 0x01);
                                 wrap.writeMemory(0xD325, 0x01);
                                 wrap.writeMemory(0xD326, 0xFF);
 

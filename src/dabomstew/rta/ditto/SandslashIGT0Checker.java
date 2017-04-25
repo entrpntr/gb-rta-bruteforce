@@ -7,7 +7,7 @@ import mrwint.gbtasgen.Gb;
 import java.io.File;
 import java.io.IOException;
 
-public class DittoIGT0Checker {
+public class SandslashIGT0Checker {
     private static final int NO_INPUT = 0x00;
 
     public static final int A = 0x01;
@@ -22,18 +22,9 @@ public class DittoIGT0Checker {
 
     private static final int HARD_RESET = 0x800;
 
-    // TODO: READ THIS STUFF FROM LOGS
-    private static String gameName = "red";
-
     private static int x = 24;
-    private static int y = 17;
-    //private static String path = "U L D";
-    //private static String path = "R L A U R";
-    //private static String path = "U U L S_A_B_S L L U U U U S_B U U U R";
-    //private static String path = "U R U A L U D D S_B S_B U U L U L A U L";
-    //private static String path = "U A U U S_B D D A U L A L U U S_B U ";
-    //private static String path = "U A U U S_B D D A U L A L L A U U U U S_B U";
-    private static String path   = "U A U L S_B L U A U L U A U U S_B U A U R R";
+    private static int y = 16;
+    private static String path   = "R U L D A D";
 
     private static GBWrapper wrap;
     private static GBMemory mem;
@@ -45,8 +36,8 @@ public class DittoIGT0Checker {
             System.exit(0);
         }
 
-        if (!new File("testroms/poke" + gameName + ".gbc").exists()) {
-            System.err.println("Could not find poke" + gameName + ".gbc in testroms directory!");
+        if (!new File("testroms/pokeblue-pcjack.gbc").exists()) {
+            System.err.println("Could not find pokeblue-pcjack.gbc in testroms directory!");
             System.exit(0);
         }
 
@@ -57,7 +48,7 @@ public class DittoIGT0Checker {
         for(int i=0; i<=59; i++) {
             makeSave(x, y, i);
             Gb gb = new Gb(0, false);
-            gb.startEmulator("testroms/poke" + gameName + ".gbc");
+            gb.startEmulator("testroms/pokeblue-pcjack.gbc");
             mem = new GBMemory(gb);
             wrap = new GBWrapper(gb, mem);
 
@@ -81,20 +72,7 @@ public class DittoIGT0Checker {
             wrap.advanceToAddress(RedBlueAddr.joypadAddr);
             wrap.injectRBInput(START);
             wrap.advanceFrame();
-/*
-            wrap.advanceToAddress(RedBlueAddr.joypadAddr);
-            wrap.injectRBInput(A);
-            wrap.advanceFrame();
-            wrap.advanceToAddress(RedBlueAddr.joypadAddr);
-            wrap.injectRBInput(B);
-            wrap.advanceFrame();
-            wrap.advanceToAddress(RedBlueAddr.joypadAddr);
-            wrap.injectRBInput(A);
-            wrap.advanceFrame();
-            wrap.advanceToAddress(RedBlueAddr.joypadAddr);
-            wrap.injectRBInput(B);
-            wrap.advanceFrame();
-*/
+
             wrap.advanceToAddress(RedBlueAddr.joypadAddr);
             wrap.injectRBInput(A);
             wrap.advanceFrame();
@@ -102,32 +80,31 @@ public class DittoIGT0Checker {
             wrap.injectRBInput(A);
             wrap.advanceFrame();
             wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
-            //wrap.writeMemory(0xD2B5, 0x80);
-            //wrap.writeMemory(0xD2B6, 0x50);
-            //wrap.writeMemory(0xD158, 0x80);
-            //wrap.writeMemory(0xD159, 0x80);
-            //wrap.writeMemory(0xD160, 0x80);
-            //wrap.writeMemory(0xD161, 0x80);
-            //wrap.writeMemory(0xD162, 0x50);
-            //wrap.writeMemory(0xD31D, 0x04);
-            //wrap.writeMemory(0xD320, 0x0D);
-            //wrap.writeMemory(0xD322, 0x12);
-            //wrap.writeMemory(0xD324, 0x09);
-            //wrap.writeMemory(0xD325, 0x01);
-            //wrap.writeMemory(0xD326, 0xFF);
-            //wrap.writeMemory(0xD16D, 1);
 
-            wrap.writeMemory(0xD31D, 0x04);
-            wrap.writeMemory(0xD320, 0x0F);
-            wrap.writeMemory(0xD322, 0x14);
-            wrap.writeMemory(0xD324, 0x0B);
-            wrap.writeMemory(0xD325, 0x01);
-            wrap.writeMemory(0xD326, 0xFF);
+            //wrap.writeMemory(0xD16D, 0x01);
 
-            wrap.writeMemory(0xD158, 0x80);
-            wrap.writeMemory(0xD159, 0x80);
-            wrap.writeMemory(0xD15A, 0x80);
-            wrap.writeMemory(0xD15B, 0x50);
+            wrap.writeMemory(0xD31D, 0x06);
+            wrap.writeMemory(0xD322, 0x0D);
+            wrap.writeMemory(0xD323, 0x01);
+            wrap.writeMemory(0xD324, 0x1E);
+            wrap.writeMemory(0xD325, 0x02);
+            wrap.writeMemory(0xD326, 0x44);
+            wrap.writeMemory(0xD327, 0x01);
+            wrap.writeMemory(0xD328, 0x06);
+            wrap.writeMemory(0xD329, 0x01);
+            wrap.writeMemory(0xD32A, 0xFF);
+
+            int nLen = 1;
+            wrap.writeMemory(0xD158 + nLen, 0x50);
+            for(int n=0; n<nLen; n++) {
+                wrap.writeMemory(0xD158 + n, 0x80);
+            }
+
+            int sLen = 3;
+            wrap.writeMemory(0xD2B5 + sLen, 0x50);
+            for(int s=0; s<sLen; s++) {
+                wrap.writeMemory(0xD2B5 + s, 0x80);
+            }
 
             String f = (i < 10) ? " " + i : "" + i;
             System.out.print("[" + f + "] ");
@@ -160,13 +137,11 @@ public class DittoIGT0Checker {
                 int input = 16 * (int) (Math.pow(2.0, (owAction.ordinal())));
                 wrap.injectRBInput(input);
                 res = wrap.advanceWithJoypadToAddress(input, RedBlueAddr.newBattleAddr);
-                //System.out.println("TestTID");
                 if(res == RedBlueAddr.newBattleAddr) {
                     res = wrap.advanceWithJoypadToAddress(input, RedBlueAddr.encounterTestAddr, RedBlueAddr.joypadOverworldAddr);
                 } else {
                     res = wrap.advanceWithJoypadToAddress(input, RedBlueAddr.joypadOverworldAddr);
                 }
-                //System.out.print("TestTID 2");
                 if (res == RedBlueAddr.encounterTestAddr) {
                     if (mem.getHRA() >= 0 && mem.getHRA() <= 9) {
                         System.out.print("Encounter at [" + mem.getMap() + "#" + mem.getX() + "," + mem.getY() + "]: ");
@@ -180,7 +155,7 @@ public class DittoIGT0Checker {
                                 "species %d lv%d DVs %04X rng %s encrng %s",
                                 enc.species, enc.level, enc.dvs, enc.battleRNG, rngAtEnc
                         ));
-                        if (enc.species == 76) {
+                        if (enc.species == 97) {
 /*                            wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
                             wrap.injectRBInput(A);
                             wrap.advanceFrame();
@@ -199,8 +174,10 @@ public class DittoIGT0Checker {
                             wrap.advanceToAddress(RedBlueAddr.playCryAddr);
                             wrap.injectRBInput(DOWN | A);
                             wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
-                            wrap.injectRBInput(A | RIGHT);
-                            int res2 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
+                            //wrap.advanceWithJoypadToAddress(DOWN | A | RIGHT, RedBlueAddr.joypadAddr);
+                            //wrap.advanceFrame(DOWN | A | RIGHT);
+                            wrap.injectRBInput(DOWN | A | RIGHT);
+                            int res2 = wrap.advanceWithJoypadToAddress(DOWN | A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
                             if (res2 == RedBlueAddr.catchSuccessAddr) {
                                 System.out.print(", defaultYbf: [*]");
                                 return true;
@@ -285,7 +262,7 @@ public class DittoIGT0Checker {
     }
 
     private static void makeSave(int x, int y, int igtFrames) throws IOException {
-        byte[] baseSave = FileFunctions.readFileFullyIntoBuffer("baseSaves/ditto_" + gameName + ".sav");
+        byte[] baseSave = FileFunctions.readFileFullyIntoBuffer("baseSaves/pcjack-dungeon.sav");
         int mapWidth = 15;
         int baseX = x;
         int baseY = y;
@@ -304,6 +281,6 @@ public class DittoIGT0Checker {
             csum += baseSave[i] & 0xFF;
         }
         baseSave[0x3523] = (byte) ((csum & 0xFF) ^ 0xFF); // cpl
-        FileFunctions.writeBytesToFile("testroms/poke" + gameName + ".sav", baseSave);
+        FileFunctions.writeBytesToFile("testroms/pokeblue-pcjack.sav", baseSave);
     }
 }

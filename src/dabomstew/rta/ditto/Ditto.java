@@ -104,11 +104,21 @@ public class Ditto {
                                     mem.getEncounterDVs(), mem.getRNGStateHRAOnly());
                             int owFrames = ow.getOverworldFrames() + edge.getFrames();
                             //  String pruneDsum = dsumPrune ? " [*]" : "";
-                            String defaultYbf = "";
-                            String redbarYbf = "";
+                            String defaultYbf1 = "";
+                            String defaultYbf2 = "";
+                            String defaultYbf3 = "";
+                            String defaultYbf4 = "";
+                            String defaultYbf5 = "";
+                            String redbarYbf1 = "";
+                            String redbarYbf2 = "";
+                            String redbarYbf3 = "";
+                            String redbarYbf4 = "";
+                            String redbarYbf5 = "";
                             if(enc.species == 76) {
                                 // non-redbar
                                 ByteBuffer saveState2 = gb.saveState();
+                                wrap.writeMemory(0xD158, 0x80);
+                                wrap.writeMemory(0xD159, 0x50);
                                 wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
                                 wrap.injectRBInput(A);
                                 wrap.advanceFrame();
@@ -118,14 +128,18 @@ public class Ditto {
                                 wrap.injectRBInput(A | RIGHT);
                                 int res2 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
                                 if(res2 == RedBlueAddr.catchSuccessAddr) {
-                                    defaultYbf = ", default ybf: [*]";
+                                    defaultYbf1 = ", 1-df ybf: [*]";
                                 } else {
-                                    defaultYbf = ", default ybf: [ ]";
+                                    defaultYbf1 = ", 1-df ybf: [ ]";
                                 }
 
                                 // redbar
                                 gb.loadState(saveState2);
-                                wrap.writeMemory(0xD16D, 1);
+                                wrap.writeMemory(0xD158, 0x80);
+                                wrap.writeMemory(0xD159, 0x80);
+                                wrap.writeMemory(0xD15A, 0x50);
+
+                                //wrap.writeMemory(0xD16D, 1);
                                 wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
                                 wrap.injectRBInput(A);
                                 wrap.advanceFrame();
@@ -135,18 +149,188 @@ public class Ditto {
                                 wrap.injectRBInput(A | RIGHT);
                                 int res3 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
                                 if(res3 == RedBlueAddr.catchSuccessAddr) {
-                                    redbarYbf = ", redbar ybf: [*]";
+                                    defaultYbf2 = ", 2-df ybf: [*]";
                                 } else {
-                                    redbarYbf = ", redbar ybf: [ ]";
+                                    defaultYbf2 = ", 2-df ybf: [ ]";
                                 }
 
+                                gb.loadState(saveState2);
+                                wrap.writeMemory(0xD158, 0x80);
+                                wrap.writeMemory(0xD159, 0x80);
+                                wrap.writeMemory(0xD15A, 0x80);
+                                wrap.writeMemory(0xD15B, 0x50);
+
+                                //wrap.writeMemory(0xD16D, 1);
+                                wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
+                                wrap.injectRBInput(A);
+                                wrap.advanceFrame();
+                                wrap.advanceToAddress(RedBlueAddr.playCryAddr);
+                                wrap.injectRBInput(DOWN | A);
+                                wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
+                                wrap.injectRBInput(A | RIGHT);
+                                res3 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
+                                if(res3 == RedBlueAddr.catchSuccessAddr) {
+                                    defaultYbf3 = ", 3-df ybf: [*]";
+                                } else {
+                                    defaultYbf3 = ", 3-df ybf: [ ]";
+                                }
+
+                                // non-redbar
+                                gb.loadState(saveState2);
+                                wrap.writeMemory(0xD158, 0x80);
+                                wrap.writeMemory(0xD159, 0x80);
+                                wrap.writeMemory(0xD15A, 0x80);
+                                wrap.writeMemory(0xD15B, 0x80);
+                                wrap.writeMemory(0xD15C, 0x50);
+                                wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
+                                wrap.injectRBInput(A);
+                                wrap.advanceFrame();
+                                wrap.advanceToAddress(RedBlueAddr.playCryAddr);
+                                wrap.injectRBInput(DOWN | A);
+                                wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
+                                wrap.injectRBInput(A | RIGHT);
+                                res3 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
+                                if(res3 == RedBlueAddr.catchSuccessAddr) {
+                                    defaultYbf4 = ", 4-df ybf: [*]";
+                                } else {
+                                    defaultYbf4 = ", 4-df ybf: [ ]";
+                                }
+
+                                gb.loadState(saveState2);
+                                wrap.writeMemory(0xD158, 0x80);
+                                wrap.writeMemory(0xD159, 0x80);
+                                wrap.writeMemory(0xD15A, 0x80);
+                                wrap.writeMemory(0xD15B, 0x80);
+                                wrap.writeMemory(0xD15C, 0x80);
+                                wrap.writeMemory(0xD15D, 0x50);
+                                wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
+                                wrap.injectRBInput(A);
+                                wrap.advanceFrame();
+                                wrap.advanceToAddress(RedBlueAddr.playCryAddr);
+                                wrap.injectRBInput(DOWN | A);
+                                wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
+                                wrap.injectRBInput(A | RIGHT);
+                                res3 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
+                                if(res3 == RedBlueAddr.catchSuccessAddr) {
+                                    defaultYbf5 = ", 5-df ybf: [*]";
+                                } else {
+                                    defaultYbf5 = ", 5-df ybf: [ ]";
+                                }
+
+                                gb.loadState(saveState2);
+                                wrap.writeMemory(0xD158, 0x80);
+                                wrap.writeMemory(0xD159, 0x50);
+                                wrap.writeMemory(0xD16D, 1);
+
+                                wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
+                                wrap.injectRBInput(A);
+                                wrap.advanceFrame();
+                                wrap.advanceToAddress(RedBlueAddr.playCryAddr);
+                                wrap.injectRBInput(DOWN | A);
+                                wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
+                                wrap.injectRBInput(A | RIGHT);
+                                res2 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
+                                if(res2 == RedBlueAddr.catchSuccessAddr) {
+                                    redbarYbf1 = ", 1-rb ybf: [*]";
+                                } else {
+                                    redbarYbf1 = ", 1-rb ybf: [ ]";
+                                }
+
+                                gb.loadState(saveState2);
+                                wrap.writeMemory(0xD158, 0x80);
+                                wrap.writeMemory(0xD159, 0x80);
+                                wrap.writeMemory(0xD15A, 0x50);
+                                wrap.writeMemory(0xD16D, 1);
+
+                                //wrap.writeMemory(0xD16D, 1);
+                                wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
+                                wrap.injectRBInput(A);
+                                wrap.advanceFrame();
+                                wrap.advanceToAddress(RedBlueAddr.playCryAddr);
+                                wrap.injectRBInput(DOWN | A);
+                                wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
+                                wrap.injectRBInput(A | RIGHT);
+                                res3 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
+                                if(res3 == RedBlueAddr.catchSuccessAddr) {
+                                    redbarYbf2 = ", 2-rb ybf: [*]";
+                                } else {
+                                    redbarYbf2 = ", 2-rb ybf: [ ]";
+                                }
+
+                                gb.loadState(saveState2);
+                                wrap.writeMemory(0xD158, 0x80);
+                                wrap.writeMemory(0xD159, 0x80);
+                                wrap.writeMemory(0xD15A, 0x80);
+                                wrap.writeMemory(0xD15B, 0x50);
+                                wrap.writeMemory(0xD16D, 1);
+
+                                //wrap.writeMemory(0xD16D, 1);
+                                wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
+                                wrap.injectRBInput(A);
+                                wrap.advanceFrame();
+                                wrap.advanceToAddress(RedBlueAddr.playCryAddr);
+                                wrap.injectRBInput(DOWN | A);
+                                wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
+                                wrap.injectRBInput(A | RIGHT);
+                                res3 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
+                                if(res3 == RedBlueAddr.catchSuccessAddr) {
+                                    redbarYbf3 = ", 3-rb ybf: [*]";
+                                } else {
+                                    redbarYbf3 = ", 3-rb ybf: [ ]";
+                                }
+
+                                // non-redbar
+                                gb.loadState(saveState2);
+                                wrap.writeMemory(0xD158, 0x80);
+                                wrap.writeMemory(0xD159, 0x80);
+                                wrap.writeMemory(0xD15A, 0x80);
+                                wrap.writeMemory(0xD15B, 0x80);
+                                wrap.writeMemory(0xD15C, 0x50);
+                                wrap.writeMemory(0xD16D, 1);
+
+                                wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
+                                wrap.injectRBInput(A);
+                                wrap.advanceFrame();
+                                wrap.advanceToAddress(RedBlueAddr.playCryAddr);
+                                wrap.injectRBInput(DOWN | A);
+                                wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
+                                wrap.injectRBInput(A | RIGHT);
+                                res3 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
+                                if(res3 == RedBlueAddr.catchSuccessAddr) {
+                                    redbarYbf4 = ", 4-rb ybf: [*]";
+                                } else {
+                                    redbarYbf4 = ", 4-rb ybf: [ ]";
+                                }
+
+                                gb.loadState(saveState2);
+                                wrap.writeMemory(0xD158, 0x80);
+                                wrap.writeMemory(0xD159, 0x80);
+                                wrap.writeMemory(0xD15A, 0x80);
+                                wrap.writeMemory(0xD15B, 0x80);
+                                wrap.writeMemory(0xD15C, 0x80);
+                                wrap.writeMemory(0xD15D, 0x50);
+                                wrap.writeMemory(0xD16D, 1);
+
+                                wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
+                                wrap.injectRBInput(A);
+                                wrap.advanceFrame();
+                                wrap.advanceToAddress(RedBlueAddr.playCryAddr);
+                                wrap.injectRBInput(DOWN | A);
+                                wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
+                                wrap.injectRBInput(A | RIGHT);
+                                res3 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
+                                if(res3 == RedBlueAddr.catchSuccessAddr) {
+                                    redbarYbf5 = ", 5-rb ybf: [*]";
+                                } else {
+                                    redbarYbf5 = ", 5-rb ybf: [ ]";
+                                }
                             }
                             writer.println(
                                     ow.toString() + " " + edgeAction.logStr() + ", " +
                                             String.format(
                                                     "species %d lv%d DVs %04X rng %s encrng %s",
                                                     enc.species, enc.level, enc.dvs, enc.battleRNG, rngAtEnc
-                                            ) + ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames) + defaultYbf + redbarYbf
+                                            ) + ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames) + defaultYbf1 + defaultYbf2 + defaultYbf3 + defaultYbf4 + defaultYbf5 + redbarYbf1 + redbarYbf2 + redbarYbf3 + redbarYbf4 + redbarYbf5
                                     //                              + pruneDsum
                             );
                             writer.flush();
@@ -451,61 +635,73 @@ public class Ditto {
         introSequences.add(new IntroSequence(pal, gfSkip, nido0, title0, cont, cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido0, title0, cont, cont));
         introSequences.add(new IntroSequence(holdpal, gfSkip, nido0, title0, cont, cont));
+        introSequences.add(new IntroSequence(cheatpal, gfSkip, nido0, title0, cont, cont));
 
         introSequences.add(new IntroSequence(nopal, gfSkip, nido0, title0, cont, fsback, cont, cont));
         introSequences.add(new IntroSequence(pal, gfSkip, nido0, title0, cont, fsback, cont, cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido0, title0, cont, fsback, cont, cont));
         introSequences.add(new IntroSequence(holdpal, gfSkip, nido0, title0, cont, fsback, cont, cont));
+        introSequences.add(new IntroSequence(cheatpal, gfSkip, nido0, title0, cont, fsback, cont, cont));
 
         introSequences.add(new IntroSequence(nopal, gfSkip, nido1, title0, cont, cont));
         introSequences.add(new IntroSequence(pal, gfSkip, nido1, title0, cont, cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido1, title0, cont, cont));
         introSequences.add(new IntroSequence(holdpal, gfSkip, nido1, title0, cont, cont));
+        introSequences.add(new IntroSequence(cheatpal, gfSkip, nido1, title0, cont, cont));
 
         introSequences.add(new IntroSequence(nopal, gfSkip, nido2, title0, cont, cont));
         introSequences.add(new IntroSequence(pal, gfSkip, nido2, title0, cont, cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido2, title0, cont, cont));
         introSequences.add(new IntroSequence(holdpal, gfSkip, nido2, title0, cont, cont));
+        introSequences.add(new IntroSequence(cheatpal, gfSkip, nido2, title0, cont, cont));
 
         introSequences.add(new IntroSequence(nopal, gfSkip, nido0, title0, cont, fsback, cont, fsback, cont, cont));
         introSequences.add(new IntroSequence(pal, gfSkip, nido0, title0, cont, fsback, cont, fsback, cont, cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido0, title0, cont, fsback, cont, fsback, cont, cont));
         introSequences.add(new IntroSequence(holdpal, gfSkip, nido0, title0, cont, fsback, cont, fsback, cont, cont));
+        introSequences.add(new IntroSequence(cheatpal, gfSkip, nido0, title0, cont, fsback, cont, fsback, cont, cont));
 
         introSequences.add(new IntroSequence(nopal, gfSkip, nido1, title0, cont, fsback, cont, cont));
         introSequences.add(new IntroSequence(pal, gfSkip, nido1, title0, cont, fsback, cont, cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido1, title0, cont, fsback, cont, cont));
         introSequences.add(new IntroSequence(holdpal, gfSkip, nido1, title0, cont, fsback, cont, cont));
+        introSequences.add(new IntroSequence(cheatpal, gfSkip, nido1, title0, cont, fsback, cont, cont));
 
         introSequences.add(new IntroSequence(nopal, gfWait, nido0, title0, cont, cont));
         introSequences.add(new IntroSequence(pal, gfWait, nido0, title0, cont, cont));
         introSequences.add(new IntroSequence(abss, gfWait, nido0, title0, cont, cont));
         introSequences.add(new IntroSequence(holdpal, gfWait, nido0, title0, cont, cont));
+        introSequences.add(new IntroSequence(cheatpal, gfWait, nido0, title0, cont, cont));
 
         introSequences.add(new IntroSequence(nopal, gfSkip, nido0, title0, mmback, title0, cont, cont));
         introSequences.add(new IntroSequence(pal, gfSkip, nido0, title0, mmback, title0, cont, cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido0, title0, mmback, title0, cont, cont));
         introSequences.add(new IntroSequence(holdpal, gfSkip, nido0, title0, mmback, title0, cont, cont));
+        introSequences.add(new IntroSequence(cheatpal, gfSkip, nido0, title0, mmback, title0, cont, cont));
 
         introSequences.add(new IntroSequence(nopal, gfSkip, nido0, title1, cont, cont));
         introSequences.add(new IntroSequence(pal, gfSkip, nido0, title1, cont, cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido0, title1, cont, cont));
         introSequences.add(new IntroSequence(holdpal, gfSkip, nido0, title1, cont, cont));
+        introSequences.add(new IntroSequence(cheatpal, gfSkip, nido0, title1, cont, cont));
 
         introSequences.add(new IntroSequence(nopal, gfSkip, nido2, title0, cont, fsback, cont, cont));
         introSequences.add(new IntroSequence(pal, gfSkip, nido2, title0, cont, fsback, cont, cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido2, title0, cont, fsback, cont, cont));
         introSequences.add(new IntroSequence(holdpal, gfSkip, nido2, title0, cont, fsback, cont, cont));
+        introSequences.add(new IntroSequence(cheatpal, gfSkip, nido2, title0, cont, fsback, cont, cont));
 
         introSequences.add(new IntroSequence(nopal, gfSkip, nido0, title0, cont, fsback, cont, fsback, cont, fsback, cont,cont));
         introSequences.add(new IntroSequence(pal, gfSkip, nido0, title0, cont, fsback, cont, fsback, cont, fsback, cont,cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido0, title0, cont, fsback, cont, fsback, cont, fsback, cont,cont));
         introSequences.add(new IntroSequence(holdpal, gfSkip, nido0, title0, cont, fsback, cont, fsback, cont, fsback, cont,cont));
+        introSequences.add(new IntroSequence(cheatpal, gfSkip, nido0, title0, cont, fsback, cont, fsback, cont, fsback, cont,cont));
 
         introSequences.add(new IntroSequence(nopal, gfSkip, nido3, title0, cont, cont));
         introSequences.add(new IntroSequence(pal, gfSkip, nido3, title0, cont, cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido3, title0, cont, cont));
         introSequences.add(new IntroSequence(holdpal, gfSkip, nido3, title0, cont, cont));
+        introSequences.add(new IntroSequence(cheatpal, gfSkip, nido3, title0, cont, cont));
 
         Collections.sort(introSequences);
         Collections.sort(saveTiles, new SaveTileComparator());
@@ -515,14 +711,14 @@ public class Ditto {
             new File("logs").mkdir();
         }
 
-        if (!new File("roms").exists()) {
-            new File("roms").mkdir();
+        if (!new File("testroms").exists()) {
+            new File("testroms").mkdir();
             System.err.println("I need ROMs to simulate!");
             System.exit(0);
         }
 
-        if (!new File("roms/poke" + gameName + ".gbc").exists()) {
-            System.err.println("Could not find poke" + gameName + ".gbc in roms directory!");
+        if (!new File("testroms/poke" + gameName + ".gbc").exists()) {
+            System.err.println("Could not find poke" + gameName + ".gbc in testroms directory!");
             System.exit(0);
         }
 
@@ -534,7 +730,7 @@ public class Ditto {
             makeSave(savePos.getX(), savePos.getY());
             Gb.loadGambatte(1);
             gb = new Gb(0, false);
-            gb.startEmulator("roms/poke" + gameName + ".gbc");
+            gb.startEmulator("testroms/poke" + gameName + ".gbc");
             mem = new GBMemory(gb);
             wrap = new GBWrapper(gb, mem);
 
@@ -546,15 +742,14 @@ public class Ditto {
                     wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
                     //wrap.writeMemory(0xD2B5, 0x80);
                     //wrap.writeMemory(0xD2B6, 0x50);
-                    //wrap.writeMemory(0xD158, 0x80);
-                    //wrap.writeMemory(0xD159, 0x50);
-                    //wrap.writeMemory(0xD31D, 0x04);
-                    //wrap.writeMemory(0xD320, 0x0D);
-                    //wrap.writeMemory(0xD322, 0x12);
-                    //wrap.writeMemory(0xD324, 0x13);
+
+                    wrap.writeMemory(0xD31D, 0x04);
+                    wrap.writeMemory(0xD320, 0x0F);
+                    wrap.writeMemory(0xD322, 0x14);
+                    wrap.writeMemory(0xD324, 0x0B);
                     //wrap.writeMemory(0xD700, 0x01);
-                    //wrap.writeMemory(0xD325, 0x01);
-                    //wrap.writeMemory(0xD326, 0xFF);
+                    wrap.writeMemory(0xD325, 0x01);
+                    wrap.writeMemory(0xD326, 0xFF);
                     int hra = mem.getHRA();
                     int hrs = mem.getHRS();
                     int dsum = (hra + hrs) % 256;
@@ -594,7 +789,7 @@ public class Ditto {
             csum += baseSave[i] & 0xFF;
         }
         baseSave[0x3523] = (byte) ((csum & 0xFF) ^ 0xFF); // cpl
-        FileFunctions.writeBytesToFile("roms/poke" + gameName + ".sav", baseSave);
+        FileFunctions.writeBytesToFile("testroms/poke" + gameName + ".sav", baseSave);
     }
 
     static class SaveTileComparator implements Comparator<SaveTile> {
@@ -644,7 +839,7 @@ public class Ditto {
                 wrap.advanceWithJoypadToAddress(input[i], addr[i]);
                 wrap.advanceFrame(input[i]);
                 for (int j = 0; j < advanceFrames[i]; j++) {
-                    wrap.advanceFrame();
+                    wrap.advanceFrame(input[i]);
                 }
             }
         }
@@ -681,6 +876,7 @@ public class Ditto {
     private static PalStrat nopal = new PalStrat("_nopal", 0, new Integer[] {RedBlueAddr.biosReadKeypadAddr}, new Integer[] {NO_INPUT}, new Integer[] {1});
     private static PalStrat abss = new PalStrat("_nopal(ab)", 0, new Integer[] {RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.initAddr}, new Integer[] {A, A}, new Integer[] {0, 0});
     private static PalStrat holdpal = new PalStrat("_pal(hold)", 0, new Integer[] {RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.initAddr}, new Integer[] {UP, UP}, new Integer[] {0, 0});
+    private static PalStrat cheatpal = new PalStrat("_pal(ab)", 0, new Integer[] {RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.initAddr}, new Integer[] {UP, UP | A, UP | A}, new Integer[] {70, 0, 0});
 
     private static Strat gfSkip = new Strat("_gfskip", 0, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {UP | SELECT | B}, new Integer[] {1});
     private static Strat gfWait = new Strat("_gfwait", 253, new Integer[] {RedBlueAddr.delayAtEndOfShootingStarAddr}, new Integer[] {NO_INPUT}, new Integer[] {0});
@@ -698,7 +894,7 @@ public class Ditto {
             new Integer[] {A},
             new Integer[] {1});
 
-    private static Strat fsback = new Strat("_fsback", 97,
+    private static Strat fsback = new Strat("_fsback", 98,
             new Integer[] {RedBlueAddr.joypadAddr},
             new Integer[] {B},
             new Integer[] {1});

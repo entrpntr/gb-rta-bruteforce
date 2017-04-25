@@ -103,11 +103,15 @@ public class Sandslash {
                                     mem.getEncounterDVs(), mem.getRNGStateHRAOnly());
                             int owFrames = ow.getOverworldFrames() + edge.getFrames();
                             //  String pruneDsum = dsumPrune ? " [*]" : "";
-                            String defaultYbf = "";
-                            String redbarYbf = "";
+                            String defaultYbf1 = "";
+                            String defaultYbf2 = "";
+                            String defaultYbf3 = "";
+                            String defaultYbf4 = "";
                             if(enc.species == 97) {
                                 // non-redbar
-//                                ByteBuffer saveState2 = gb.saveState();
+                                ByteBuffer saveState2 = gb.saveState();
+                                wrap.writeMemory(0xD2B5, 0x80);
+                                wrap.writeMemory(0xD2B6, 0x50);
                                 wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
                                 wrap.injectRBInput(A);
                                 wrap.advanceFrame();
@@ -117,35 +121,79 @@ public class Sandslash {
                                 wrap.injectRBInput(DOWN | A | RIGHT);
                                 int res2 = wrap.advanceWithJoypadToAddress(DOWN | A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
                                 if(res2 == RedBlueAddr.catchSuccessAddr) {
-                                    defaultYbf = ", default ybf: [*]";
+                                    defaultYbf1 = ", 1-df ybf: [*]";
                                 } else {
-                                    defaultYbf = ", default ybf: [ ]";
+                                    defaultYbf1 = ", 1-df ybf: [ ]";
                                 }
-/*
-                                // redbar
+
                                 gb.loadState(saveState2);
-                                wrap.writeMemory(0xD16D, 1);
+                                wrap.writeMemory(0xD2B5, 0x80);
+                                wrap.writeMemory(0xD2B6, 0x80);
+                                wrap.writeMemory(0xD2B7, 0x50);
+
+                                //wrap.writeMemory(0xD16D, 1);
                                 wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
                                 wrap.injectRBInput(A);
                                 wrap.advanceFrame();
                                 wrap.advanceToAddress(RedBlueAddr.playCryAddr);
                                 wrap.injectRBInput(DOWN | A);
                                 wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
-                                wrap.injectRBInput(A | RIGHT);
-                                int res3 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
+                                wrap.injectRBInput(DOWN | A | RIGHT);
+                                int res3 = wrap.advanceWithJoypadToAddress(DOWN | A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
                                 if(res3 == RedBlueAddr.catchSuccessAddr) {
-                                    redbarYbf = ", redbar ybf: [*]";
+                                    defaultYbf2 = ", 2-df ybf: [*]";
                                 } else {
-                                    redbarYbf = ", redbar ybf: [ ]";
+                                    defaultYbf2 = ", 2-df ybf: [ ]";
                                 }
-                                */
+
+                                gb.loadState(saveState2);
+                                wrap.writeMemory(0xD2B5, 0x80);
+                                wrap.writeMemory(0xD2B6, 0x80);
+                                wrap.writeMemory(0xD2B7, 0x80);
+                                wrap.writeMemory(0xD2B8, 0x50);
+
+                                //wrap.writeMemory(0xD16D, 1);
+                                wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
+                                wrap.injectRBInput(A);
+                                wrap.advanceFrame();
+                                wrap.advanceToAddress(RedBlueAddr.playCryAddr);
+                                wrap.injectRBInput(DOWN | A);
+                                wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
+                                wrap.injectRBInput(DOWN | A | RIGHT);
+                                res3 = wrap.advanceWithJoypadToAddress(DOWN | A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
+                                if(res3 == RedBlueAddr.catchSuccessAddr) {
+                                    defaultYbf3 = ", 3-df ybf: [*]";
+                                } else {
+                                    defaultYbf3 = ", 3-df ybf: [ ]";
+                                }
+/*
+                                // non-redbar
+                                gb.loadState(saveState2);
+                                wrap.writeMemory(0xD158, 0x80);
+                                wrap.writeMemory(0xD159, 0x80);
+                                wrap.writeMemory(0xD15A, 0x80);
+                                wrap.writeMemory(0xD15B, 0x80);
+                                wrap.writeMemory(0xD15C, 0x50);
+                                wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
+                                wrap.injectRBInput(A);
+                                wrap.advanceFrame();
+                                wrap.advanceToAddress(RedBlueAddr.playCryAddr);
+                                wrap.injectRBInput(DOWN | A);
+                                wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
+                                wrap.injectRBInput(DOWN | A | RIGHT);
+                                res3 = wrap.advanceWithJoypadToAddress(DOWN | A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
+                                if(res3 == RedBlueAddr.catchSuccessAddr) {
+                                    defaultYbf4 = ", 4-df ybf: [*]";
+                                } else {
+                                    defaultYbf4 = ", 4-df ybf: [ ]";
+                                }*/
                             }
                             writer.println(
                                     ow.toString() + " " + edgeAction.logStr() + ", " +
                                             String.format(
                                                     "species %d lv%d DVs %04X rng %s encrng %s",
                                                     enc.species, enc.level, enc.dvs, enc.battleRNG, rngAtEnc
-                                            ) + ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames) + defaultYbf + redbarYbf
+                                            ) + ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames) + defaultYbf1 + defaultYbf2 + defaultYbf3
                                     //                              + pruneDsum
                             );
                             writer.flush();
@@ -393,8 +441,8 @@ public class Sandslash {
         //pw23_15.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw23_15));
         pw23_15.setMinStepsToGrass(1);
 
-        pw24_15.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw24_14));
-        pw24_15.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw23_15));
+        //pw24_15.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw24_14));
+        //pw24_15.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw23_15));
         pw24_15.addEdge(new OverworldEdge(OverworldAction.DOWN, 9, 9, pw24_16));
         pw24_15.addEdge(new OverworldEdge(OverworldAction.RIGHT, 9, 9, pw25_15));
         pw24_15.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw24_15));
@@ -403,7 +451,7 @@ public class Sandslash {
         //pw24_15.addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, 91, 91, pw24_15));
         pw24_15.setMinStepsToGrass(1);
 
-        pw25_15.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw25_14));
+        //pw25_15.addEdge(new OverworldEdge(OverworldAction.UP, 9, 9, pw25_14));
         pw25_15.addEdge(new OverworldEdge(OverworldAction.LEFT, 9, 9, pw24_15));
         pw25_15.addEdge(new OverworldEdge(OverworldAction.DOWN, 9, 9, pw25_16));
         pw25_15.addEdge(new OverworldEdge(OverworldAction.A, 2, 2, pw25_15));
@@ -445,11 +493,14 @@ public class Sandslash {
         pw25_17.setMinStepsToGrass(2);
         List<IntroSequence> introSequences = new ArrayList<>();
 
+
         introSequences.add(new IntroSequence(nopal, gfSkip, nido0, title0, cont, cont));
         introSequences.add(new IntroSequence(pal, gfSkip, nido0, title0, cont, cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido0, title0, cont, cont));
         introSequences.add(new IntroSequence(holdpal, gfSkip, nido0, title0, cont, cont));
+        introSequences.add(new IntroSequence(cheatpal, gfSkip, nido0, title0, cont, cont));
 
+/*
         introSequences.add(new IntroSequence(nopal, gfSkip, nido0, title0, cont, fsback, cont, cont));
         introSequences.add(new IntroSequence(pal, gfSkip, nido0, title0, cont, fsback, cont, cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido0, title0, cont, fsback, cont, cont));
@@ -504,7 +555,7 @@ public class Sandslash {
         introSequences.add(new IntroSequence(pal, gfSkip, nido3, title0, cont, cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido3, title0, cont, cont));
         introSequences.add(new IntroSequence(holdpal, gfSkip, nido3, title0, cont, cont));
-
+*/
         Collections.sort(introSequences);
         Collections.sort(saveTiles, new SaveTileComparator());
 
@@ -546,10 +597,16 @@ public class Sandslash {
                     //wrap.writeMemory(0xD2B6, 0x50);
                     //wrap.writeMemory(0xD158, 0x80);
                     //wrap.writeMemory(0xD159, 0x50);
-                    //wrap.writeMemory(0xD31D, 0x04);
-                    //wrap.writeMemory(0xD320, 0x0D);
-                    //wrap.writeMemory(0xD322, 0x12);
-                    //wrap.writeMemory(0xD324, 0x0D);
+                    wrap.writeMemory(0xD31D, 0x06);
+                    wrap.writeMemory(0xD322, 0x0D);
+                    wrap.writeMemory(0xD323, 0x01);
+                    wrap.writeMemory(0xD324, 0x1E);
+                    wrap.writeMemory(0xD325, 0x02);
+                    wrap.writeMemory(0xD326, 0x44);
+                    wrap.writeMemory(0xD327, 0x01);
+                    wrap.writeMemory(0xD328, 0x06);
+                    wrap.writeMemory(0xD329, 0x01);
+                    wrap.writeMemory(0xD32A, 0xFF);
                     //wrap.writeMemory(0xD700, 0x01);
                     //wrap.writeMemory(0xD325, 0x01);
                     //wrap.writeMemory(0xD326, 0xFF);
@@ -573,7 +630,7 @@ public class Sandslash {
     }
 
     private static void makeSave(int x, int y) throws IOException {
-        byte[] baseSave = FileFunctions.readFileFullyIntoBuffer("baseSaves/pokeblue-pcjack.sav");
+        byte[] baseSave = FileFunctions.readFileFullyIntoBuffer("baseSaves/pcjack-dungeon.sav");
         int mapWidth = 15;
         int baseX = x;
         int baseY = y;
@@ -676,7 +733,10 @@ public class Sandslash {
     private static PalStrat nopal = new PalStrat("_nopal", 0, new Integer[] {RedBlueAddr.biosReadKeypadAddr}, new Integer[] {NO_INPUT}, new Integer[] {1});
     private static PalStrat abss = new PalStrat("_nopal(ab)", 0, new Integer[] {RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.initAddr}, new Integer[] {A, A}, new Integer[] {0, 0});
     private static PalStrat holdpal = new PalStrat("_pal(hold)", 0, new Integer[] {RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.initAddr}, new Integer[] {UP, UP}, new Integer[] {0, 0});
-
+    private static PalStrat cheatpal = new PalStrat("_pal(ab)", 0,
+            new Integer[] {RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.initAddr},
+            new Integer[] {UP, UP | A, UP | A},
+            new Integer[] {70, 0, 0});
     private static Strat gfSkip = new Strat("_gfskip", 0, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {UP | SELECT | B}, new Integer[] {1});
     private static Strat gfWait = new Strat("_gfwait", 253, new Integer[] {RedBlueAddr.delayAtEndOfShootingStarAddr}, new Integer[] {NO_INPUT}, new Integer[] {0});
 

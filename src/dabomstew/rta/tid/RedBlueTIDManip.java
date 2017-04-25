@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import dabomstew.rta.RedBlueAddr;
 import dabomstew.rta.GBMemory;
@@ -46,7 +47,7 @@ public class RedBlueTIDManip {
     private static PalStrat nopal = new PalStrat("_nopal", 0, new Integer[] {RedBlueAddr.biosReadKeypadAddr}, new Integer[] {NO_INPUT}, new Integer[] {1});
     private static PalStrat abss = new PalStrat("_nopal(ab)", 0, new Integer[] {RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.initAddr}, new Integer[] {A, A}, new Integer[] {0, 0});
     private static PalStrat holdpal = new PalStrat("_pal(hold)", 0, new Integer[] {RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.initAddr}, new Integer[] {UP, UP}, new Integer[] {0, 0});
-
+    private static PalStrat cheatpal = new PalStrat("_pal(ab)", 0, new Integer[] {RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.initAddr}, new Integer[] {UP, UP | A, UP | A}, new Integer[] {70, 0, 0});
     private static Strat gfSkip = new Strat("_gfskip", 0, new Integer[] {RedBlueAddr.joypadAddr}, new Integer[] {UP | SELECT | B}, new Integer[] {1});
     private static Strat gfWait = new Strat("_gfwait", 253, new Integer[] {RedBlueAddr.delayAtEndOfShootingStarAddr}, new Integer[] {NO_INPUT}, new Integer[] {0});
     private static List<Strat> gf = Arrays.asList(gfSkip, gfWait);
@@ -111,7 +112,7 @@ public class RedBlueTIDManip {
                 wrap.advanceWithJoypadToAddress(input[i], addr[i]);
                 wrap.advanceFrame(input[i]);
                 for (int j = 0; j < advanceFrames[i]; j++) {
-                    wrap.advanceFrame();
+                    wrap.advanceFrame(input[i]);
                 }
             }
         }
@@ -199,7 +200,7 @@ public class RedBlueTIDManip {
         }
 
         String suffix = (optsMode) ? "_tids_opts" : "_tids";
-        File file = new File(gameName + suffix + ".txt");
+        File file = new File(gameName + suffix + "_test69.txt");
         PrintWriter writer = new PrintWriter(file);
 
         ArrayList<Strat> title = new ArrayList<>();
@@ -330,14 +331,19 @@ public class RedBlueTIDManip {
             }
         }
 
-        ArrayList<IntroSequence> introSequences = new ArrayList<>();
+        List<IntroSequence> introSequences = new ArrayList<>();
         for(IntroSequence seq : introSequencesTmp) {
             introSequences.add(append(nopal, seq));
             introSequences.add(append(pal, seq));
             introSequences.add(append(abss, seq));
             introSequences.add(append(holdpal, seq));
+            introSequences.add(append(cheatpal, seq));
         }
         introSequencesTmp.clear();
+
+        if(optsMode) {
+            introSequences = introSequences.stream().filter(seq -> seq.toString().contains("opt")).collect(Collectors.toList());
+        }
 
         System.out.println("Number of intro sequences: " + introSequences.size());
         Collections.sort(introSequences);
@@ -361,7 +367,6 @@ public class RedBlueTIDManip {
                             + ", Cost: " + (seq.cost() + 492));
             gb.step(HARD_RESET);
             writer.flush();
-            //System.out.println(seq.toString() + ", Cost: " + (seq.cost() + 492));
         }
         writer.close();
     }

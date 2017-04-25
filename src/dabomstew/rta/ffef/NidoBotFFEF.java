@@ -40,8 +40,8 @@ public class NidoBotFFEF {
     }
 
     // TODO: LOOK AT TUNING THESE MORE
-    private static final double DSUM_HIGH_COEF = 0.686;
-    private static final double DSUM_LOW_COEF = 0.623;
+    private static final double DSUM_HIGH_COEF = 0.6969;
+    private static final double DSUM_LOW_COEF = 0.6464;
     private static final double DSUM_MARGIN_OF_ERROR = 5.0;
 
     private static LongArrayList seenStates = new LongArrayList(100000);
@@ -83,15 +83,19 @@ public class NidoBotFFEF {
         introSequences.add(new IntroSequence(pal, gfSkip, nido0, title0, cont, cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido0, title0, cont, cont));
         introSequences.add(new IntroSequence(holdpal, gfSkip, nido0, title0, cont, cont));
+        introSequences.add(new IntroSequence(cheatpal, gfSkip, nido0, title0, cont, cont));
+
         introSequences.add(new IntroSequence(nopal, gfSkip, nido0, title0, cont, backout, cont, cont));
         introSequences.add(new IntroSequence(pal, gfSkip, nido0, title0, cont, backout, cont, cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido0, title0, cont, backout, cont, cont));
         introSequences.add(new IntroSequence(holdpal, gfSkip, nido0, title0, cont, backout, cont, cont));
+        introSequences.add(new IntroSequence(cheatpal,gfSkip,nido0,title0,cont,backout,cont, cont));
 
         introSequences.add(new IntroSequence(nopal, gfSkip, nido1, title0, cont, cont));
         introSequences.add(new IntroSequence(pal, gfSkip, nido1, title0, cont, cont));
         introSequences.add(new IntroSequence(abss, gfSkip, nido1, title0, cont, cont));
         introSequences.add(new IntroSequence(holdpal, gfSkip, nido1, title0, cont, cont));
+        introSequences.add(new IntroSequence(cheatpal, gfSkip, nido1, title0, cont, cont));
 
         initTiles();
 
@@ -99,10 +103,10 @@ public class NidoBotFFEF {
         Collections.sort(saveTiles, new SaveTileComparator());
         for(SaveTile saveTile : saveTiles) {
             // Comment these lines out if you want to search the whole space
-            //if(saveTile.getOwPos().getMinStepsToGrass() < 23 || saveTile.getOwPos().getMinStepsToGrass() > 35) {
-            //if(saveTile.getOwPos().getMinStepsToGrass() > 22 || (saveTile.getOwPos().getX()/2==3 && saveTile.getOwPos().getY()==18)) {
-            //    continue;
-            //}
+            //if(saveTile.getOwPos().getMinStepsToGrass() < 35 || saveTile.getOwPos().getMinStepsToGrass() > 40 ) {
+            if(saveTile.getOwPos().getMinStepsToGrass() > 22 ) {
+                continue;
+            }
 /*
             if(saveTile.getOwPos().getX()==18 && saveTile.getOwPos().getY()==20) {
                 startProcessing = true;
@@ -265,7 +269,9 @@ public class NidoBotFFEF {
                         }
                     }
                     if (res == RedBlueAddr.joypadOverworldAddr) {
-                        while (mem.getMap() == ow.getMap() && mem.getX() == ow.getX() && mem.getY() == ow.getY()) {
+                        int waste = ow.getWastedFrames() + edgeCost;
+                        while (mem.getMap() == ow.getMap() && mem.getX() == ow.getX() && mem.getY() == ow.getY() && waste <= MAX_COST) {
+                            waste += 2;
                             wrap.injectRBInput(input);
                             wrap.advanceFrame(input);
                             wrap.advanceWithJoypadToAddress(input, RedBlueAddr.joypadOverworldAddr);
@@ -528,7 +534,7 @@ public class NidoBotFFEF {
                 wrap.advanceWithJoypadToAddress(input[i], addr[i]);
                 wrap.advanceFrame(input[i]);
                 for (int j = 0; j < advanceFrames[i]; j++) {
-                    wrap.advanceFrame();
+                    wrap.advanceFrame(input[i]);
                 }
             }
         }
@@ -577,6 +583,10 @@ public class NidoBotFFEF {
             new Integer[] {RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.initAddr},
             new Integer[] {UP, UP},
             new Integer[] {0, 0});
+    private static PalStrat cheatpal = new PalStrat("_pal(ab)", 0,
+            new Integer[] {RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.biosReadKeypadAddr, RedBlueAddr.initAddr},
+            new Integer[] {UP, UP | A, UP | A},
+            new Integer[] {70, 0, 0});
 
     private static Strat nido0 = new Strat("_hop0", 0,
             new Integer[] {RedBlueAddr.joypadAddr},
@@ -1561,7 +1571,7 @@ public class NidoBotFFEF {
                     int sbcost = (x <= 39-30) ? 53 : 54;
                     pw[x][y].addEdge(new OverworldEdge(OverworldAction.START_B, sbcost, sbcost, pw[x][y]));
                     pw[x][y].addEdge(new OverworldEdge(OverworldAction.S_A_B_S, sbcost+29, sbcost+30, pw[x][y]));
-                    pw[x][y].addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, sbcost+58, sbcost+60, pw[x][y]));
+                    //pw[x][y].addEdge(new OverworldEdge(OverworldAction.S_A_B_A_B_S, sbcost+58, sbcost+60, pw[x][y]));
                     Collections.sort(pw[x][y].getEdgeList());
 
                     // MIN_STEPS_TO_GRASS

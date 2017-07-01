@@ -9,7 +9,7 @@ libgambatte/include/mrwint_gbtasgen_Gb.h
 bin/
 movies/*
 roms/*
-testroms/*
+testroms*/*
 saves/*
 assembly/dk.asm
 assembly/sml2_10.asm
@@ -32,6 +32,7 @@ oldrngdata/*
 *.log
 log.txt
 *_encounters*.txt
+*enc*.txt
 *_statesimport*.txt
 *ffef*.txt
 *pidgey*.txt

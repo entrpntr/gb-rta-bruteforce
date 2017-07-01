@@ -146,6 +146,14 @@ public class KinTIDManip {
         }
     }
 
+    private static void addOptPermutations(ArrayList<IntroSequence> introSequences, IntroSequence introSequence) {
+        int ngmax = (MAX_COST - (introSequence.cost() + BASE_COST + 8 + 70));
+        for(int i=0; ngmax>=0 && i<=ngmax/71; i++) {
+            introSequences.add(append(introSequence, newGame));
+            introSequence = append(introSequence, backout, titleSkip);
+        }
+    }
+
     public static void main(String[] args) throws IOException, InterruptedException {
         if (!new File("roms").exists()) {
             new File("roms").mkdir();
@@ -170,6 +178,28 @@ public class KinTIDManip {
             waitStrats.add(new Strat("_wait" + i, i*4, addr, input, advFrames));
         }
 
+        ArrayList<Strat> optStrats = new ArrayList<>();
+        for(int i=1; i<=maxwaits; i++) {
+            Integer[] addr = new Integer[i+2];
+            Integer[] input = new Integer[i+2];
+            Integer[] advFrames = new Integer[i+2];
+            addr[0] = KinAddr.readJoypadAddr;
+            input[0] = 0x80;
+            advFrames[0] = 1;
+            for(int j=1; j<i; j++) {
+                addr[j] = KinAddr.mainMenuJoypadAddr;
+                input[j] = NO_INPUT;
+                advFrames[j] = 1;
+            }
+            addr[i] = KinAddr.readJoypadAddr;
+            input[i] = A;
+            advFrames[i] = 1;
+            addr[i+1] = KinAddr.readJoypadAddr;
+            input[i+1] = START;
+            advFrames[i+1] = 1;
+            optStrats.add(new Strat("_wait" + i + "(opt)", i*4 + 70, addr, input, advFrames));
+        }
+
         ArrayList<IntroSequence> introSequences = new ArrayList<>();
         for(Strat s : intro) {
             IntroSequence introSequence = new IntroSequence(s, titleSkip);
@@ -179,6 +209,10 @@ public class KinTIDManip {
                 for(Strat s2 : waitStrats) {
                     IntroSequence base = append(introSequence, s2);
                     addWaitPermutations(introSequences, base);
+                }
+                for(Strat s3 : optStrats) {
+                    IntroSequence base = append(introSequence, s3);
+                    addOptPermutations(introSequences, base);
                 }
                 introSequence = append(introSequence, backout, titleSkip);
             }

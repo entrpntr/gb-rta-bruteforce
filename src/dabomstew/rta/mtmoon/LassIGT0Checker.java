@@ -39,12 +39,11 @@ public class LassIGT0Checker {
 
         int[][] segmentPaths =
                 {{32,32,32,32,32,32,32,128,32,128,128},{64,64,64,64,64,32,64,32,64,64,64,33,32,64,64,32,64,64,64,64,32,32},{128,128,17,16,128},{128,128,16,16,129,128,128,128,128,128,128,128,128,128,16,16,16,16,16,16,16,16,16,16,16,16,16,16},{16,16,64,64,64,16,16,16},{128,128,16,16,16,16,16,16},{16,64,64,16,16,16},{128,129,128,128,128,128,128,128,32,32,32,32,128,128,128,128,128,128,128,128,128,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32},
-                        {33,64,64,64,65,64,64,64,64,65,64,64,64,65,64}};
+                        {32,65,64,64,64,64,65,64,64,65,64,64,64,65,64}};
 
         String path = "";
 
         for(int i=0;i<segmentPaths.length;i++) {
-            //if(i == 0) { path += "LLLLLLL"; }
             for(int input : segmentPaths[i]) {
                 if((input & 1) != 0) {
                     path += "A"+Func.inputName(input & 0xFE);
@@ -55,7 +54,6 @@ public class LassIGT0Checker {
             }
             if(i == 0) { path += "DDDDDDDLLLLL"; }
             if(i == 1) { path += "L"; }
-            //if(i == 8) { path += "LRL"; }
         }
         path = path.replace(" ", "");
         System.out.println(path);
@@ -104,241 +102,188 @@ public class LassIGT0Checker {
         ByteBuffer state = gbs[0].saveState();
 
         // Setup for threading
-        String[][] results = new String[60][60];
         boolean[][] successes = new boolean[60][60];
-        boolean[] threadsRunning = new boolean[numThreads];
 
         // Deal with save
         long startAll = System.currentTimeMillis();
         for (int igtsec = 0; igtsec < maxSecond; igtsec++) {
+            System.out.println("Second " + igtsec);
             for (int igt0 = 0; igt0 < 60; igt0++) {
-                boolean started = false;
-                while (!started) {
-                    synchronized (threadsRunning) {
-                        int threadIdx = -1;
-                        for (int i = 0; i < numThreads; i++) {
-                            if (!threadsRunning[i]) {
-                                threadIdx = i;
-                                break;
-                            }
-                        }
-                        if (threadIdx >= 0) {
-                            started = true;
-                            final int num = threadIdx;
-                            final int sec = igtsec;
-                            final int frm = igt0;
-                            threadsRunning[threadIdx] = true;
-                            Runnable run = new Runnable() {
+                final int num = 0;
+                final int sec = igtsec;
+                final int frm = igt0;
 
-                                @Override
-                                public void run() {
-                                    Gb gb = gbs[num];
-                                    GBMemory mem = mems[num];
-                                    GBWrapper wrap = wraps[num];
-                                    String log = "S" + sec + " F" + frm;
-                                    long startFrame = System.currentTimeMillis();
-                                    gb.loadState(state);
-                                    gb.writeMemory(0xda44, sec);
-                                    gb.writeMemory(0xda45, frm);
+                Gb gb = gbs[num];
+                GBMemory mem = mems[num];
+                GBWrapper wrap = wraps[num];
+                System.out.print("S" + sec + " F" + frm);
 
-                                    // skip the rest of the intro
-                                    wrap.advanceToAddress(RedBlueAddr.joypadAddr);
-                                    wrap.injectRBInput(A);
-                                    wrap.advanceFrame();
-                                    wrap.advanceToAddress(RedBlueAddr.joypadAddr);
-                                    wrap.injectRBInput(A);
-                                    wrap.advanceFrame();
-                                    wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
-                                    int pathIdx = 0;
+                long startFrame = System.currentTimeMillis();
+                gb.loadState(state);
+                gb.writeMemory(0xda44, sec);
+                gb.writeMemory(0xda45, frm);
 
-                                    // Process shit
-                                    boolean garbage = false;
-                                    boolean success = false;
-                                    boolean[] itemsPickedUp = new boolean[1];
-                                    int itemIdx = 0;
-                                    while (pathIdx < finalPath.length() && !garbage) {
-                                        int input = inputFromChar(finalPath.charAt(pathIdx++));
-                                        // Execute the action
-                                        Position dest = getDestination(mem, input);
-                                        wrap.injectRBInput(input);
-                                        if(input == B) {
-                                            wrap.advanceFrame();
-                                            wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
-                                        }
-                                        else if(input == START) {
-                                            wrap.advanceFrame();
-                                            wrap.advanceToAddress(RedBlueAddr.joypadAddr);
-                                        } else {
-                                            wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr + 1);
-                                        }
+                // skip the rest of the intro
+                wrap.advanceToAddress(RedBlueAddr.joypadAddr);
+                wrap.injectRBInput(A);
+                wrap.advanceFrame();
+                wrap.advanceToAddress(RedBlueAddr.joypadAddr);
+                wrap.injectRBInput(A);
+                wrap.advanceFrame();
+                wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
+                int pathIdx = 0;
 
-                                        if (travellingToWarp(dest.map, dest.x, dest.y)) {
-                                            wrap.advanceToAddress(RedBlueAddr.enterMapAddr);
-                                            wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
-                                        } else if(input != START && input != B){
-                                            int result = wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr,
-                                                    RedBlueAddr.newBattleAddr);
+                // Process shit
+                boolean garbage = false;
+                boolean success = false;
+                boolean[] itemsPickedUp = new boolean[1];
+                int itemIdx = 0;
+                while (pathIdx < finalPath.length() && !garbage) {
+                    int input = inputFromChar(finalPath.charAt(pathIdx++));
+                    // Execute the action
+                    Position dest = getDestination(mem, input);
+                    wrap.injectRBInput(input);
+                    if(input == B) {
+                        wrap.advanceFrame();
+                        wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
+                    }
+                    else if(input == START) {
+                        wrap.advanceFrame();
+                        wrap.advanceToAddress(RedBlueAddr.joypadAddr);
+                    } else {
+                        wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr + 1);
+                    }
 
-                                            // Did we turnframe or hit an
-                                            // ignored input frame after
-                                            // a
-                                            // warp?
-                                            while (mem.getX() != dest.x || mem.getY() != dest.y) {
-                                                if (result == RedBlueAddr.newBattleAddr) {
-                                                    // Check for garbage
-                                                    int result2 = wrap.advanceToAddress(RedBlueAddr.encounterTestAddr,
-                                                            RedBlueAddr.joypadOverworldAddr);
+                    if (travellingToWarp(dest.map, dest.x, dest.y)) {
+                        wrap.advanceToAddress(RedBlueAddr.enterMapAddr);
+                        wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
+                    } else if(input != START && input != B){
+                        int result = wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr,
+                                RedBlueAddr.newBattleAddr);
 
-                                                    if (result2 == RedBlueAddr.encounterTestAddr) {
-                                                        // Yes we can. What's up
-                                                        // on this tile?
-                                                        int hra = mem.getHRA();
-                                                        // logLN("hrandom add was "+hra);
-                                                        if (hra < 10) {
-                                                            wrap.advanceFrame();
-                                                            wrap.advanceFrame();
-                                                            log += String
-                                                                    .format("[F] Encounter at map %d x %d y %d Species %d Level %d DVs %04X [turnframe]",
-                                                                            mem.getMap(), mem.getX(), mem.getY(),
-                                                                            mem.getEncounterSpecies(),
-                                                                            mem.getEncounterLevel(),
-                                                                            mem.getEncounterDVs());
-                                                            garbage = true;
-                                                            break;
-                                                        }
-                                                    }
-                                                }
-                                                // Do that input again
-                                                wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
-                                                wrap.injectRBInput(input);
-                                                wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr + 1);
-                                                result = wrap.advanceToAddress(RedBlueAddr.newBattleAddr,
-                                                        RedBlueAddr.joypadOverworldAddr);
-                                            }
-                                            // Can we get an encounter now?
-                                            if (!garbage) {
-                                                int result2 = wrap.advanceToAddress(RedBlueAddr.encounterTestAddr,
-                                                        RedBlueAddr.joypadOverworldAddr);
+                        // Did we turnframe or hit an
+                        // ignored input frame after
+                        // a
+                        // warp?
+                        while (mem.getX() != dest.x || mem.getY() != dest.y) {
+                            if (result == RedBlueAddr.newBattleAddr) {
+                                // Check for garbage
+                                int result2 = wrap.advanceToAddress(RedBlueAddr.encounterTestAddr,
+                                        RedBlueAddr.joypadOverworldAddr);
 
-                                                if (result2 == RedBlueAddr.encounterTestAddr) {
-
-                                                    // Yes we can. What's up on
-                                                    // this tile?
-                                                    int hra = mem.getHRA();
-                                                    // logLN("hrandom add was "+hra);
-                                                    if (hra < 10) {
-                                                        // is this actually
-                                                        // good?
-                                                        wrap.advanceFrame();
-                                                        wrap.advanceFrame();
-                                                        boolean ybfFailed = false;
-                                                        if(mem.getMap() == 61 && mem.getX() <= 18 && mem.getY() <= 31) {
-                                                            if(mem.getEncounterSpecies() == 109) {
-                                                                success = true;
-                                                                wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
-                                                                wrap.injectRBInput(A);
-                                                                wrap.advanceFrame();
-                                                                wrap.advanceToAddress(RedBlueAddr.playCryAddr);
-                                                                wrap.injectRBInput(DOWN | A);
-                                                                wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
-                                                                wrap.injectRBInput(A | RIGHT);
-                                                                int result3 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
-                                                                if(result3 == RedBlueAddr.catchFailureAddr) {
-                                                                    ybfFailed = true;
-                                                                    success = false;
-                                                                }
-                                                            }
-                                                        }
-                                                        log += String
-                                                                .format("[%s] Encounter at map %d x %d y %d Species %d Level %d DVs %04X rdiv %04X hra %02X hrs %02X %s",
-                                                                        success ? "S" : "F", mem.getMap(), mem.getX(),
-                                                                        mem.getY(), mem.getEncounterSpecies(),
-                                                                        mem.getEncounterLevel(), mem.getEncounterDVs(), gb.getDivState(), mem.getHRA(), mem.getHRS(), ybfFailed ? "**YOLOBALL FAIL**" : "");
-                                                        // trash state, throw it
-                                                        // in the bin
-                                                        // (encounter)
-                                                        garbage = true;
-                                                    }
-                                                }
-                                                if (!garbage) {
-                                                    wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
-
-                                                    // Pick up item?
-                                                    if (timeToPickUpItem(mem.getMap(), mem.getX(), mem.getY(),
-                                                            itemsPickedUp)) {
-                                                        // Pick it up
-                                                        wrap.injectRBInput(A);
-                                                        wrap.advanceWithJoypadToAddress(A,
-                                                                RedBlueAddr.textJingleCommandAddr);
-                                                        wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
-                                                        itemsPickedUp[itemIdx++] = true;
-                                                    }
-                                                }
-                                            }
-
-                                        }
-                                    }
-
-                                    if (!garbage) {
-                                        log += String.format("[F] No encounter at map %d x %d y %d rdiv %04X hra %02X hrs %02X", mem.getMap(),
-                                                mem.getX(), mem.getY(), gb.getDivState(), mem.getHRA(), mem.getHRS());
-                                    }
-
-                                    log += String.format(" (time=%dms)", System.currentTimeMillis() - startFrame);
-                                    synchronized (threadsRunning) {
-                                        results[sec][frm] = log;
-                                        successes[sec][frm] = success;
-                                        threadsRunning[num] = false;
+                                if (result2 == RedBlueAddr.encounterTestAddr) {
+                                    // Yes we can. What's up
+                                    // on this tile?
+                                    int hra = mem.getHRA();
+                                    // logLN("hrandom add was "+hra);
+                                    if (hra < 10) {
+                                        wrap.advanceFrame();
+                                        wrap.advanceFrame();
+                                        System.out.print(String
+                                                .format("[F] Encounter at map %d x %d y %d Species %d Level %d DVs %04X [turnframe]",
+                                                        mem.getMap(), mem.getX(), mem.getY(),
+                                                        mem.getEncounterSpecies(),
+                                                        mem.getEncounterLevel(),
+                                                        mem.getEncounterDVs()));
+                                        garbage = true;
+                                        break;
                                     }
                                 }
-                            };
-                            new Thread(run).start();
+                            }
+                            // Do that input again
+                            wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
+                            wrap.injectRBInput(input);
+                            wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr + 1);
+                            result = wrap.advanceToAddress(RedBlueAddr.newBattleAddr,
+                                    RedBlueAddr.joypadOverworldAddr);
                         }
-                    }
-                    if (!started) {
-                        try {
-                            Thread.sleep(1);
-                        } catch (InterruptedException e) {
+                        // Can we get an encounter now?
+                        if (!garbage) {
+                            int result2 = wrap.advanceToAddress(RedBlueAddr.encounterTestAddr,
+                                    RedBlueAddr.joypadOverworldAddr);
+
+                            if (result2 == RedBlueAddr.encounterTestAddr) {
+
+                                // Yes we can. What's up on
+                                // this tile?
+                                int hra = mem.getHRA();
+                                // logLN("hrandom add was "+hra);
+                                if (hra < 10) {
+                                    // is this actually
+                                    // good?
+                                    int hrs = mem.getHRS();
+                                    int divState = gb.getDivState();
+                                    wrap.advanceFrame();
+                                    wrap.advanceFrame();
+                                    boolean ybfFailed = false;
+                                    if(mem.getMap() == 61 && mem.getX() <= 18 && mem.getY() <= 31) {
+                                        if(mem.getEncounterSpecies() == 109) {
+                                            success = true;
+                                            wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
+                                            wrap.injectRBInput(A);
+                                            wrap.advanceFrame();
+                                            wrap.advanceToAddress(RedBlueAddr.playCryAddr);
+                                            wrap.injectRBInput(DOWN | A);
+                                            wrap.advanceWithJoypadToAddress(DOWN | A, RedBlueAddr.displayListMenuIdAddr);
+                                            wrap.injectRBInput(A | RIGHT);
+                                            int result3 = wrap.advanceWithJoypadToAddress(A | RIGHT, RedBlueAddr.catchSuccessAddr, RedBlueAddr.catchFailureAddr);
+                                            if(result3 == RedBlueAddr.catchFailureAddr) {
+                                                ybfFailed = true;
+                                                success = false;
+                                            }
+                                        }
+                                    }
+                                    System.out.print(String
+                                            .format("[%s] Encounter at map %d x %d y %d Species %d Level %d DVs %04X rdiv %04X hra %02X hrs %02X %s",
+                                                    success ? "S" : "F", mem.getMap(), mem.getX(),
+                                                    mem.getY(), mem.getEncounterSpecies(),
+                                                    mem.getEncounterLevel(), mem.getEncounterDVs(), divState, hra, hrs, ybfFailed ? "**YOLOBALL FAIL**" : ""));
+                                    // trash state, throw it
+                                    // in the bin
+                                    // (encounter)
+                                    garbage = true;
+                                }
+                            }
+                            if (!garbage) {
+                                wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
+
+                                // Pick up item?
+                                if (timeToPickUpItem(mem.getMap(), mem.getX(), mem.getY(),
+                                        itemsPickedUp)) {
+                                    // Pick it up
+                                    wrap.injectRBInput(A);
+                                    wrap.advanceWithJoypadToAddress(A,
+                                            RedBlueAddr.textJingleCommandAddr);
+                                    wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
+                                    itemsPickedUp[itemIdx++] = true;
+                                }
+                            }
                         }
+
                     }
                 }
 
-            }
-        }
+                if (!garbage) {
+                    System.out.print(String.format("[F] No encounter at map %d x %d y %d rdiv %04X hra %02X hrs %02X", mem.getMap(),
+                            mem.getX(), mem.getY(), gb.getDivState(), mem.getHRA(), mem.getHRS()));
+                }
 
-        // wait for all to be completed
-        boolean done = false;
-        while (!done) {
-            synchronized (threadsRunning) {
-                done = true;
-                for (int i = 0; i < numThreads; i++) {
-                    if (threadsRunning[i]) {
-                        done = false;
-                        break;
-                    }
-                }
-            }
-            if (!done) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                }
+                System.out.println(String.format(" (time=%dms)", System.currentTimeMillis() - startFrame));
+                    //results[sec][frm] = log;
+                successes[sec][frm] = success;
             }
         }
 
         // Print results
         int numSuccesses = 0;
         for (int sec = 0; sec < maxSecond; sec++) {
-            logLN("Second " + sec);
             for (int frm = 0; frm < 60; frm++) {
-                logLN(results[sec][frm]);
                 numSuccesses += successes[sec][frm] ? 1 : 0;
             }
         }
 
-        logF("%d worked found (time=%dms).\n", numSuccesses, System.currentTimeMillis() - startAll);
+        System.out.println(String.format("%d worked found (time=%dms).", numSuccesses, System.currentTimeMillis() - startAll));
 
-        ps.close();
     }
 
     private static int inputFromChar(char charVal) {
@@ -406,16 +351,6 @@ public class LassIGT0Checker {
         } else {
             return new Position(mem.getMap(), mem.getX(), mem.getY());
         }
-    }
-
-    public static void logLN(String ln) {
-        System.out.println(ln);
-        ps.println(ln);
-    }
-
-    public static void logF(String format, Object... args) {
-        System.out.printf(format, args);
-        ps.printf(format, args);
     }
 
 }

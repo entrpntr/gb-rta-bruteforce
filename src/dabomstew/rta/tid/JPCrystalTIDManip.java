@@ -1,10 +1,9 @@
 package dabomstew.rta.tid;
 
-import dabomstew.rta.CrystalAddr;
+import dabomstew.rta.JPCrystalAddr;
 import mrwint.gbtasgen.Gb;
 
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.io.File;
 import java.io.IOException;
@@ -14,7 +13,8 @@ import java.util.List;
 import dabomstew.rta.GBMemory;
 import dabomstew.rta.GBWrapper;
 
-public class CrystalTIDManip {
+// TODO: Currently JP Crystal does not emulate accurately; these results are mostly useless until then
+public class JPCrystalTIDManip {
     private static final int NO_INPUT = 0x00;
     private static final int A = 0x01;
     private static final int B = 0x02;
@@ -22,28 +22,28 @@ public class CrystalTIDManip {
     private static final int HARD_RESET = 0x800;
 
     // Change this to increase/decrease number of intro sequence combinations processed
-    private static final int MAX_COST = 5263;
+    private static final int MAX_COST = 3000;
 
     private static final int BASE_COST = 387 + 60;
 
-    private static Strat gfSkip = new Strat("_gfskip", 0, new Integer[] {CrystalAddr.readJoypadAddr}, new Integer[] {START}, new Integer[] {1});
-    private static Strat gfWait = new Strat("_gfwait", 384, new Integer[] {CrystalAddr.introScene0Addr, CrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
-    private static Strat intro0 = new Strat("_intro0", 450, new Integer[] {CrystalAddr.introScene1Addr, CrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
-    private static Strat intro2 = new Strat("_intro1", 624, new Integer[] {CrystalAddr.introScene3Addr, CrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
-    private static Strat intro4 = new Strat("_intro2", 819, new Integer[] {CrystalAddr.introScene5Addr, CrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
-    private static Strat intro6 = new Strat("_intro3", 1052, new Integer[] {CrystalAddr.introScene7Addr, CrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
-    private static Strat intro10 = new Strat("_intro4", 1396, new Integer[] {CrystalAddr.introScene11Addr, CrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
-    private static Strat intro12 = new Strat("_intro5", 1674, new Integer[] {CrystalAddr.introScene13Addr, CrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
-    private static Strat intro14 = new Strat("_intro6", 1871, new Integer[] {CrystalAddr.introScene15Addr, CrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
-    private static Strat intro16 = new Strat("_intro7", 2085, new Integer[] {CrystalAddr.introScene17Addr, CrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
-    private static Strat intro18 = new Strat("_intro8", 2254, new Integer[] {CrystalAddr.introScene19Addr, CrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
-    private static Strat intro25 = new Strat("_intro9", 2565, new Integer[] {CrystalAddr.introScene26Addr, CrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
-    private static Strat introwait = new Strat("_introwait", 2827, new Integer[] {CrystalAddr.titleScreenAddr}, new Integer[] {NO_INPUT}, new Integer[] {0});
+    private static Strat gfSkip = new Strat("_gfskip", 0, new Integer[] {JPCrystalAddr.readJoypadAddr}, new Integer[] {START}, new Integer[] {1});
+    private static Strat gfWait = new Strat("_gfwait", 384, new Integer[] {JPCrystalAddr.introScene0Addr, JPCrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
+    private static Strat intro0 = new Strat("_intro0", 450, new Integer[] {JPCrystalAddr.introScene1Addr, JPCrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
+    private static Strat intro2 = new Strat("_intro1", 624, new Integer[] {JPCrystalAddr.introScene3Addr, JPCrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
+    private static Strat intro4 = new Strat("_intro2", 819, new Integer[] {JPCrystalAddr.introScene5Addr, JPCrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
+    private static Strat intro6 = new Strat("_intro3", 1052, new Integer[] {JPCrystalAddr.introScene7Addr, JPCrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
+    private static Strat intro10 = new Strat("_intro4", 1396, new Integer[] {JPCrystalAddr.introScene11Addr, JPCrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
+    private static Strat intro12 = new Strat("_intro5", 1674, new Integer[] {JPCrystalAddr.introScene13Addr, JPCrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
+    private static Strat intro14 = new Strat("_intro6", 1871, new Integer[] {JPCrystalAddr.introScene15Addr, JPCrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
+    private static Strat intro16 = new Strat("_intro7", 2085, new Integer[] {JPCrystalAddr.introScene17Addr, JPCrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
+    private static Strat intro18 = new Strat("_intro8", 2254, new Integer[] {JPCrystalAddr.introScene19Addr, JPCrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
+    private static Strat intro25 = new Strat("_intro9", 2565, new Integer[] {JPCrystalAddr.introScene26Addr, JPCrystalAddr.readJoypadAddr}, new Integer[] {NO_INPUT, START}, new Integer[] {0, 1});
+    private static Strat introwait = new Strat("_introwait", 2827, new Integer[] {JPCrystalAddr.titleScreenAddr}, new Integer[] {NO_INPUT}, new Integer[] {0});
 
-    // private static Strat titleSkip = new Strat("_title", 54, new Integer[] {CrystalAddr.readJoypadAddr}, new Integer[] {START}, new Integer[] {1});
-    private static Strat titleSkip = new Strat("", 54, new Integer[] {CrystalAddr.readJoypadAddr}, new Integer[] {START}, new Integer[] {1});
-    private static Strat newGame = new Strat("_newgame", 8, new Integer[] {CrystalAddr.readJoypadAddr}, new Integer[] {A}, new Integer[] {52});
-    private static Strat backout = new Strat("_backout", 44, new Integer[] {CrystalAddr.readJoypadAddr}, new Integer[] {B}, new Integer[] {1});
+    // private static Strat titleSkip = new Strat("_title", 54, new Integer[] {JPCrystalAddr.readJoypadAddr}, new Integer[] {START}, new Integer[] {1});
+    private static Strat titleSkip = new Strat("", 54, new Integer[] {JPCrystalAddr.readJoypadAddr}, new Integer[] {START}, new Integer[] {1});
+    private static Strat newGame = new Strat("_newgame", 8, new Integer[] {JPCrystalAddr.readJoypadAddr}, new Integer[] {A}, new Integer[] {54});
+    private static Strat backout = new Strat("_backout", 44, new Integer[] {JPCrystalAddr.readJoypadAddr}, new Integer[] {B}, new Integer[] {1});
 
     private static List<Strat> intro = Arrays.asList(gfSkip, gfWait, intro0, intro2, intro4, intro6, intro10, intro12, intro14, intro16, intro18, intro25, introwait);
 
@@ -78,7 +78,7 @@ public class CrystalTIDManip {
             super(other);
         }
         @Override public String toString() {
-            String ret = "crystal";
+            String ret = "jpcrystal";
             for(int i=0; i<this.size(); i++) {
                 Strat s = this.get(i);
                 if(s.name.equals(("_backout"))) {
@@ -136,7 +136,7 @@ public class CrystalTIDManip {
             System.exit(0);
         }
 
-        File file = new File("crystal_tids3_5263.txt");
+        File file = new File("jp_crystal_tids.txt");
         PrintWriter writer = new PrintWriter(file);
 
         ArrayList<Strat> waitStrats = new ArrayList<>();
@@ -146,7 +146,7 @@ public class CrystalTIDManip {
             Integer[] input = new Integer[i];
             Integer[] advFrames = new Integer[i];
             for(int j=0; j<i; j++) {
-                addr[j] = CrystalAddr.mainMenuJoypadAddr;
+                addr[j] = JPCrystalAddr.mainMenuJoypadAddr;
                 input[j] = NO_INPUT;
                 advFrames[j] = 1;
             }
@@ -158,18 +158,18 @@ public class CrystalTIDManip {
             Integer[] addr = new Integer[i+2];
             Integer[] input = new Integer[i+2];
             Integer[] advFrames = new Integer[i+2];
-            addr[0] = CrystalAddr.readJoypadAddr;
+            addr[0] = JPCrystalAddr.readJoypadAddr;
             input[0] = 0x80;
             advFrames[0] = 1;
             for(int j=1; j<i; j++) {
-                addr[j] = CrystalAddr.mainMenuJoypadAddr;
+                addr[j] = JPCrystalAddr.mainMenuJoypadAddr;
                 input[j] = NO_INPUT;
                 advFrames[j] = 1;
             }
-            addr[i] = CrystalAddr.readJoypadAddr;
+            addr[i] = JPCrystalAddr.readJoypadAddr;
             input[i] = A;
             advFrames[i] = 1;
-            addr[i+1] = CrystalAddr.readJoypadAddr;
+            addr[i+1] = JPCrystalAddr.readJoypadAddr;
             input[i+1] = START;
             advFrames[i+1] = 1;
             optStrats.add(new Strat("_wait" + i + "(opt)", i*4 + 95, addr, input, advFrames));
@@ -199,11 +199,9 @@ public class CrystalTIDManip {
         // Init gambatte with 1 screen
         Gb.loadGambatte(1);
         Gb gb = new Gb(0, false);
-        gb.startEmulator("roms/pokecrystal.gbc");
+        gb.startEmulator("roms/pokecrystaljp.gbc");
         GBMemory mem = new GBMemory(gb);
         GBWrapper wrap = new GBWrapper(gb, mem);
-        //wrap.advanceToAddress(0x017D);
-        //ByteBuffer postBios = gb.saveState();
         for(IntroSequence seq : introSequences) {
             seq.execute(wrap);
             int tid = readTID(gb);
@@ -213,7 +211,6 @@ public class CrystalTIDManip {
                             + ": TID = " + String.format("0x%4s", Integer.toHexString(tid).toUpperCase()).replace(' ', '0') + " (" + String.format("%5s)", tid).replace(' ', '0')
                             + ", LID = " + String.format("0x%4s", Integer.toHexString(lid).toUpperCase()).replace(' ', '0') + " (" + String.format("%5s)", lid).replace(' ', '0')
                             + ", Cost: " + (seq.cost() + BASE_COST));
-            //gb.loadState(postBios);
             gb.step(HARD_RESET);
             writer.flush();
         }
@@ -221,10 +218,11 @@ public class CrystalTIDManip {
     }
 
     private static int readTID(Gb gb) {
-        return (gb.readMemory(0xD47B) << 8) | gb.readMemory(0xD47C);
+        return (gb.readMemory(0xD48C) << 8) | gb.readMemory(0xD48D);
     }
 
     private static int readLID(Gb gb) {
-        return (gb.readMemory(0xDC9F) << 8) | gb.readMemory(0xDCA0);
+        return (gb.readMemory(0xDC65) << 8) | gb.readMemory(0xDC66);
     }
+    
 }

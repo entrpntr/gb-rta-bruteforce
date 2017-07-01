@@ -35,11 +35,11 @@ public class MegaPunchExtension {
     static PrintWriter writer;
     private static HashSet<String> seenStates = new HashSet<>();
 
-    static int MAX_COST = 80;
+    static int MAX_COST = 40;
 
     static ArrayList<ArrayList<Integer>> segmentPaths = new ArrayList<>();
     //static String htasStr = "[[Input 16,Input 16,Input 16,Input 16,Input 128,Input 17,Input 16],[Input 64,Input 64,Input 64,Input 64,Input 16,Input 64,Input 64,Input 64],[Input 64,Input 64,Input 64,Input 64,Input 32,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 32,Input 64,Input 64,Input 64,Input 32,Input 64,Input 64,Input 32,Input 32,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 32,Input 32],[Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 128,Input 32,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128],[Input 32,Input 33,Input 32,Input 128,Input 33,Input 32,Input 33,Input 32,Input 33,Input 128],[Input 16,Input 64,Input 16,Input 16,Input 64,Input 64],[Input 128,Input 128,Input 128,Input 128,Input 33,Input 32,Input 32],[Input 16,Input 17,Input 16,Input 64,Input 17,Input 16,Input 65,Input 16,Input 16,Input 17],[Input 128,Input 32,Input 128,Input 128,Input 128,Input 128,Input 129,Input 32,Input 32,Input 32,Input 32,Input 33],[Input 32,Input 64,Input 64,Input 32,Input 65,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 32,Input 64,Input 32,Input 32,Input 64,Input 64,Input 32,Input 32,Input 64],[Input 128,Input 16,Input 16,Input 129,Input 128],[Input 128,Input 128,Input 128,Input 128,Input 128,Input 16,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 16,Input 16,Input 16,Input 128,Input 16,Input 16,Input 17,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16],[Input 64,Input 64,Input 16,Input 16,Input 64,Input 16,Input 16,Input 16],[Input 16,Input 128,Input 128,Input 16,Input 16,Input 16,Input 16,Input 16],[Input 64,Input 16,Input 64,Input 16,Input 16,Input 16],[Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 32,Input 32,Input 32,Input 128,Input 129,Input 128,Input 32,Input 129,Input 128,Input 128,Input 128,Input 128,Input 128],[Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 33,Input 32,Input 32,Input 32,Input 32,Input 32]]";
-    static String htasStr = "[" +
+    /*static String htasStr = "[" +
             "[Input 16,Input 16,Input 16,Input 16,Input 128,Input 17,Input 16]," +
             "[Input 64,Input 64,Input 64,Input 64,Input 16,Input 64,Input 64,Input 64]," +
             "[Input 64,Input 64,Input 64,Input 64,Input 32,Input 32,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 32,Input 64,Input 64,Input 32,Input 32,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 32,Input 32]," +
@@ -57,8 +57,28 @@ public class MegaPunchExtension {
             "[Input 64,Input 64,Input 17,Input 16,Input 16,Input 16]," +
             "[Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 32,Input 32,Input 32,Input 32,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128]," +
             "[Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32]]";
-
+*/
     //static String htasStr = "[[Input 128,Input 16,Input 16,Input 16,Input 16,Input 16,Input 17],[Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 16],[Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 32,Input 64,Input 64,Input 64,Input 32,Input 64,Input 32,Input 32,Input 64,Input 64,Input 64,Input 64,Input 64,Input 32,Input 64,Input 64],[Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 128,Input 32,Input 32,Input 32,Input 128,Input 128,Input 128,Input 32,Input 32,Input 32,Input 32,Input 32,Input 128,Input 128,Input 128,Input 128],[Input 32,Input 129,Input 32,Input 32,Input 33,Input 128,Input 33,Input 32,Input 32,Input 33],[Input 64,Input 16,Input 16,Input 16,Input 64,Input 65],[Input 128,Input 129,Input 128,Input 32,Input 32,Input 32,Input 128],[Input 64,Input 17,Input 16,Input 16,Input 17,Input 16,Input 17,Input 16,Input 64,Input 17],[Input 128,Input 32,Input 128,Input 128,Input 128,Input 128,Input 128,Input 33,Input 32,Input 32,Input 32,Input 32],[Input 64,Input 65,Input 64,Input 64,Input 32,Input 32,Input 64,Input 64,Input 32,Input 64,Input 64,Input 65,Input 64,Input 64,Input 32,Input 64,Input 64,Input 64,Input 65,Input 32,Input 32,Input 32],[Input 128,Input 128,Input 128,Input 16,Input 16],[Input 128,Input 128,Input 128,Input 129,Input 128,Input 128,Input 16,Input 128,Input 128,Input 128,Input 128,Input 16,Input 128,Input 16,Input 128,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16],[Input 16,Input 64,Input 16,Input 64,Input 64,Input 16,Input 17,Input 16],[Input 128,Input 128,Input 16,Input 17,Input 16,Input 16,Input 16,Input 16],[Input 16,Input 64,Input 64,Input 16,Input 16,Input 16],[Input 128,Input 129,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 32,Input 32,Input 128,Input 32,Input 128,Input 128,Input 32,Input 128,Input 128,Input 128,Input 128,Input 129],[Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 33,Input 32,Input 32]]";
+    static String htasStr = "[" +
+            "[Input 128,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16]," +
+            "[Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 16,Input 64]," +
+            "[Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 32,Input 32,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 64,Input 32,Input 32,Input 32]," +
+            "[Input 32,Input 32,Input 128,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 128,Input 128,Input 128,Input 32,Input 32,Input 32,Input 32,Input 32,Input 128,Input 128,Input 128,Input 128]," +
+            "[Input 32,Input 33,Input 32,Input 128,Input 32,Input 33,Input 32,Input 33,Input 32,Input 129]," +
+            "[Input 64,Input 16,Input 16,Input 16,Input 64,Input 64]," +
+            "[Input 128,Input 128,Input 128,Input 128,Input 32,Input 33,Input 32]," +
+            "[Input 16,Input 17,Input 16,Input 64,Input 65,Input 16,Input 17,Input 16,Input 16,Input 17]," +
+            "[Input 128,Input 129,Input 128,Input 128,Input 32,Input 128,Input 128,Input 32,Input 32,Input 32,Input 33,Input 32]," +
+            "[Input 64,Input 64,Input 64,Input 64,Input 64,Input 32,Input 32,Input 33,Input 32,Input 64,Input 64,Input 64,Input 65,Input 64,Input 32,Input 64,Input 64,Input 65,Input 64,Input 64,Input 32,Input 32]," +
+            "[Input 16,Input 128,Input 129,Input 128,Input 16]," +
+            "[Input 128,Input 129,Input 128,Input 16,Input 16,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16,Input 16]," +
+            "[Input 64,Input 65,Input 64,Input 16,Input 17,Input 16,Input 16,Input 16]," +
+            "[Input 16,Input 128,Input 128,Input 16,Input 16,Input 16,Input 16,Input 16]," +
+            "[Input 64,Input 65,Input 16,Input 16,Input 16,Input 16]," +
+            "[Input 128,Input 129,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 32,Input 32,Input 32,Input 32,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128,Input 128]," +
+            "[Input 32,Input 33,Input 32,Input 32,Input 33,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32,Input 32]," +
+            "]";
+
 
     private static OverworldTile pw11_31 = new OverworldTile(61, 11, 31, true);
     private static OverworldTile pw11_30 = new OverworldTile(61, 11, 30, true);
@@ -125,7 +145,8 @@ public class MegaPunchExtension {
 
     public static void main(String[] args) throws IOException {
         String ts = Long.toString(System.currentTimeMillis());
-        File file = new File("r3lass_encs_" + ts + ".txt");
+        File file = new File("bc_encs_" + ts + ".txt");
+        //File file = new File("r3lass_encs_" + ts + ".txt");
         writer = new PrintWriter(file);
         pw11_31.addEdge(new OverworldEdge(OverworldAction.UP, 0, 17, pw11_30));
         pw11_31.addEdge(new OverworldEdge(OverworldAction.LEFT, 0, 17, pw10_31));
@@ -280,7 +301,8 @@ public class MegaPunchExtension {
 
         final String finalPath = path;
 
-        byte[] baseSave = FileFunctions.readFileFullyIntoBuffer("baseSaves/red_moon_2932_r3lass.sav");
+        //byte[] baseSave = FileFunctions.readFileFullyIntoBuffer("baseSaves/red_moon_2932_r3lass.sav");
+        byte[] baseSave = FileFunctions.readFileFullyIntoBuffer("baseSaves/megapunch2.sav");
         baseSave[0x2CEF] = (byte) 20;
         baseSave[0x2CF0] = (byte) 0;
         baseSave[0x2CF1] = (byte) 6;
@@ -319,6 +341,8 @@ public class MegaPunchExtension {
         wrap.injectRBInput(A);
         wrap.advanceFrame();
         wrap.advanceToAddress(RedBlueAddr.joypadOverworldAddr);
+
+        wrap.writeMemory(0xD31E, 0x04);
 
         int pathIdx = 0;
 
@@ -561,7 +585,7 @@ public class MegaPunchExtension {
                                                 mem.getEncounterDVs(), mem.getRNGStateHRAOnly());
                                         int owFrames = ow.getOverworldFrames() + edge.getFrames();
                                         //  String pruneDsum = dsumPrune ? " [*]" : "";
-                                        /*
+
                                         String defaultYbf = "";
                                         String redbarYbf = "";
                                         if (enc.species == 109) {
@@ -597,15 +621,15 @@ public class MegaPunchExtension {
                                             } else {
                                                 redbarYbf = ", redbar ybf: [ ]";
                                             }
-                                            redbarYbf += ", HP = " + gb.readMemory(0xCFE7);
+                                            //redbarYbf += ", HP = " + gb.readMemory(0xCFE7);
                                         }
-                                        */
+
                                         writer.println(
                                                 ow.toString() + " " + edgeAction.logStr() + ", " +
                                                         String.format(
                                                                 "species %d lv%d DVs %04X rng %s encrng %s",
                                                                 enc.species, enc.level, enc.dvs, enc.battleRNG, rngAtEnc
-                                                        ) + ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames)
+                                                        ) + ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames) + defaultYbf + redbarYbf
                                                 //                              + pruneDsum
                                         );
                                         writer.flush();
@@ -632,10 +656,10 @@ public class MegaPunchExtension {
                                             mem.getEncounterDVs(), mem.getRNGStateHRAOnly());
                                     int owFrames = ow.getOverworldFrames() + edge.getFrames();
                                     //  String pruneDsum = dsumPrune ? " [*]" : "";
-                                    /*
+
                                     String defaultYbf = "";
                                     String redbarYbf = "";
-                                    if (enc.species == 36) {
+                                    if (enc.species == 109) {
                                         // non-redbar
                                         ByteBuffer saveState2 = gb.saveState();
                                         wrap.advanceToAddress(RedBlueAddr.manualTextScrollAddr);
@@ -668,16 +692,16 @@ public class MegaPunchExtension {
                                         } else {
                                             redbarYbf = ", redbar ybf: [ ]";
                                         }
-                                        redbarYbf += ", HP = " + gb.readMemory(0xCFE7);
+                                        //redbarYbf += ", HP = " + gb.readMemory(0xCFE7);
 
                                     }
-                                    */
+
                                     writer.println(
                                             ow.toString() + " " + edgeAction.logStr() + ", " +
                                                     String.format(
                                                             "species %d lv%d DVs %04X rng %s encrng %s",
                                                             enc.species, enc.level, enc.dvs, enc.battleRNG, rngAtEnc
-                                                    ) + ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames)
+                                                    ) + ", cost: " + (ow.getWastedFrames() + edgeCost) + ", owFrames: " + (owFrames) + defaultYbf + redbarYbf
                                             //                              + pruneDsum
                                     );
                                     writer.flush();
@@ -711,7 +735,7 @@ public class MegaPunchExtension {
                     if (res == RedBlueAddr.joypadOverworldAddr) {
                         newState = new OverworldState(ow.toString() + " " + edgeAction.logStr(), edge.getNextPos(), 2,
                                 true, gb.getDivState(), mem.getHRA(), mem.getHRS(), ow.isViridianNpc(), mem.getTurnFrameStatus(),
-                                mem.getNPCTimers(), ow.getWastedFrames() + 4, ow.getOverworldFrames() + wastedFrames);
+                                mem.getNPCTimers(), ow.getWastedFrames() + wastedFrames, ow.getOverworldFrames() + wastedFrames);
                         //overworldSearch(newState, prune || dsumPrune);
                         overworldSearch(newState);
                     }

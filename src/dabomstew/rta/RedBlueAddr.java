@@ -25,4 +25,8 @@ public class RedBlueAddr {
     public static final int displayTitleScreenAddr = 0x42DD;
     public static final int titleScreenPickNewMonAddr = 0x4496;
     public static final int initAddr = 0x1F54;
+    public static final int displayTextBoxIdAddr = 0x30E8;
+    public static final int displayNamingScreenAddr = 0x6596;
+    public static final int calcStatAddr = 0x394A;
+    public static final int updateNpcSpriteAddr = 0x4ED1;
 }

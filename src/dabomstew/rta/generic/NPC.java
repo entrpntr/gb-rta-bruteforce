@@ -2,32 +2,32 @@ package dabomstew.rta.generic;
 
 import java.util.ArrayList;
 
-public class RBNPC {
+public class NPC {
 
 	public static final int NPC_VISION_START_X = -5;
 	public static final int NPC_VISION_START_Y = -4;
 	public static final int NPC_VISION_END_X = 4;
 	public static final int NPC_VISION_END_Y = 4;
 	
-	private RBMap map;
+	private Map map;
 	private int x;
 	private int y;
 	
-	public RBNPC(RBMap map, int x, int y) {
+	public NPC(Map map, int x, int y) {
 		this.map = map;
 		this.x = x;
 		this.y = y;
 	}
 
-	public ArrayList<RBMapTile> getTilesAround() {
-		ArrayList<RBMapTile> result = new ArrayList<RBMapTile>();
+	public ArrayList<Tile> getTilesAround() {
+		ArrayList<Tile> result = new ArrayList<Tile>();
 		for(int i = NPC_VISION_START_X; i < NPC_VISION_END_X; i++) {
 			for(int j = NPC_VISION_START_Y; j < NPC_VISION_END_Y; j++) {
 				int xTile = x + i;
 				int yTile = y + j;
 				int pwXTile = xTile + map.getPokeworldOffsetX();
 				int pwYTile = yTile + map.getPokeworldOffsetY();
-				RBMap tileMap = RBMap.getMapByPosition(pwXTile, pwYTile);
+				Map tileMap = Map.getMapByPosition(pwXTile, pwYTile);
 				if(tileMap == null) {
 					continue;
 				}
@@ -57,7 +57,7 @@ public class RBNPC {
 		return result;
 	}
 	
-	public RBMap getMap() {
+	public Map getMap() {
 		return map;
 	}
 	

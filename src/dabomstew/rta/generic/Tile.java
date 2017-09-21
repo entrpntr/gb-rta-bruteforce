@@ -1,9 +1,9 @@
 package dabomstew.rta.generic;
 
-public class RBMapTile {
+public class Tile {
 
 	// TODO: maybe make positions bytes for less ram usage?
-	private RBMap map;
+	private Map map;
 	private int x;
 	private int y;
 	private boolean isSolid;
@@ -15,7 +15,7 @@ public class RBMapTile {
 	private boolean canMoveUp;
 	private boolean canMoveDown;
 
-	public RBMapTile(RBMap map, int x, int y, byte data) {
+	public Tile(Map map, int x, int y, byte data) {
 		this.map = map;
 		this.x = x;
 		this.y = y;
@@ -28,11 +28,32 @@ public class RBMapTile {
 		this.canMoveUp = (data & 64) != 0;
 		this.canMoveDown = (data & 128) != 0;
 	}
+	
+	public void setSolid(boolean value) {
+		isSolid = value;
+	}
+
+	public void setCanMoveRight(boolean canMoveRight) {
+		this.canMoveRight = canMoveRight;
+	}
+
+	public void setCanMoveLeft(boolean canMoveLeft) {
+		this.canMoveLeft = canMoveLeft;
+	}
+
+
+	public void setCanMoveUp(boolean canMoveUp) {
+		this.canMoveUp = canMoveUp;
+	}
+
+	public void setCanMoveDown(boolean canMoveDown) {
+		this.canMoveDown = canMoveDown;
+	}
 
 	/**
 	 * @return - The map of the tile
 	 */
-	public RBMap getMap() {
+	public Map getMap() {
 		return map;
 	}
 
@@ -110,7 +131,7 @@ public class RBMapTile {
 	}
 	
 	public boolean isInVisionOfNPC() {
-		for(RBNPC npc : map.getNPCs()) {
+		for(NPC npc : map.getNPCs()) {
 			if(npc.getTilesAround().contains(this)) {
 				return true;
 			}

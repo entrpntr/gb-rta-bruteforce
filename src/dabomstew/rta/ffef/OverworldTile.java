@@ -3,17 +3,24 @@ package dabomstew.rta.ffef;
 import java.util.ArrayList;
 import java.util.List;
 
-import dabomstew.rta.astar.Node;
-
 public class OverworldTile {
     private int map;
     private int x;
     private int y;
-    private List<Node> path;
     private List<OverworldEdge> edgeList;
     private int minStepsToGrass;
     private boolean encounterTile;
+    private OverworldTile closestGrassTile;
 
+    public OverworldTile(OverworldTile other) {
+        this.map = other.getMap();
+        this.x = other.getX();
+        this.y = other.getY();
+        this.edgeList = new ArrayList<>();
+        this.encounterTile = other.isEncounterTile();
+        this.minStepsToGrass = other.getMinStepsToGrass();
+    }
+    
     public OverworldTile(int map, int x, int y) {
         this.map = map;
         this.x = x;
@@ -21,8 +28,21 @@ public class OverworldTile {
         this.edgeList = new ArrayList<>();
         this.encounterTile = false;
     }
+    
+    public OverworldTile(int map, int x, int y, OverworldTile closestGrassTile) {
+        this.map = map;
+        this.x = x;
+        this.y = y;
+        this.edgeList = new ArrayList<>();
+        this.encounterTile = false;
+        this.closestGrassTile = closestGrassTile;
+    }
 
-    public int getMinStepsToGrass() {
+    public void setClosestGrassTile(OverworldTile closestGrassTile) {
+		this.closestGrassTile = closestGrassTile;
+	}
+
+	public int getMinStepsToGrass() {
         return minStepsToGrass;
     }
 
@@ -41,8 +61,12 @@ public class OverworldTile {
         this.edgeList = new ArrayList<>();
         this.encounterTile = encounterTile;
     }
+    
+    public OverworldTile getClosestGrassTile() {
+		return closestGrassTile;
+	}
 
-    @Override public String toString() {
+	@Override public String toString() {
         return "[" + map + "#" + x + "," + y + "]";
     }
 
@@ -65,12 +89,13 @@ public class OverworldTile {
     public List<OverworldEdge> getEdgeList() {
         return edgeList;
     }
-
-	public List<Node> getPath() {
-		return path;
-	}
-
-	public void setPath(List<Node> path) {
-		this.path = path;
-	}
+    
+    public OverworldEdge getEdge(OverworldAction action) {
+    	for(OverworldEdge edge : edgeList) {
+    		if(edge.getAction() == action) {
+    			return edge;
+    		}
+    	}
+    	return null;
+    }
 }

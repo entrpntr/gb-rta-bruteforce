@@ -1,33 +1,35 @@
 package dabomstew.rta.generic;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import dabomstew.rta.astar.Location;
 
-public class RBMapDestination {
+public class MapDestination {
 
+	public static final int CUSTOM = -1;
 	public static final int GRASS_PATCHES = 0;
 	public static final int NORTH_CONNECTION = 1;
 	public static final int EAST_CONNECTION = 2;
 	public static final int SOUTH_CONNECTION = 3;
 	public static final int WEST_CONNECTION = 4;
 
-	private RBMap map;
+	private Map map;
 	private int mode;
 	private List<Location> destinationTiles;
 
-	public RBMapDestination(RBMap map) {
+	public MapDestination(Map map) {
 		this(map, GRASS_PATCHES);
 	}
 
-	public RBMapDestination(RBMap map, int mode) {
+	public MapDestination(Map map, int mode) {
 		this.map = map;
 		this.mode = mode;
 		this.destinationTiles = new ArrayList<Location>();
 		for(int x = 0; x < map.getWidthInTiles(); x++) {
 			for(int y = 0; y < map.getHeightInTiles(); y++) {
-				RBMapTile tile = map.getTile(x, y);
+				Tile tile = map.getTile(x, y);
 				switch(mode) {
 				case GRASS_PATCHES:
 					if(tile.isGrassTile()) {
@@ -58,8 +60,14 @@ public class RBMapDestination {
 			}
 		}
 	}
+	
+	public MapDestination(Map map, Location... destionationTiles) {
+		this.map = map;
+		this.mode = CUSTOM;
+		this.destinationTiles = Arrays.asList(destionationTiles);
+	}
 
-	public RBMap getMap() {
+	public Map getMap() {
 		return map;
 	}
 

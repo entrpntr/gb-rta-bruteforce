@@ -81,7 +81,7 @@ public class YellowMoonBot {
 			if (!(new File("./states/" + i).exists())) {
 				continue;
 			}
-			saves[i] = BufferUtils.loadByteBufferFromFile("./states/" + i + ".st");
+			saves[i] = BufferUtils.loadByteBufferFromFile("./states/" + i);
 		}
 
 		System.out.println("All saves loaded! " + (System.currentTimeMillis() - startTime));

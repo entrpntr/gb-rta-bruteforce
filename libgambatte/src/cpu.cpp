@@ -23,16 +23,14 @@
 
 gambatte::CPU* gCPU;
 
-int rtcOffset = 119104;
-
 std::time_t rtcFunc() {
-	return (gCPU->numFrames) / 60 + rtcOffset;
+	return (gCPU->numFrames) / 60 + (gCPU->rtcOffset);
 }
 
 namespace gambatte {
 
 CPU::CPU()
-: mem_(Interrupter(sp, pc_))
+: mem_(Interrupter(sp, pc_), sp, pc_)
 , cycleCounter_(0)
 , pc_(0x100)
 , sp(0xFFFE)
@@ -50,6 +48,7 @@ CPU::CPU()
 , skip_(false)
 , numInterruptAddresses()
 , numFrames(1)
+, rtcOffset(0)
 {
 	gCPU = this;
 	setRTCCallback(&rtcFunc);
@@ -520,6 +519,10 @@ void CPU::loadOrSave(loadsave& state)
 	PC_MOD(high << 8 | low); \
 } while (0)
 
+void CPU::setRTCOffset(int rtcOffset) {
+   gCPU->rtcOffset = rtcOffset;
+}
+
 void CPU::process(unsigned long const cycles) {
 	mem_.setEndtime(cycleCounter_, cycles);
 	hitInterruptAddress = 0; // hit no address yet
@@ -650,8 +653,6 @@ void CPU::process(unsigned long const cycles) {
 				// stop (4 cycles):
 				// Halt CPU and LCD display until button pressed:
 			case 0x10:
-				pc = (pc + 1) & 0xFFFF;
-
 				cycleCounter = mem_.stop(cycleCounter);
 
 				if (cycleCounter < mem_.nextEventTime()) {
@@ -1058,15 +1059,13 @@ void CPU::process(unsigned long const cycles) {
 
 				// halt (4 cycles):
 			case 0x76:
-				if (!mem_.ime()
-					&& (   mem_.ff_read(0x0F, cycleCounter)
-					     & mem_.ff_read(0xFF, cycleCounter) & 0x1F)) {
-					if (mem_.isCgb())
-						cycleCounter += 4;
+				if (mem_.ff_read(0x0F, cycleCounter) & mem_.ff_read(0xFF, cycleCounter) & 0x1F) {
+					if (mem_.ime())
+						pc = (pc - 1) & 0xFFFF;
 					else
 						skip_ = true;
 				} else {
-					mem_.halt();
+					mem_.halt(cycleCounter);
 
 					if (cycleCounter < mem_.nextEventTime()) {
 						unsigned long cycles = mem_.nextEventTime() - cycleCounter;

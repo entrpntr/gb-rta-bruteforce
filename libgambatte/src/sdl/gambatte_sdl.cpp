@@ -93,6 +93,7 @@ public:
 };
 
 SdlIniter sdl;
+bool debug = false;
 
 class GambatteSdl {
 public:
@@ -232,8 +233,10 @@ void GambatteSdl::step() {
 		std::size_t emusamples = SAMPLES_PER_FRAME - overflowSamples;
 		if (gambatte.runFor(vbuf.pixels, vbuf.pitch,
 				reinterpret_cast<gambatte::uint_least32_t*>(inBuf.get()), emusamples) >= 0) {
-		        //sdl.blitter.draw();
-			//sdl.blitter.present();
+            if(debug) {
+		        sdl.blitter.draw();
+			    sdl.blitter.present();
+			}
 		}
 
 		overflowSamples += emusamples;
@@ -399,10 +402,20 @@ JNIEXPORT jlong JNICALL Java_mrwint_gbtasgen_Gb_createGb
 
 // startEmulator
 JNIEXPORT void JNICALL Java_mrwint_gbtasgen_Gb_startEmulator
-    (JNIEnv *env, jclass clazz, jlong gb, jstring str) {
+    (JNIEnv *env, jclass clazz, jlong gb, jstring str, jboolean debug_, jint rtcOffset_) {
   UNUSED(clazz);
 
   ((GambatteSdl*)gb)->init(env->GetStringUTFChars(str, 0));
+  debug = (bool) debug_;
+  ((GambatteSdl*)gb)->gambatte.p_->cpu.rtcOffset = (int) rtcOffset_;
+}
+
+JNIEXPORT jint JNICALL Java_mrwint_gbtasgen_Gb_getCycleCount
+    (JNIEnv *env, jclass clazz, jlong gb){
+  UNUSED(env);UNUSED(clazz);
+
+  int cc = ((GambatteSdl*)gb)->gambatte.p_->cpu.cycleCounter_;
+  return cc;
 }
 
 

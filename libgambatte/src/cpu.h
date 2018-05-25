@@ -93,7 +93,9 @@ public:
 	int hitInterruptAddress;
 
 	int numFrames;
+	int rtcOffset;
 
+    void setRTCOffset(int rtcOffset);
 	void process(unsigned long cycles);
 };
 

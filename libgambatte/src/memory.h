@@ -37,7 +37,7 @@ class FilterInfo;
 
 class Memory {
 public:
-	explicit Memory(Interrupter const &interrupter);
+	explicit Memory(Interrupter const &interrupter, unsigned short &sp, unsigned short &pc);
 	bool loaded() const { return cart_.loaded(); }
 	char const * romTitle() const { return cart_.romTitle(); }
 	PakInfo const pakInfo(bool multicartCompat) const { return cart_.pakInfo(multicartCompat); }
@@ -67,7 +67,7 @@ public:
 		return (cc - intreq_.eventTime(intevent_blit)) >> isDoubleSpeed();
 	}
 
-	void halt() { intreq_.halt(); }
+	void halt(unsigned long cycleCounter) { halttime_ = cycleCounter; intreq_.halt(); }
 	void ei(unsigned long cycleCounter) { if (!ime()) { intreq_.ei(cycleCounter); } }
 	void di() { intreq_.di(); }
 
@@ -159,8 +159,12 @@ public:
 	bool cgbSwitching_;
 	bool agbMode_;
 	bool gbIsCgb_;
-	
-        #ifdef GAMBATTELOG
+	unsigned short &sp_;
+	unsigned short &pc_;
+	unsigned long halttime_;
+	bool stopped_;
+
+    #ifdef GAMBATTELOG
 	std::ofstream logout;
 	void log_init();
 	void log_write(unsigned P, unsigned data, unsigned long cycleCounter);

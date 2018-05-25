@@ -45,7 +45,8 @@ public:
 	void loadOrSave(loadsave& state);
 	void resetCc(unsigned long oldCc, unsigned long newCc);
 	unsigned ifreg() const { return ifreg_; }
-	unsigned pendingIrqs() const { return ifreg_ & iereg_; }
+    unsigned iereg() const { return iereg_; }
+    unsigned pendingIrqs() const { return ifreg_ & iereg_; }
 	bool ime() const { return intFlags_.ime(); }
 	bool halted() const { return intFlags_.halted(); }
 	void ei(unsigned long cc);

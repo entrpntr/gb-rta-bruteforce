@@ -27,7 +27,7 @@
 
 namespace gambatte {
 
-Memory::Memory(Interrupter const &interrupter)
+Memory::Memory(Interrupter const &interrupter, unsigned short &sp, unsigned short &pc)
 : getInput_(0)
 , divLastUpdate_(0)
 , lastOamDmaUpdate_(disabled_time)
@@ -38,6 +38,8 @@ Memory::Memory(Interrupter const &interrupter)
 , oamDmaPos_(0xFE)
 , serialCnt_(0)
 , blanklcd_(false)
+, sp_(sp)
+, pc_(pc)
 {
 	intreq_.setEventTime<intevent_blit>(144 * 456ul);
 	intreq_.setEventTime<intevent_end>(0);
@@ -60,6 +62,7 @@ unsigned long Memory::saveState(SaveState &state, unsigned long cc) {
 	state.mem.divLastUpdate = divLastUpdate_;
 	state.mem.nextSerialtime = intreq_.eventTime(intevent_serial);
 	state.mem.unhaltTime = intreq_.eventTime(intevent_unhalt);
+	state.mem.halttime = halttime_;
 	state.mem.lastOamDmaUpdate = lastOamDmaUpdate_;
 	state.mem.dmaSource = dmaSource_;
 	state.mem.dmaDestination = dmaDestination_;
@@ -68,6 +71,7 @@ unsigned long Memory::saveState(SaveState &state, unsigned long cc) {
 	state.mem.cgbSwitching = cgbSwitching_;
 	state.mem.agbMode = agbMode_;
 	state.mem.gbIsCgb = gbIsCgb_;
+	state.mem.stopped = stopped_;
 
 	intreq_.saveState(state);
 	cart_.saveState(state);
@@ -87,6 +91,7 @@ void Memory::loadState(SaveState const &state) {
 	cgbSwitching_ = state.mem.cgbSwitching;
 	agbMode_ = state.mem.agbMode;
 	gbIsCgb_ = state.mem.gbIsCgb;
+	stopped_ = state.mem.stopped;
 	psg_.loadState(state);
 	lcd_.loadState(state, state.mem.oamDmaPos < 0xA0 ? cart_.rdisabledRam() : ioamhram_);
 	tima_.loadState(state, TimaInterruptRequester(intreq_));
@@ -98,6 +103,7 @@ void Memory::loadState(SaveState const &state) {
 		? state.mem.nextSerialtime
 		: state.cpu.cycleCounter);
 	intreq_.setEventTime<intevent_unhalt>(state.mem.unhaltTime);
+	halttime_ = state.mem.halttime;
 	lastOamDmaUpdate_ = state.mem.lastOamDmaUpdate;
 	dmaSource_ = state.mem.dmaSource;
 	dmaDestination_ = state.mem.dmaDestination;
@@ -181,6 +187,9 @@ unsigned long Memory::event(unsigned long cc) {
 	case intevent_unhalt:
 		intreq_.unhalt();
 		intreq_.setEventTime<intevent_unhalt>(disabled_time);
+		nontrivial_ff_write(0xFF04, 0, cc);
+		pc_ = (pc_ + 1) & 0xFFFF;
+		cc += 4;
 		break;
 	case intevent_end:
 		intreq_.setEventTime<intevent_end>(disabled_time - 1);
@@ -297,8 +306,12 @@ unsigned long Memory::event(unsigned long cc) {
 		lcd_.update(cc);
 		break;
 	case intevent_interrupts:
+		if (stopped_) {
+			intreq_.setEventTime<intevent_interrupts>(disabled_time);
+			break;
+		}
 		if (halted()) {
-			if (gbIsCgb_)
+			if (gbIsCgb_ || (!gbIsCgb_ && cc <= halttime_ + 4))
 				cc += 4;
 
 			intreq_.unhalt();
@@ -306,17 +319,33 @@ unsigned long Memory::event(unsigned long cc) {
 		}
 
 		if (ime()) {
-			unsigned const pendingIrqs = intreq_.pendingIrqs();
+            // non-atomic interrupt fix for yellow TIDs
+            cc += 12;
+            lcd_.update(cc);
+            sp_ = (sp_ - 2) & 0xFFFF;
+            write(sp_ + 1, pc_ >> 8, cc);
+            unsigned ie = intreq_.iereg();
+
+            cc += 4;
+            lcd_.update(cc);
+            write(sp_, pc_ & 0xFF, cc);
+            unsigned const pendingIrqs = ie & intreq_.ifreg();
+
+            cc += 4;
+            lcd_.update(cc);
 			unsigned const n = pendingIrqs & -pendingIrqs;
 			unsigned address;
-			if (n <= 4) {
+            if (n == 0) {
+                address = 0;
+            }
+			else if (n <= 4) {
 				static unsigned char const lut[] = { 0x40, 0x48, 0x48, 0x50 };
 				address = lut[n-1];
 			} else
 				address = 0x50 + n;
 
 			intreq_.ackIrq(n);
-			cc = interrupter_.interrupt(address, cc, *this);
+			pc_ = address;
 		}
 
 		break;
@@ -326,12 +355,12 @@ unsigned long Memory::event(unsigned long cc) {
 }
 
 unsigned long Memory::stop(unsigned long cc) {
-	cc += 4 + 4 * isDoubleSpeed();
+	cc += 4;
 
 	if (ioamhram_[0x14D] & isCgb()) {
 		psg_.generateSamples(cc, isDoubleSpeed());
-		lcd_.speedChange(cc);
-		ioamhram_[0x14D] ^= 0x81;
+		lcd_.speedChange((cc + 7) & ~7);
+        ioamhram_[0x14D] ^= 0x81;
 		#ifdef GAMBATTELOG
 		log_speedChange(cc);
 		#endif
@@ -345,11 +374,15 @@ unsigned long Memory::stop(unsigned long cc) {
 				   ? (intreq_.eventTime(intevent_end) - cc) << 1
 				   : (intreq_.eventTime(intevent_end) - cc) >> 1));
 		}
+        intreq_.halt();
+        intreq_.setEventTime<intevent_unhalt>(cc + 0x20000);
+	}
+	else {
+		stopped_ = true;
+		intreq_.halt();
 	}
 
-	intreq_.halt();
-	intreq_.setEventTime<intevent_unhalt>(cc + 0x20000 + isDoubleSpeed() * 8);
-	return cc;
+    return cc;
 }
 
 static void decCycles(unsigned long &counter, unsigned long dec) {
@@ -648,6 +681,7 @@ void Memory::nontrivial_ff_write(unsigned const p, unsigned data, unsigned long 
 	case 0x04:
 		ioamhram_[0x104] = 0;
 		divLastUpdate_ = cc;
+		tima_.resTac(cc, TimaInterruptRequester(intreq_));
 		return;
 	case 0x05:
 		tima_.setTima(data, cc, TimaInterruptRequester(intreq_));
@@ -657,7 +691,7 @@ void Memory::nontrivial_ff_write(unsigned const p, unsigned data, unsigned long 
 		break;
 	case 0x07:
 		data |= 0xF8;
-		tima_.setTac(data, cc, TimaInterruptRequester(intreq_));
+		tima_.setTac(data, cc, TimaInterruptRequester(intreq_), agbMode_);
 		break;
 	case 0x0F:
 		updateIrqs(cc);

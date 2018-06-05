@@ -13,7 +13,11 @@ public class GBWrapper {
 		this.mem = mem;
 		this.gb = gb;
 	}
-	
+
+	public Gb getGb() {
+		return gb;
+	}
+
 	public int advanceToAddress(int... addresses) {
 	    //System.out.println("advancing to "+printAddressList(addresses));
 		int result = 0;
@@ -28,7 +32,7 @@ public class GBWrapper {
 			//runs++;
 /*
 			try {
-				Thread.sleep(5);
+				Thread.sleep(9);
 			} catch (InterruptedException e) {
 			}
 */
@@ -49,7 +53,7 @@ public class GBWrapper {
             }
 /*
  			try {
-                Thread.sleep(5);
+                Thread.sleep(9);
             } catch (InterruptedException e) {
 			}
 */
@@ -79,8 +83,13 @@ public class GBWrapper {
 		writeMemory(0xFFF8, input);
 	}
 
-	public void injectCrysInput(int input) {
+	public void injectCrysMenuInput(int input) {
 		writeMemory(0xFFA4, input);
+	}
+
+	public void injectCrysInput(int input) {
+		writeMemory(0xFFA7, input);
+		writeMemory(0xFFA8, input);
 	}
 
 	public void injectGSInput(int input) {

@@ -16,4 +16,10 @@ public class CrystalAddr {
     public static final int introScene26Addr = 0xE50BB;
     public static final int titleScreenAddr = 0x10ED67;
     public static final int mainMenuJoypadAddr = 0x49DF5;
+    public static final int disableLcdAddr = 0x0568;
+
+    public static final int owPlayerInputAddr = 0x96974;
+    public static final int countStepAddr = 0x96B79;
+    public static final int startWildBattleAddr = 0x2A0F6;
+    public static final int calcStatsAddr = 0xE17A;
 }

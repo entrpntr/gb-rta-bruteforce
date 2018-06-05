@@ -145,6 +145,18 @@ public class GBMemory {
 		return sb.toString();
 	}
 
+	public String getHexRNGStateWithDsum() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(Integer.toHexString(gb.getDivState()));
+		sb.append("-");
+		sb.append(Integer.toHexString(getHRA()));
+		sb.append("-");
+		sb.append(Integer.toHexString(getHRS()));
+		sb.append("-");
+		sb.append(Integer.toHexString((getHRS()+getHRA()) % 256));
+		return sb.toString();
+	}
+
     public String getRNGStateHRAOnly() {
         StringBuilder sb = new StringBuilder();
         sb.append(gb.getDivState());

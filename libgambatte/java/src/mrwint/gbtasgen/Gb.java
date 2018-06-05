@@ -196,7 +196,8 @@ public class Gb {
 
     public double getGbpTime() {
         double cc = (double) getCycleCount();
-        return ((cc / 4194303.96) + 2.16); // 59.7275*70224 + 2.16
+        return ((cc / 4194303.96) + 2.16); // 59.7275*70224 = 4194303.96 cycles/sec
+                                           //     GBP fade ~= 2.16 sec
     }
 
     public String getEonTimer() {
@@ -218,7 +219,6 @@ public class Gb {
     public void offsetDiv(int offset) {
         offsetDiv(gb, offset);
     }
-
 
     public static void loadGambatte(int numScreens) {
         if (System.getProperty("os.name").toLowerCase().contains("win")) {

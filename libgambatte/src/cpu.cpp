@@ -519,10 +519,6 @@ void CPU::loadOrSave(loadsave& state)
 	PC_MOD(high << 8 | low); \
 } while (0)
 
-void CPU::setRTCOffset(int rtcOffset) {
-   gCPU->rtcOffset = rtcOffset;
-}
-
 void CPU::process(unsigned long const cycles) {
 	mem_.setEndtime(cycleCounter_, cycles);
 	hitInterruptAddress = 0; // hit no address yet

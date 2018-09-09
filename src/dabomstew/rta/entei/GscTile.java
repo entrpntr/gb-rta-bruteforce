@@ -32,6 +32,10 @@ public class GscTile {
         edges.get(edgeset).add(edge);
     }
 
+    public void addEdge(int edgeset, GscAction action, GscTile tile) {
+        addEdge(edgeset, new GscEdge(action, tile));
+    }
+
     private GscCoord coord;
     private int map;
     private int x;

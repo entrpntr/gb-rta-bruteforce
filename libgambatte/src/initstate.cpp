@@ -1268,7 +1268,7 @@ void gambatte::setInitState(SaveState &state, bool const cgb, bool const gbaCgbM
 	state.ppu.isCgb = cgb;
 
 	// spu.cycleCounter >> 12 & 7 represents the frame sequencer position.
-	state.spu.cycleCounter = 0;
+	state.spu.cycleCounter = state.cpu.cycleCounter >> 1;;
 
 	state.spu.ch1.sweep.counter = SoundUnit::counter_disabled;
 	state.spu.ch1.sweep.shadow = 0;

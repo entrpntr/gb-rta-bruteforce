@@ -22,4 +22,8 @@ public class CrystalAddr {
     public static final int countStepAddr = 0x96B79;
     public static final int startWildBattleAddr = 0x2A0F6;
     public static final int calcStatsAddr = 0xE17A;
+    public static final int randomAddr = 0x2F8C;
+
+    public static final int printLetterDelayAddr = 0x3168;
+    public static final int bonkSoundAddr = 0x803EE;
 }

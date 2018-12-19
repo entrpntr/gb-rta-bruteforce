@@ -43,7 +43,7 @@ public enum GscAction {
         } else if(str.equals("SEL")) {
             return SEL;
         } else {
-            throw new IllegalArgumentException();
+            return null; // TODO: Discern between blank and illegal?
         }
     }
     private String str;

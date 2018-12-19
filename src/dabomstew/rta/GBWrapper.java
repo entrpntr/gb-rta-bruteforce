@@ -93,6 +93,11 @@ public class GBWrapper {
 	}
 
 	public void injectGSInput(int input) {
+		writeMemory(0xFFA9, input);
+		writeMemory(0xFFAA, input);
+	}
+
+	public void injectGSMenuInput(int input) {
 		writeMemory(0xFFA6, input);
 	}
 

@@ -26,4 +26,6 @@ public class CrystalAddr {
 
     public static final int printLetterDelayAddr = 0x3168;
     public static final int bonkSoundAddr = 0x803EE;
+    public static final int doPlayerDamageAddr = 0x35099;
+    public static final int seenByTrainerAddr = 0x9686E;
 }
